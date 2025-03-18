@@ -1,6 +1,7 @@
 import { Campaign } from './campaignData';
 import { generateWithOpenAI, OpenAIConfig, defaultOpenAIConfig } from './openai';
 import { getCampaigns } from './campaignStorage';
+import { generateStorytellingNarrative, StorytellingOutput } from './storytellingGenerator';
 
 export interface CampaignInput {
   brand: string;
@@ -19,6 +20,7 @@ export interface GeneratedCampaign {
   executionPlan: string[];
   expectedOutcomes: string[];
   referenceCampaigns: Campaign[];
+  storytelling?: StorytellingOutput;
 }
 
 // Sentiment categories for more nuanced matching
@@ -394,11 +396,31 @@ export const generateCampaign = async (
     // Parse the JSON response
     const generatedContent = JSON.parse(cleanedResponse);
     
-    // Return the campaign with references
-    return {
+    // Create the base campaign with references
+    const campaign: GeneratedCampaign = {
       ...generatedContent,
       referenceCampaigns
     };
+    
+    // Generate storytelling narrative
+    try {
+      const storytellingInput = {
+        brand: input.brand,
+        industry: input.industry,
+        targetAudience: input.targetAudience,
+        emotionalAppeal: input.emotionalAppeal,
+        campaignName: campaign.campaignName,
+        keyMessage: campaign.keyMessage
+      };
+      
+      const storytelling = await generateStorytellingNarrative(storytellingInput, openAIConfig);
+      campaign.storytelling = storytelling;
+    } catch (error) {
+      console.error("Error generating storytelling content:", error);
+      // Continue without storytelling if it fails
+    }
+    
+    return campaign;
   } catch (error) {
     console.error("Error generating campaign:", error);
     throw error;

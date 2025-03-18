@@ -1,12 +1,11 @@
 
 import React from "react";
 import CampaignForm from "@/components/CampaignForm";
-import CampaignResult from "@/components/CampaignResult";
+import EnhancedCampaignResult, { CampaignFeedback } from "@/components/EnhancedCampaignResult";
 import ChatWindow, { Message } from "@/components/ChatWindow";
 import { CampaignInput, GeneratedCampaign } from "@/lib/generateCampaign";
 import TransitionElement from "@/components/TransitionElement";
 import { OpenAIConfig } from "@/lib/openai";
-import { CampaignFeedback } from "@/components/CampaignResult";
 import HowItWorks from "@/components/HowItWorks";
 import Plans from "@/components/Plans";
 
@@ -40,10 +39,12 @@ const CampaignSection = ({
   return (
     <>
       {!generatedCampaign ? (
-        <CampaignForm onSubmit={onGenerateCampaign} isGenerating={isGenerating} />
+        <div className="flex justify-center w-full">
+          <CampaignForm onSubmit={onGenerateCampaign} isGenerating={isGenerating} />
+        </div>
       ) : (
         <div className="space-y-12">
-          <CampaignResult 
+          <EnhancedCampaignResult 
             campaign={generatedCampaign} 
             onGenerateAnother={onGenerateAnother}
             showFeedbackForm={!isChatActive}
