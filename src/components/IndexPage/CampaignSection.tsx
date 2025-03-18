@@ -1,7 +1,7 @@
 
 import React from "react";
 import CampaignForm from "@/components/CampaignForm";
-import EnhancedCampaignResult, { CampaignFeedback } from "@/components/EnhancedCampaignResult";
+import EnhancedCampaignResult from "@/components/EnhancedCampaignResult";
 import ChatWindow, { Message } from "@/components/ChatWindow";
 import { CampaignInput, GeneratedCampaign } from "@/lib/generateCampaign";
 import TransitionElement from "@/components/TransitionElement";
@@ -11,6 +11,7 @@ import Plans from "@/components/Plans";
 import { Link } from "react-router-dom";
 import { Library } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CampaignFeedback } from "@/components/CampaignResult";
 
 interface CampaignSectionProps {
   generatedCampaign: GeneratedCampaign | null;

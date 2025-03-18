@@ -1,4 +1,3 @@
 
-import { ThemeProvider } from "@/hooks/useTheme";
-
-export { ThemeProvider };
+// Re-export the ThemeProvider from useTheme.tsx
+export { ThemeProvider } from "@/hooks/useTheme";
