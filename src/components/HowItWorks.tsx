@@ -25,9 +25,9 @@ const HowItWorks = forwardRef<HTMLDivElement, HowItWorksProps>(
               <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
                 <Lightbulb className="w-5 h-5 text-primary" />
               </div>
-              <h3 className="text-xl font-medium mb-2">1. Enter Your Campaign Requirements</h3>
+              <h3 className="text-xl font-medium mb-2">1. Describe Your Vision</h3>
               <p className="text-muted-foreground">
-                Provide information about your brand, industry, target audience, and campaign goals.
+                Tell our AI what you want to achieve with your campaign. The more detailed, the better the results.
               </p>
             </div>
             
@@ -35,9 +35,9 @@ const HowItWorks = forwardRef<HTMLDivElement, HowItWorksProps>(
               <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
                 <Users className="w-5 h-5 text-primary" />
               </div>
-              <h3 className="text-xl font-medium mb-2">2. Define Your Target Audience</h3>
+              <h3 className="text-xl font-medium mb-2">2. Get Creative Ideas</h3>
               <p className="text-muted-foreground">
-                Specify who your campaign aims to reach including demographics, interests, and behaviors.
+                Our AI, trained on award-winning campaigns from Cannes Lions, Clio, Golden Drum, and other prestigious advertising festivals, generates unique concepts perfectly tailored to your brief.
               </p>
             </div>
             
@@ -45,9 +45,9 @@ const HowItWorks = forwardRef<HTMLDivElement, HowItWorksProps>(
               <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
                 <Sparkles className="w-5 h-5 text-primary" />
               </div>
-              <h3 className="text-xl font-medium mb-2">3. AI Generates Creative Concepts</h3>
+              <h3 className="text-xl font-medium mb-2">3. Refine & Perfect</h3>
               <p className="text-muted-foreground">
-                Our AI analyzes award-winning campaigns and creates tailored concepts based on your inputs.
+                Iterate and refine the generated ideas with our AI until you have the perfect campaign concept.
               </p>
             </div>
             
@@ -55,9 +55,9 @@ const HowItWorks = forwardRef<HTMLDivElement, HowItWorksProps>(
               <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
                 <PencilRuler className="w-5 h-5 text-primary" />
               </div>
-              <h3 className="text-xl font-medium mb-2">4. Refine and Implement</h3>
+              <h3 className="text-xl font-medium mb-2">4. Launch & Succeed</h3>
               <p className="text-muted-foreground">
-                Use our chat feature to refine your campaign or download the results to share with your team.
+                Take your polished campaign to market with confidence, backed by award-winning creative strategies.
               </p>
             </div>
           </div>
