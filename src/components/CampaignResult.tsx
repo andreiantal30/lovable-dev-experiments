@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { GeneratedCampaign } from "@/lib/generateCampaign";
@@ -12,6 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 interface CampaignResultProps {
   campaign: GeneratedCampaign;
   onGenerateAnother: () => void;
+  showFeedbackForm?: boolean;
   onRefine?: (feedback: CampaignFeedback) => Promise<void>;
 }
 
@@ -27,7 +27,12 @@ export interface CampaignFeedback {
   comments: string;
 }
 
-const CampaignResult: React.FC<CampaignResultProps> = ({ campaign, onGenerateAnother, onRefine }) => {
+const CampaignResult: React.FC<CampaignResultProps> = ({ 
+  campaign, 
+  onGenerateAnother, 
+  showFeedbackForm = true,
+  onRefine 
+}) => {
   const [copied, setCopied] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [overallRating, setOverallRating] = useState(0);
@@ -123,7 +128,7 @@ ${campaign.expectedOutcomes.map(outcome => `- ${outcome}`).join('\n')}
           </div>
         </div>
         
-        {!feedbackOpen && !refinementRequested && (
+        {showFeedbackForm && !feedbackOpen && !refinementRequested && (
           <div className="mb-6">
             <Button 
               variant="secondary" 
@@ -136,7 +141,7 @@ ${campaign.expectedOutcomes.map(outcome => `- ${outcome}`).join('\n')}
           </div>
         )}
 
-        {feedbackOpen && !refinementRequested && (
+        {showFeedbackForm && feedbackOpen && !refinementRequested && (
           <TransitionElement animation="fade" className="mb-8">
             <div className="bg-secondary/30 backdrop-blur-sm rounded-xl p-4 mb-6">
               <h3 className="text-lg font-medium mb-4">Rate This Campaign</h3>
