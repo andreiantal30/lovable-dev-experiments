@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import InputField from "@/components/InputField";
@@ -155,6 +156,29 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
     }));
   };
 
+  const handleSelectFromDatalist = (
+    key: 'targetAudience' | 'objectives' | 'emotionalAppeal', 
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const { value } = e.target;
+    
+    // Only update the input field without adding the item yet
+    if (key === 'targetAudience') setAudienceInput(value);
+    else if (key === 'objectives') setObjectiveInput(value);
+    else if (key === 'emotionalAppeal') setEmotionalAppealInput(value);
+    
+    // If a valid option from the datalist is selected, add it immediately
+    const validOptions = key === 'targetAudience' 
+      ? targetAudiences 
+      : key === 'objectives' 
+        ? objectives 
+        : emotionalAppeals;
+    
+    if (validOptions.includes(value)) {
+      addTagItem(key, value);
+    }
+  };
+
   return (
     <TransitionElement animation="slide-up" className="w-full max-w-4xl mx-auto">
       <form 
@@ -256,7 +280,7 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
                     list="target-audiences"
                     placeholder="Type or select audience"
                     value={audienceInput}
-                    onChange={(e) => setAudienceInput(e.target.value)}
+                    onChange={(e) => handleSelectFromDatalist('targetAudience', e)}
                     onKeyDown={(e) => handleKeyDown(e, 'targetAudience', audienceInput)}
                     className={cn(
                       "w-full h-10 px-3 bg-white/80 dark:bg-gray-800/60 border rounded-md transition-all duration-200",
@@ -286,7 +310,7 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
                 {errors.targetAudience && (
                   <p className="text-xs text-destructive dark:text-red-400">{errors.targetAudience}</p>
                 )}
-                {formData.targetAudience.length === 0 && (
+                {formData.targetAudience.length === 0 && !errors.targetAudience && (
                   <p className="text-xs text-muted-foreground dark:text-white/60">
                     At least one target audience is required
                   </p>
@@ -332,7 +356,7 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
                     list="objectives-list"
                     placeholder="Type or select objective"
                     value={objectiveInput}
-                    onChange={(e) => setObjectiveInput(e.target.value)}
+                    onChange={(e) => handleSelectFromDatalist('objectives', e)}
                     onKeyDown={(e) => handleKeyDown(e, 'objectives', objectiveInput)}
                     className={cn(
                       "w-full h-10 px-3 bg-white/80 dark:bg-gray-800/60 border rounded-md transition-all duration-200",
@@ -362,7 +386,7 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
                 {errors.objectives && (
                   <p className="text-xs text-destructive dark:text-red-400">{errors.objectives}</p>
                 )}
-                {formData.objectives.length === 0 && (
+                {formData.objectives.length === 0 && !errors.objectives && (
                   <p className="text-xs text-muted-foreground dark:text-white/60">
                     At least one objective is required
                   </p>
@@ -406,7 +430,7 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
                     list="emotional-appeals"
                     placeholder="Type or select emotion"
                     value={emotionalAppealInput}
-                    onChange={(e) => setEmotionalAppealInput(e.target.value)}
+                    onChange={(e) => handleSelectFromDatalist('emotionalAppeal', e)}
                     onKeyDown={(e) => handleKeyDown(e, 'emotionalAppeal', emotionalAppealInput)}
                     className={cn(
                       "w-full h-10 px-3 bg-white/80 dark:bg-gray-800/60 border rounded-md transition-all duration-200",
@@ -436,7 +460,7 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
                 {errors.emotionalAppeal && (
                   <p className="text-xs text-destructive dark:text-red-400">{errors.emotionalAppeal}</p>
                 )}
-                {formData.emotionalAppeal.length === 0 && (
+                {formData.emotionalAppeal.length === 0 && !errors.emotionalAppeal && (
                   <p className="text-xs text-muted-foreground dark:text-white/60">
                     At least one emotional appeal is required
                   </p>
@@ -498,4 +522,3 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
 };
 
 export default CampaignForm;
-
