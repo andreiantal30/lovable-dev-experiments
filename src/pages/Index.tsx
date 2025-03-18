@@ -188,44 +188,6 @@ const Index = () => {
           </>
         )}
         
-        {!generatedCampaign && !showApiKeyInput && (
-          <div className="mt-20">
-            <TransitionElement animation="slide-up" delay={600}>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-                <div className="bg-white/70 backdrop-blur-sm border border-border rounded-xl p-6 text-center shadow-subtle hover:shadow-md transition-shadow duration-300">
-                  <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <Sparkles size={24} />
-                  </div>
-                  <h3 className="text-lg font-medium mb-2">OpenAI Powered</h3>
-                  <p className="text-muted-foreground text-sm">
-                    Generate cutting-edge campaign ideas using OpenAI's powerful language models
-                  </p>
-                </div>
-                
-                <div className="bg-white/70 backdrop-blur-sm border border-border rounded-xl p-6 text-center shadow-subtle hover:shadow-md transition-shadow duration-300">
-                  <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-target"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-                  </div>
-                  <h3 className="text-lg font-medium mb-2">Targeted Impact</h3>
-                  <p className="text-muted-foreground text-sm">
-                    Craft campaigns precisely tailored to your specific audience and objectives
-                  </p>
-                </div>
-                
-                <div className="bg-white/70 backdrop-blur-sm border border-border rounded-xl p-6 text-center shadow-subtle hover:shadow-md transition-shadow duration-300">
-                  <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-zap"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                  </div>
-                  <h3 className="text-lg font-medium mb-2">Rapid Ideation</h3>
-                  <p className="text-muted-foreground text-sm">
-                    Get complete campaign concepts in seconds, not days or weeks
-                  </p>
-                </div>
-              </div>
-            </TransitionElement>
-          </div>
-        )}
-        
         {/* Add How It Works section */}
         {!generatedCampaign && !showApiKeyInput && <HowItWorks />}
         
