@@ -46,14 +46,6 @@ const CampaignSection = ({
     <>
       {!generatedCampaign ? (
         <div className="flex flex-col w-full">
-          <div className="flex justify-end mb-4">
-            <Link to="/library">
-              <Button variant="outline" className="flex items-center">
-                <Library className="mr-2 h-4 w-4" />
-                View Campaign Library
-              </Button>
-            </Link>
-          </div>
           <div className="flex justify-center w-full">
             <CampaignForm onSubmit={onGenerateCampaign} isGenerating={isGenerating} />
           </div>
