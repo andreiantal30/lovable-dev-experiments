@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Star, Calendar, Clock, Trash2, Clipboard } from 'lucide-react';
@@ -18,7 +17,7 @@ import {
   removeSavedCampaign,
   toggleFavoriteStatus
 } from '@/lib/campaignStorage';
-import EnhancedCampaignResult from '@/components/EnhancedCampaignResult';
+import EnhancedCampaignResult, { CampaignFeedback } from '@/components/EnhancedCampaignResult';
 
 const CampaignDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -70,7 +69,6 @@ const CampaignDetail: React.FC = () => {
     try {
       const success = toggleFavoriteStatus(id);
       if (success) {
-        // Update local state
         setCampaign(prev => ({
           ...prev,
           favorite: !prev.favorite
@@ -111,6 +109,10 @@ Expected Outcomes: ${campaign.campaign.expectedOutcomes.join('\n- ')}
     
     navigator.clipboard.writeText(campaignText);
     toast.success('Campaign details copied to clipboard');
+  };
+
+  const handleRefine = async (feedback: CampaignFeedback): Promise<void> => {
+    return Promise.resolve();
   };
 
   if (loading) {
@@ -203,7 +205,7 @@ Expected Outcomes: ${campaign.campaign.expectedOutcomes.join('\n- ')}
                 campaign={campaign.campaign}
                 onGenerateAnother={() => navigate('/')}
                 showFeedbackForm={false}
-                onRefine={() => {}}
+                onRefine={handleRefine}
               />
             </div>
           </CardContent>
