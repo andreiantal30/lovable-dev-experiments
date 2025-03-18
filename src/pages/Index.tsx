@@ -9,10 +9,10 @@ import { CampaignFeedback } from "@/components/CampaignResult";
 import { SidebarInset } from "@/components/ui/sidebar";
 import CampaignSidebar from "@/components/CampaignSidebar";
 import SidebarToggle from "@/components/SidebarToggle";
-// Import the components from the IndexPage folder
 import Header from "@/components/IndexPage/Header";
 import Footer from "@/components/IndexPage/Footer";
 import ApiKeyForm from "@/components/IndexPage/ApiKeyForm";
+import CampaignSection from "@/components/IndexPage/CampaignSection";
 import { Link } from "react-router-dom";
 import { Library } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,8 @@ import CampaignForm from "@/components/CampaignForm";
 import EnhancedCampaignResult from "@/components/EnhancedCampaignResult";
 import HowItWorks from "@/components/HowItWorks";
 import Plans from "@/components/Plans";
+import TransitionElement from "@/components/TransitionElement";
+import ChatWindow from "@/components/ChatWindow";
 
 const Index = () => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -192,88 +194,6 @@ const Index = () => {
 
   const handleCampaignSelect = (id: string) => {
     window.location.href = `/campaign/${id}`;
-  };
-
-  const CampaignSection = ({
-    generatedCampaign,
-    isGenerating,
-    onGenerateCampaign,
-    onGenerateAnother,
-    messages,
-    onSendMessage,
-    isProcessingMessage,
-    isChatActive,
-    openAIConfig,
-    onRefine,
-    isRefining,
-    lastInput
-  }) => {
-    return (
-      <>
-        {!generatedCampaign ? (
-          <div className="flex flex-col w-full">
-            <div className="flex justify-end mb-4">
-              <Link to="/library">
-                <Button variant="outline" className="flex items-center">
-                  <Library className="mr-2 h-4 w-4" />
-                  View Campaign Library
-                </Button>
-              </Link>
-            </div>
-            <div className="flex justify-center w-full">
-              <CampaignForm onSubmit={onGenerateCampaign} isGenerating={isGenerating} />
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-12">
-            <EnhancedCampaignResult 
-              campaign={generatedCampaign} 
-              onGenerateAnother={onGenerateAnother}
-              showFeedbackForm={!isChatActive}
-              onRefine={onRefine}
-              brandName={lastInput?.brand}
-              industryName={lastInput?.industry}
-            />
-            
-            {isChatActive && (
-              <TransitionElement animation="slide-up" delay={100}>
-                <ChatWindow 
-                  messages={messages}
-                  onSendMessage={onSendMessage}
-                  isLoading={isProcessingMessage}
-                  openAIConfig={openAIConfig}
-                />
-              </TransitionElement>
-            )}
-          </div>
-        )}
-        
-        {generatedCampaign && (
-          <div className="mt-8 text-center">
-            <TransitionElement animation="fade" delay={700}>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <button
-                  onClick={onGenerateAnother}
-                  className="text-primary hover:text-primary/80 font-medium underline underline-offset-4 text-sm"
-                >
-                  Create a new campaign
-                </button>
-                
-                <Link to="/library" className="text-muted-foreground hover:text-foreground text-sm">
-                  <span className="flex items-center">
-                    <Library className="mr-1.5 h-3.5 w-3.5" />
-                    Browse saved campaigns
-                  </span>
-                </Link>
-              </div>
-            </TransitionElement>
-          </div>
-        )}
-        
-        {!generatedCampaign && <HowItWorks />}
-        {!generatedCampaign && <Plans />}
-      </>
-    );
   };
 
   return (
