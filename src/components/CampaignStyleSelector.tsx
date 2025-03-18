@@ -66,49 +66,53 @@ const CampaignStyleSelector = ({ value, onChange }: CampaignStyleSelectorProps) 
   
   return (
     <TransitionElement delay={100}>
-      <div className="space-y-1.5">
-        <Label className="text-sm font-medium">
-          Campaign Style
-          <span className="ml-2 text-xs font-medium px-2 py-0.5 bg-primary/10 text-primary rounded-full">
-            Optional
-          </span>
-        </Label>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Label className="text-sm font-medium flex items-center">
+            Campaign Style
+            <span className="ml-2 text-xs font-medium px-2 py-0.5 bg-primary/10 text-primary rounded-full">
+              Optional
+            </span>
+          </Label>
+        </div>
         
-        <div className="flex flex-wrap gap-2 mb-3">
+        {/* Primary campaign styles */}
+        <div className="grid grid-cols-3 gap-2 mb-4">
           <Toggle
             variant="outline"
-            size="sm"
+            size="default"
             pressed={value === "digital"}
             onPressedChange={() => onChange(value === "digital" ? undefined : "digital")}
-            className="data-[state=on]:bg-primary/10 data-[state=on]:text-primary"
+            className="data-[state=on]:bg-primary/15 data-[state=on]:text-primary h-10 w-full"
           >
             Digital-first
           </Toggle>
           
           <Toggle
             variant="outline"
-            size="sm"
+            size="default"
             pressed={value === "experiential"}
             onPressedChange={() => onChange(value === "experiential" ? undefined : "experiential")}
-            className="data-[state=on]:bg-primary/10 data-[state=on]:text-primary"
+            className="data-[state=on]:bg-primary/15 data-[state=on]:text-primary h-10 w-full"
           >
             Experiential
           </Toggle>
           
           <Toggle
             variant="outline"
-            size="sm"
+            size="default"
             pressed={value === "social"}
             onPressedChange={() => onChange(value === "social" ? undefined : "social")}
-            className="data-[state=on]:bg-primary/10 data-[state=on]:text-primary"
+            className="data-[state=on]:bg-primary/15 data-[state=on]:text-primary h-10 w-full"
           >
             Social-led
           </Toggle>
         </div>
         
-        <div className="mt-2">
-          <Label className="text-sm font-medium mb-1.5 block">
-            More Campaign Styles
+        {/* Advanced styles section */}
+        <div className="bg-background/40 dark:bg-gray-800/30 backdrop-blur-sm p-4 rounded-lg border border-border/80 dark:border-gray-700/50">
+          <Label className="text-sm font-medium mb-3 block">
+            Advanced Campaign Styles
           </Label>
           <Select 
             value={isAdvancedStyle ? value : ""}
@@ -120,10 +124,10 @@ const CampaignStyleSelector = ({ value, onChange }: CampaignStyleSelectorProps) 
               }
             }}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full bg-background/60 dark:bg-gray-800/60 border-border/50 dark:border-gray-700/70">
               <SelectValue placeholder="Select an advanced style" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-[300px]">
               {advancedStyleOptions.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
@@ -131,8 +135,8 @@ const CampaignStyleSelector = ({ value, onChange }: CampaignStyleSelectorProps) 
               ))}
             </SelectContent>
           </Select>
-          <p className="text-xs text-muted-foreground mt-1">
-            Selecting a style from this dropdown will override the toggle selection above
+          <p className="text-xs text-muted-foreground dark:text-gray-400 mt-2 italic">
+            Selecting an advanced style will override the primary style selection
           </p>
         </div>
       </div>
