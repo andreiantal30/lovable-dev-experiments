@@ -33,7 +33,8 @@ const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({
   useEffect(() => {
     // Check if campaign is already saved
     if (campaign?.campaignName && brandName) {
-      setIsSaved(isCampaignSaved(campaign.campaignName, brandName));
+      const saved = isCampaignSaved(campaign.campaignName, brandName);
+      setIsSaved(saved);
     }
   }, [campaign, brandName]);
   

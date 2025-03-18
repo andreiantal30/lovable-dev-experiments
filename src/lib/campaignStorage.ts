@@ -17,6 +17,11 @@ export interface SavedCampaign {
   favorite: boolean;
 }
 
+// Event for notifying components about campaign updates
+export const emitCampaignUpdate = () => {
+  window.dispatchEvent(new Event('campaign-updated'));
+};
+
 // Get campaigns from local storage or use default data
 export const getCampaigns = (): Campaign[] => {
   try {
@@ -119,6 +124,17 @@ export const saveCampaignToLibrary = (
   industry: string
 ): SavedCampaign | null => {
   try {
+    // Check if campaign already exists
+    if (isCampaignSaved(campaign.campaignName, brand)) {
+      console.log('Campaign already saved', campaign.campaignName, brand);
+      // Find and return the existing campaign
+      const savedCampaigns = getSavedCampaigns();
+      const existingCampaign = savedCampaigns.find(
+        c => c.campaign.campaignName === campaign.campaignName && c.brand === brand
+      );
+      return existingCampaign || null;
+    }
+    
     const savedCampaigns = getSavedCampaigns();
     
     const newSavedCampaign: SavedCampaign = {
@@ -132,6 +148,9 @@ export const saveCampaignToLibrary = (
     
     const updatedSavedCampaigns = [...savedCampaigns, newSavedCampaign];
     localStorage.setItem(SAVED_CAMPAIGNS_KEY, JSON.stringify(updatedSavedCampaigns));
+    
+    // Emit event to notify components about the update
+    emitCampaignUpdate();
     
     return newSavedCampaign;
   } catch (error) {
@@ -162,6 +181,10 @@ export const removeSavedCampaign = (id: string): boolean => {
     }
     
     localStorage.setItem(SAVED_CAMPAIGNS_KEY, JSON.stringify(updatedSavedCampaigns));
+    
+    // Emit event to notify components about the update
+    emitCampaignUpdate();
+    
     return true;
   } catch (error) {
     console.error('Error removing saved campaign:', error);
@@ -184,6 +207,10 @@ export const toggleFavoriteStatus = (id: string): boolean => {
     });
     
     localStorage.setItem(SAVED_CAMPAIGNS_KEY, JSON.stringify(updatedSavedCampaigns));
+    
+    // Emit event to notify components about the update
+    emitCampaignUpdate();
+    
     return true;
   } catch (error) {
     console.error('Error toggling favorite status:', error);

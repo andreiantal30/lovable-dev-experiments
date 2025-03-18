@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { CampaignInput, GeneratedCampaign, generateCampaign } from "@/lib/generateCampaign";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -13,15 +14,9 @@ import Header from "@/components/IndexPage/Header";
 import Footer from "@/components/IndexPage/Footer";
 import ApiKeyForm from "@/components/IndexPage/ApiKeyForm";
 import CampaignSection from "@/components/IndexPage/CampaignSection";
-import { Link } from "react-router-dom";
-import { Library } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import CampaignForm from "@/components/CampaignForm";
-import EnhancedCampaignResult from "@/components/EnhancedCampaignResult";
-import HowItWorks from "@/components/HowItWorks";
-import Plans from "@/components/Plans";
 import TransitionElement from "@/components/TransitionElement";
 import ChatWindow from "@/components/ChatWindow";
+import { saveCampaignToLibrary } from "@/lib/campaignStorage";
 
 const Index = () => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -57,6 +52,14 @@ const Index = () => {
     try {
       const campaign = await generateCampaign(input, openAIConfig);
       setGeneratedCampaign(campaign);
+      
+      // Automatically save the campaign to the library
+      if (campaign && input.brand && input.industry) {
+        const savedCampaign = saveCampaignToLibrary(campaign, input.brand, input.industry);
+        if (savedCampaign) {
+          toast.success("Campaign automatically saved to your library");
+        }
+      }
       
       initializeChat(campaign, input);
     } catch (error) {
@@ -176,6 +179,18 @@ const Index = () => {
       
       const refinedCampaign = await generateCampaign(enhancedInput, openAIConfig);
       setGeneratedCampaign(refinedCampaign);
+      
+      // Automatically save the refined campaign to the library
+      if (refinedCampaign && lastInput.brand && lastInput.industry) {
+        const savedCampaign = saveCampaignToLibrary(
+          refinedCampaign, 
+          lastInput.brand, 
+          lastInput.industry
+        );
+        if (savedCampaign) {
+          toast.success("Refined campaign saved to your library");
+        }
+      }
       
       toast.success("Campaign has been refined based on your feedback!");
     } catch (error) {

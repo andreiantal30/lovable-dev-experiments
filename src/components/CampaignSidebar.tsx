@@ -9,7 +9,8 @@ import {
   Star, 
   PlusCircle,
   Calendar,
-  BookOpen 
+  BookOpen,
+  RefreshCcw
 } from 'lucide-react';
 import { 
   Sidebar, 
@@ -30,6 +31,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { getSavedCampaigns } from '@/lib/campaignStorage';
 import { Badge } from './ui/badge';
+import { toast } from 'sonner';
 
 interface SidebarProps {
   onCampaignSelect: (id: string) => void;
@@ -43,6 +45,17 @@ interface GroupedCampaigns {
   older: Array<{id: string, name: string}>;
 }
 
+// Create a global event bus for campaign updates
+export const campaignEvents = {
+  subscribe: (callback: () => void) => {
+    window.addEventListener('campaign-updated', callback);
+    return () => window.removeEventListener('campaign-updated', callback);
+  },
+  emit: () => {
+    window.dispatchEvent(new Event('campaign-updated'));
+  }
+};
+
 const CampaignSidebar: React.FC<SidebarProps> = ({ onCampaignSelect, selectedCampaignId }) => {
   const [groupedCampaigns, setGroupedCampaigns] = useState<GroupedCampaigns>({
     today: [],
@@ -51,14 +64,24 @@ const CampaignSidebar: React.FC<SidebarProps> = ({ onCampaignSelect, selectedCam
     older: []
   });
   const [searchTerm, setSearchTerm] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     loadCampaigns();
     
+    // Subscribe to campaign update events
+    const unsubscribe = campaignEvents.subscribe(() => {
+      loadCampaigns();
+    });
+    
     // Refresh campaigns every 30 seconds
     const interval = setInterval(loadCampaigns, 30000);
-    return () => clearInterval(interval);
+    
+    return () => {
+      clearInterval(interval);
+      unsubscribe();
+    };
   }, []);
 
   const loadCampaigns = () => {
@@ -99,6 +122,13 @@ const CampaignSidebar: React.FC<SidebarProps> = ({ onCampaignSelect, selectedCam
     }
   };
 
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    loadCampaigns();
+    toast.success("Campaigns refreshed");
+    setTimeout(() => setIsRefreshing(false), 500);
+  };
+
   const handleCreateNewCampaign = () => {
     navigate('/');
   };
@@ -121,7 +151,21 @@ const CampaignSidebar: React.FC<SidebarProps> = ({ onCampaignSelect, selectedCam
       <SidebarHeader className="flex flex-col gap-3 p-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">My Campaigns</h2>
-          <SidebarTrigger />
+          <div className="flex items-center gap-1">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8" 
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+            >
+              <RefreshCcw 
+                className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} 
+              />
+              <span className="sr-only">Refresh campaigns</span>
+            </Button>
+            <SidebarTrigger />
+          </div>
         </div>
         
         <Button 
