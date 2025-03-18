@@ -1,8 +1,21 @@
 
 import { Campaign, campaignData } from './campaignData';
+import { GeneratedCampaign } from './generateCampaign';
+import { v4 as uuidv4 } from 'uuid';
 
-// Local storage key for storing campaign data
+// Local storage keys
 const CAMPAIGN_STORAGE_KEY = 'campaign-generator-data';
+const SAVED_CAMPAIGNS_KEY = 'saved-campaigns';
+
+// Sample campaign interface
+export interface SavedCampaign {
+  id: string;
+  timestamp: string;
+  campaign: GeneratedCampaign;
+  brand: string;
+  industry: string;
+  favorite: boolean;
+}
 
 // Get campaigns from local storage or use default data
 export const getCampaigns = (): Campaign[] => {
@@ -79,6 +92,116 @@ export const resetCampaignData = (): boolean => {
     return true;
   } catch (error) {
     console.error('Error resetting campaign data:', error);
+    return false;
+  }
+};
+
+// SAVED CAMPAIGNS FUNCTIONS
+
+// Get all saved campaigns
+export const getSavedCampaigns = (): SavedCampaign[] => {
+  try {
+    const storedCampaigns = localStorage.getItem(SAVED_CAMPAIGNS_KEY);
+    if (storedCampaigns) {
+      return JSON.parse(storedCampaigns);
+    }
+    return [];
+  } catch (error) {
+    console.error('Error retrieving saved campaigns from storage:', error);
+    return [];
+  }
+};
+
+// Save a campaign to the library
+export const saveCampaignToLibrary = (
+  campaign: GeneratedCampaign,
+  brand: string,
+  industry: string
+): SavedCampaign | null => {
+  try {
+    const savedCampaigns = getSavedCampaigns();
+    
+    const newSavedCampaign: SavedCampaign = {
+      id: uuidv4(),
+      timestamp: new Date().toISOString(),
+      campaign,
+      brand,
+      industry,
+      favorite: false
+    };
+    
+    const updatedSavedCampaigns = [...savedCampaigns, newSavedCampaign];
+    localStorage.setItem(SAVED_CAMPAIGNS_KEY, JSON.stringify(updatedSavedCampaigns));
+    
+    return newSavedCampaign;
+  } catch (error) {
+    console.error('Error saving campaign to library:', error);
+    return null;
+  }
+};
+
+// Get a saved campaign by ID
+export const getSavedCampaignById = (id: string): SavedCampaign | null => {
+  try {
+    const savedCampaigns = getSavedCampaigns();
+    return savedCampaigns.find(campaign => campaign.id === id) || null;
+  } catch (error) {
+    console.error('Error retrieving saved campaign:', error);
+    return null;
+  }
+};
+
+// Remove a saved campaign
+export const removeSavedCampaign = (id: string): boolean => {
+  try {
+    const savedCampaigns = getSavedCampaigns();
+    const updatedSavedCampaigns = savedCampaigns.filter(campaign => campaign.id !== id);
+    
+    if (updatedSavedCampaigns.length === savedCampaigns.length) {
+      return false; // No campaign was deleted
+    }
+    
+    localStorage.setItem(SAVED_CAMPAIGNS_KEY, JSON.stringify(updatedSavedCampaigns));
+    return true;
+  } catch (error) {
+    console.error('Error removing saved campaign:', error);
+    return false;
+  }
+};
+
+// Toggle favorite status of a campaign
+export const toggleFavoriteStatus = (id: string): boolean => {
+  try {
+    const savedCampaigns = getSavedCampaigns();
+    const updatedSavedCampaigns = savedCampaigns.map(campaign => {
+      if (campaign.id === id) {
+        return {
+          ...campaign,
+          favorite: !campaign.favorite
+        };
+      }
+      return campaign;
+    });
+    
+    localStorage.setItem(SAVED_CAMPAIGNS_KEY, JSON.stringify(updatedSavedCampaigns));
+    return true;
+  } catch (error) {
+    console.error('Error toggling favorite status:', error);
+    return false;
+  }
+};
+
+// Check if a campaign is already saved (by campaignName and brand)
+export const isCampaignSaved = (campaignName: string, brand: string): boolean => {
+  try {
+    const savedCampaigns = getSavedCampaigns();
+    return savedCampaigns.some(
+      campaign => 
+        campaign.campaign.campaignName === campaignName && 
+        campaign.brand === brand
+    );
+  } catch (error) {
+    console.error('Error checking if campaign is saved:', error);
     return false;
   }
 };

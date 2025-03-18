@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { CampaignInput, GeneratedCampaign, generateCampaign } from "@/lib/generateCampaign";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -221,6 +220,7 @@ const Index = () => {
             openAIConfig={openAIConfig}
             onRefine={handleRefineCampaign}
             isRefining={isRefining}
+            lastInput={lastInput}
           />
         )}
         

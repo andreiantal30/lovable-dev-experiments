@@ -1,11 +1,12 @@
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import CampaignManager from "./pages/CampaignManager";
-import { Toaster } from "./components/ui/toaster";
-import { Toaster as SonnerToaster } from "sonner";
-import { ThemeProvider } from "./hooks/useTheme";
+import CampaignLibrary from "./pages/CampaignLibrary";
+import CampaignDetail from "./pages/CampaignDetail";
 
 function App() {
   return (
@@ -13,12 +14,13 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/campaign-manager" element={<CampaignManager />} />
+          <Route path="/manager" element={<CampaignManager />} />
+          <Route path="/library" element={<CampaignLibrary />} />
+          <Route path="/campaign/:id" element={<CampaignDetail />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
-      <Toaster />
-      <SonnerToaster position="top-right" />
+      <Toaster position="top-center" richColors closeButton />
     </ThemeProvider>
   );
 }

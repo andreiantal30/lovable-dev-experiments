@@ -8,6 +8,9 @@ import TransitionElement from "@/components/TransitionElement";
 import { OpenAIConfig } from "@/lib/openai";
 import HowItWorks from "@/components/HowItWorks";
 import Plans from "@/components/Plans";
+import { Link } from "react-router-dom";
+import { Library } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface CampaignSectionProps {
   generatedCampaign: GeneratedCampaign | null;
@@ -21,6 +24,7 @@ interface CampaignSectionProps {
   openAIConfig: OpenAIConfig;
   onRefine: (feedback: CampaignFeedback) => Promise<void>;
   isRefining: boolean;
+  lastInput: CampaignInput | null;
 }
 
 const CampaignSection = ({
@@ -34,13 +38,24 @@ const CampaignSection = ({
   isChatActive,
   openAIConfig,
   onRefine,
-  isRefining
+  isRefining,
+  lastInput
 }: CampaignSectionProps) => {
   return (
     <>
       {!generatedCampaign ? (
-        <div className="flex justify-center w-full">
-          <CampaignForm onSubmit={onGenerateCampaign} isGenerating={isGenerating} />
+        <div className="flex flex-col w-full">
+          <div className="flex justify-end mb-4">
+            <Link to="/library">
+              <Button variant="outline" className="flex items-center">
+                <Library className="mr-2 h-4 w-4" />
+                View Campaign Library
+              </Button>
+            </Link>
+          </div>
+          <div className="flex justify-center w-full">
+            <CampaignForm onSubmit={onGenerateCampaign} isGenerating={isGenerating} />
+          </div>
         </div>
       ) : (
         <div className="space-y-12">
@@ -49,6 +64,8 @@ const CampaignSection = ({
             onGenerateAnother={onGenerateAnother}
             showFeedbackForm={!isChatActive}
             onRefine={onRefine}
+            brandName={lastInput?.brand}
+            industryName={lastInput?.industry}
           />
           
           {isChatActive && (
@@ -67,12 +84,21 @@ const CampaignSection = ({
       {generatedCampaign && (
         <div className="mt-8 text-center">
           <TransitionElement animation="fade" delay={700}>
-            <button
-              onClick={onGenerateAnother}
-              className="text-primary hover:text-primary/80 font-medium underline underline-offset-4 text-sm mx-auto"
-            >
-              Create a new campaign
-            </button>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <button
+                onClick={onGenerateAnother}
+                className="text-primary hover:text-primary/80 font-medium underline underline-offset-4 text-sm"
+              >
+                Create a new campaign
+              </button>
+              
+              <Link to="/library" className="text-muted-foreground hover:text-foreground text-sm">
+                <span className="flex items-center">
+                  <Library className="mr-1.5 h-3.5 w-3.5" />
+                  Browse saved campaigns
+                </span>
+              </Link>
+            </div>
           </TransitionElement>
         </div>
       )}
