@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import CampaignForm from "@/components/CampaignForm";
 import CampaignResult from "@/components/CampaignResult";
@@ -196,13 +197,16 @@ const Index = () => {
       <div className="container mx-auto px-4 py-12 max-w-7xl relative z-10">
         <header className="text-center mb-12 md:mb-16 relative">
           <div className="absolute right-0 top-0">
-            <Button variant="outline" size="sm" className="flex items-center gap-2" asChild>
-              <Link to="/campaign-manager">
+            <Link 
+              to="/campaign-manager" 
+              className="inline-block"
+            >
+              <Button variant="outline" size="sm" className="w-full flex items-center gap-2">
                 <Database className="h-4 w-4" />
                 <span className="hidden sm:inline">Manage Campaign Database</span>
                 <span className="sm:hidden">Database</span>
-              </Link>
-            </Button>
+              </Button>
+            </Link>
           </div>
           
           <TransitionElement animation="slide-down">
