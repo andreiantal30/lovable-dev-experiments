@@ -9,6 +9,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { toast } from "sonner";
 import { OpenAIConfig, defaultOpenAIConfig } from "@/lib/openai";
 import HowItWorks from "@/components/HowItWorks";
+import Plans from "@/components/Plans";
 
 const Index = () => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -190,6 +191,9 @@ const Index = () => {
         
         {/* How It Works section */}
         {!generatedCampaign && !showApiKeyInput && <HowItWorks />}
+        
+        {/* Plans section */}
+        {!generatedCampaign && !showApiKeyInput && <Plans />}
         
         <footer className="mt-20 md:mt-32 text-center text-sm text-muted-foreground">
           <p>© 2023 Creative Campaign Generator. All rights reserved.</p>
