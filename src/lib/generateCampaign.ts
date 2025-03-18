@@ -1,4 +1,3 @@
-
 import { Campaign, campaignData } from './campaignData';
 import { generateWithOpenAI, OpenAIConfig, defaultOpenAIConfig } from './openai';
 
@@ -113,6 +112,24 @@ Format your response as JSON in the following structure:
 Make the campaign innovative, impactful, and aligned with current marketing trends. Ensure it addresses the specific objectives and connects emotionally with the target audience.`;
 };
 
+/**
+ * Extracts JSON from a potentially markdown-formatted string
+ * This handles cases where OpenAI returns JSON wrapped in markdown code blocks
+ */
+const extractJsonFromResponse = (text: string): string => {
+  // Check if the response is wrapped in markdown code blocks
+  const jsonRegex = /```(?:json)?\s*([\s\S]*?)```/;
+  const match = text.match(jsonRegex);
+  
+  // If we found a JSON block in markdown format, extract it
+  if (match && match[1]) {
+    return match[1].trim();
+  }
+  
+  // Otherwise return the original text
+  return text.trim();
+};
+
 // Main function to generate a campaign
 export const generateCampaign = async (
   input: CampaignInput, 
@@ -128,8 +145,11 @@ export const generateCampaign = async (
     // Generate campaign using OpenAI
     const response = await generateWithOpenAI(prompt, openAIConfig);
     
+    // Clean the response to extract just the JSON
+    const cleanedResponse = extractJsonFromResponse(response);
+    
     // Parse the JSON response
-    const generatedContent = JSON.parse(response);
+    const generatedContent = JSON.parse(cleanedResponse);
     
     // Return the campaign with references
     return {

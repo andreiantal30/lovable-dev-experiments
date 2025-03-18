@@ -64,6 +64,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     setTimeout(() => setCopied(null), 2000);
   };
 
+  // Format message content to handle potential Markdown
+  const formatMessageContent = (content: string) => {
+    // For now, we'll just display raw text
+    // In a future enhancement, we could convert markdown to HTML
+    return content;
+  };
+
   return (
     <div className="flex flex-col h-[500px] md:h-[600px] bg-white/50 dark:bg-gray-800/30 backdrop-blur-lg border border-border rounded-xl shadow-subtle overflow-hidden">
       {/* Chat header */}
@@ -116,7 +123,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                   "text-sm whitespace-pre-wrap break-words",
                   message.role === "user" ? "text-white" : "text-foreground dark:text-white/90"
                 )}>
-                  {message.content}
+                  {formatMessageContent(message.content)}
                 </p>
                 <div className="mt-1 text-xs opacity-70">
                   {message.timestamp.toLocaleTimeString([], { 
