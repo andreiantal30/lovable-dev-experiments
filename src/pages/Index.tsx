@@ -6,12 +6,9 @@ import { OpenAIConfig, defaultOpenAIConfig, generateWithOpenAI } from "@/lib/ope
 import { v4 as uuidv4 } from "uuid";
 import { Message } from "@/components/ChatWindow";
 import { CampaignFeedback } from "@/components/CampaignResult";
-
-// Import refactored components
-import Header from "@/components/IndexPage/Header";
-import ApiKeyForm from "@/components/IndexPage/ApiKeyForm";
-import CampaignSection from "@/components/IndexPage/CampaignSection";
-import Footer from "@/components/IndexPage/Footer";
+import { SidebarInset } from "@/components/ui/sidebar";
+import CampaignSidebar from "@/components/CampaignSidebar";
+import SidebarToggle from "@/components/SidebarToggle";
 
 const Index = () => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -182,51 +179,59 @@ const Index = () => {
     return "Neutral";
   };
 
+  const handleCampaignSelect = (id: string) => {
+    window.location.href = `/campaign/${id}`;
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-950 overflow-hidden relative">
-      <ThemeToggle />
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-10 left-10 w-64 h-64 bg-blue-200/20 dark:bg-blue-500/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-10 right-10 w-80 h-80 bg-purple-200/20 dark:bg-purple-500/5 rounded-full blur-3xl" />
-        <div className="absolute top-1/3 right-1/4 w-40 h-40 bg-teal-200/20 dark:bg-teal-500/5 rounded-full blur-3xl" />
-      </div>
-      
-      <div className="container mx-auto px-4 py-12 max-w-7xl relative z-10">
-        <Header 
-          apiKey={openAIConfig.apiKey} 
-          onChangeApiKey={handleChangeApiKey} 
-        />
+    <>
+      <CampaignSidebar onCampaignSelect={handleCampaignSelect} />
+      <SidebarInset className="bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-950 overflow-hidden relative">
+        <SidebarToggle />
+        <ThemeToggle />
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+          <div className="absolute top-10 left-10 w-64 h-64 bg-blue-200/20 dark:bg-blue-500/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-10 right-10 w-80 h-80 bg-purple-200/20 dark:bg-purple-500/5 rounded-full blur-3xl" />
+          <div className="absolute top-1/3 right-1/4 w-40 h-40 bg-teal-200/20 dark:bg-teal-500/5 rounded-full blur-3xl" />
+        </div>
         
-        {showApiKeyInput && (
-          <ApiKeyForm
-            openAIConfig={openAIConfig}
-            setOpenAIConfig={setOpenAIConfig}
-            onSubmit={handleApiKeySubmit}
-            hasGeneratedCampaign={!!generatedCampaign}
-            onCancel={generatedCampaign ? () => setShowApiKeyInput(false) : undefined}
+        <div className="container mx-auto px-4 py-12 max-w-7xl relative z-10">
+          <Header 
+            apiKey={openAIConfig.apiKey} 
+            onChangeApiKey={handleChangeApiKey} 
           />
-        )}
-        
-        {!showApiKeyInput && (
-          <CampaignSection
-            generatedCampaign={generatedCampaign}
-            isGenerating={isGenerating}
-            onGenerateCampaign={handleGenerateCampaign}
-            onGenerateAnother={handleGenerateAnother}
-            messages={messages}
-            onSendMessage={handleSendMessage}
-            isProcessingMessage={isProcessingMessage}
-            isChatActive={isChatActive}
-            openAIConfig={openAIConfig}
-            onRefine={handleRefineCampaign}
-            isRefining={isRefining}
-            lastInput={lastInput}
-          />
-        )}
-        
-        <Footer />
-      </div>
-    </div>
+          
+          {showApiKeyInput && (
+            <ApiKeyForm
+              openAIConfig={openAIConfig}
+              setOpenAIConfig={setOpenAIConfig}
+              onSubmit={handleApiKeySubmit}
+              hasGeneratedCampaign={!!generatedCampaign}
+              onCancel={generatedCampaign ? () => setShowApiKeyInput(false) : undefined}
+            />
+          )}
+          
+          {!showApiKeyInput && (
+            <CampaignSection
+              generatedCampaign={generatedCampaign}
+              isGenerating={isGenerating}
+              onGenerateCampaign={handleGenerateCampaign}
+              onGenerateAnother={handleGenerateAnother}
+              messages={messages}
+              onSendMessage={handleSendMessage}
+              isProcessingMessage={isProcessingMessage}
+              isChatActive={isChatActive}
+              openAIConfig={openAIConfig}
+              onRefine={handleRefineCampaign}
+              isRefining={isRefining}
+              lastInput={lastInput}
+            />
+          )}
+          
+          <Footer />
+        </div>
+      </SidebarInset>
+    </>
   );
 };
 

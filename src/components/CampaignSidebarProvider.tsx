@@ -8,7 +8,7 @@ interface CampaignSidebarProviderProps {
 
 export function CampaignSidebarProvider({ children }: CampaignSidebarProviderProps) {
   return (
-    <SidebarProvider defaultOpen={true}>
+    <SidebarProvider defaultOpen={false}>
       <div className="flex min-h-screen w-full">
         {children}
       </div>
