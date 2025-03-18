@@ -103,6 +103,7 @@ const CampaignSection = ({
             onGenerateAnother={onGenerateAnother}
             showFeedbackForm={!isChatActive}
             onRefine={onRefine}
+            isRefining={isRefining}
           />
           
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -119,7 +120,7 @@ const CampaignSection = ({
               </div>
             )}
             
-            {generatedCampaign.industry && (
+            {selectedIndustry && (
               <div className="lg:col-span-1">
                 <TransitionElement animation="fade" delay={200}>
                   <TrendingTopics 
