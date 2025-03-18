@@ -8,6 +8,7 @@ import { CampaignInput } from "@/lib/generateCampaign";
 import TransitionElement from "./TransitionElement";
 import { ChevronDown, ChevronUp, XCircle } from "lucide-react";
 import CampaignStyleSelector, { CampaignStyle } from './CampaignStyleSelector';
+import AutoSuggestInput from './AutoSuggestInput';
 
 interface CampaignFormProps {
   onSubmit: (input: CampaignInput) => void;
@@ -133,50 +134,11 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
     onSubmit(formData);
   };
 
-  const handleAddFromDropdown = (key: 'targetAudience' | 'objectives' | 'emotionalAppeal', value: string) => {
-    if (!value) return;
-    addTagItem(key, value);
-  };
-
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    key: 'targetAudience' | 'objectives' | 'emotionalAppeal',
-    value: string
-  ) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      addTagItem(key, value);
-    }
-  };
-
   const handleStyleChange = (style: CampaignStyle) => {
     setFormData(prev => ({
       ...prev,
       campaignStyle: style
     }));
-  };
-
-  const handleSelectFromDatalist = (
-    key: 'targetAudience' | 'objectives' | 'emotionalAppeal', 
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const { value } = e.target;
-    
-    // Only update the input field without adding the item yet
-    if (key === 'targetAudience') setAudienceInput(value);
-    else if (key === 'objectives') setObjectiveInput(value);
-    else if (key === 'emotionalAppeal') setEmotionalAppealInput(value);
-    
-    // If a valid option from the datalist is selected, add it immediately
-    const validOptions = key === 'targetAudience' 
-      ? targetAudiences 
-      : key === 'objectives' 
-        ? objectives 
-        : emotionalAppeals;
-    
-    if (validOptions.includes(value)) {
-      addTagItem(key, value);
-    }
   };
 
   return (
@@ -275,37 +237,14 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
                   )}
                 </div>
                 
-                <div className="relative">
-                  <input
-                    list="target-audiences"
-                    placeholder="Type or select audience"
-                    value={audienceInput}
-                    onChange={(e) => handleSelectFromDatalist('targetAudience', e)}
-                    onKeyDown={(e) => handleKeyDown(e, 'targetAudience', audienceInput)}
-                    className={cn(
-                      "w-full h-10 px-3 bg-white/80 dark:bg-gray-800/60 border rounded-md transition-all duration-200",
-                      "hover:bg-white dark:hover:bg-gray-800/80 focus:bg-white dark:focus:bg-gray-800/80 focus:ring-2 focus:ring-primary/20 focus:border-primary/50",
-                      "text-foreground dark:text-white dark:placeholder:text-white/50",
-                      errors.targetAudience
-                        ? "border-destructive/50 focus:ring-destructive/20"
-                        : "border-input dark:border-gray-700"
-                    )}
-                  />
-                  <datalist id="target-audiences">
-                    {targetAudiences.map((audience) => (
-                      <option key={audience} value={audience} />
-                    ))}
-                  </datalist>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => addTagItem('targetAudience', audienceInput)}
-                    className="absolute right-1 top-1 h-8 w-8 p-0"
-                  >
-                    +
-                  </Button>
-                </div>
+                <AutoSuggestInput
+                  suggestions={targetAudiences}
+                  value={audienceInput}
+                  onChange={setAudienceInput}
+                  onSelect={(value) => addTagItem('targetAudience', value)}
+                  placeholder="Type or select audience"
+                  error={!!errors.targetAudience}
+                />
                 
                 {errors.targetAudience && (
                   <p className="text-xs text-destructive dark:text-red-400">{errors.targetAudience}</p>
@@ -351,37 +290,14 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
                   )}
                 </div>
                 
-                <div className="relative">
-                  <input
-                    list="objectives-list"
-                    placeholder="Type or select objective"
-                    value={objectiveInput}
-                    onChange={(e) => handleSelectFromDatalist('objectives', e)}
-                    onKeyDown={(e) => handleKeyDown(e, 'objectives', objectiveInput)}
-                    className={cn(
-                      "w-full h-10 px-3 bg-white/80 dark:bg-gray-800/60 border rounded-md transition-all duration-200",
-                      "hover:bg-white dark:hover:bg-gray-800/80 focus:bg-white dark:focus:bg-gray-800/80 focus:ring-2 focus:ring-primary/20 focus:border-primary/50",
-                      "text-foreground dark:text-white dark:placeholder:text-white/50",
-                      errors.objectives
-                        ? "border-destructive/50 focus:ring-destructive/20"
-                        : "border-input dark:border-gray-700"
-                    )}
-                  />
-                  <datalist id="objectives-list">
-                    {objectives.map((objective) => (
-                      <option key={objective} value={objective} />
-                    ))}
-                  </datalist>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => addTagItem('objectives', objectiveInput)}
-                    className="absolute right-1 top-1 h-8 w-8 p-0"
-                  >
-                    +
-                  </Button>
-                </div>
+                <AutoSuggestInput
+                  suggestions={objectives}
+                  value={objectiveInput}
+                  onChange={setObjectiveInput}
+                  onSelect={(value) => addTagItem('objectives', value)}
+                  placeholder="Type or select objective"
+                  error={!!errors.objectives}
+                />
                 
                 {errors.objectives && (
                   <p className="text-xs text-destructive dark:text-red-400">{errors.objectives}</p>
@@ -425,37 +341,14 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
                   )}
                 </div>
                 
-                <div className="relative">
-                  <input
-                    list="emotional-appeals"
-                    placeholder="Type or select emotion"
-                    value={emotionalAppealInput}
-                    onChange={(e) => handleSelectFromDatalist('emotionalAppeal', e)}
-                    onKeyDown={(e) => handleKeyDown(e, 'emotionalAppeal', emotionalAppealInput)}
-                    className={cn(
-                      "w-full h-10 px-3 bg-white/80 dark:bg-gray-800/60 border rounded-md transition-all duration-200",
-                      "hover:bg-white dark:hover:bg-gray-800/80 focus:bg-white dark:focus:bg-gray-800/80 focus:ring-2 focus:ring-primary/20 focus:border-primary/50",
-                      "text-foreground dark:text-white dark:placeholder:text-white/50",
-                      errors.emotionalAppeal
-                        ? "border-destructive/50 focus:ring-destructive/20"
-                        : "border-input dark:border-gray-700"
-                    )}
-                  />
-                  <datalist id="emotional-appeals">
-                    {emotionalAppeals.map((emotion) => (
-                      <option key={emotion} value={emotion} />
-                    ))}
-                  </datalist>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => addTagItem('emotionalAppeal', emotionalAppealInput)}
-                    className="absolute right-1 top-1 h-8 w-8 p-0"
-                  >
-                    +
-                  </Button>
-                </div>
+                <AutoSuggestInput
+                  suggestions={emotionalAppeals}
+                  value={emotionalAppealInput}
+                  onChange={setEmotionalAppealInput}
+                  onSelect={(value) => addTagItem('emotionalAppeal', value)}
+                  placeholder="Type or select emotion"
+                  error={!!errors.emotionalAppeal}
+                />
                 
                 {errors.emotionalAppeal && (
                   <p className="text-xs text-destructive dark:text-red-400">{errors.emotionalAppeal}</p>

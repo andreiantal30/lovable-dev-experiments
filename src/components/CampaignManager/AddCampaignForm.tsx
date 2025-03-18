@@ -14,6 +14,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
+import AutoSuggestInput from '@/components/AutoSuggestInput';
 
 interface AddCampaignFormProps {
   onSubmit: (campaign: Campaign) => void;
@@ -30,6 +31,14 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSubmit }) => {
     features: [],
     emotionalAppeal: [],
     outcomes: []
+  });
+  
+  const [inputValues, setInputValues] = useState({
+    targetAudience: '',
+    objectives: '',
+    emotionalAppeal: '',
+    features: '',
+    outcomes: ''
   });
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -58,6 +67,12 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSubmit }) => {
         [field]: [...currentArray, value]
       };
     });
+    
+    // Clear the input field
+    setInputValues(prev => ({
+      ...prev,
+      [field]: ''
+    }));
   };
   
   const handleArrayItemRemove = (field: keyof Campaign, index: number) => {
@@ -68,6 +83,13 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSubmit }) => {
         [field]: currentArray.filter((_, i) => i !== index)
       };
     });
+  };
+  
+  const handleInputValueChange = (field: string, value: string) => {
+    setInputValues(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
   
   const handleSubmit = (e: React.FormEvent) => {
@@ -95,6 +117,14 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSubmit }) => {
       features: [],
       emotionalAppeal: [],
       outcomes: []
+    });
+    
+    setInputValues({
+      targetAudience: '',
+      objectives: '',
+      emotionalAppeal: '',
+      features: '',
+      outcomes: ''
     });
   };
   
@@ -180,23 +210,7 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSubmit }) => {
       {/* Target Audience */}
       <div className="space-y-2">
         <label className="text-sm font-medium">Target Audience*</label>
-        <div className="flex gap-2">
-          <Select 
-            onValueChange={(value) => handleArrayItemAdd('targetAudience', value)}
-          >
-            <SelectTrigger className="flex-1">
-              <SelectValue placeholder="Add target audience" />
-            </SelectTrigger>
-            <SelectContent>
-              {targetAudiences.map((audience) => (
-                <SelectItem key={audience} value={audience}>
-                  {audience}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex flex-wrap gap-2 mt-2">
+        <div className="flex flex-wrap gap-2 mt-2 mb-2">
           {campaign.targetAudience?.map((item, index) => (
             <Badge key={index} variant="secondary" className="pl-2 pr-1 py-1 flex items-center">
               {item}
@@ -210,28 +224,19 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSubmit }) => {
             </Badge>
           ))}
         </div>
+        <AutoSuggestInput
+          suggestions={targetAudiences}
+          value={inputValues.targetAudience}
+          onChange={(value) => handleInputValueChange('targetAudience', value)}
+          onSelect={(value) => handleArrayItemAdd('targetAudience', value)}
+          placeholder="Type or select audience"
+        />
       </div>
       
       {/* Objectives */}
       <div className="space-y-2">
         <label className="text-sm font-medium">Objectives*</label>
-        <div className="flex gap-2">
-          <Select 
-            onValueChange={(value) => handleArrayItemAdd('objectives', value)}
-          >
-            <SelectTrigger className="flex-1">
-              <SelectValue placeholder="Add objective" />
-            </SelectTrigger>
-            <SelectContent>
-              {objectives.map((objective) => (
-                <SelectItem key={objective} value={objective}>
-                  {objective}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex flex-wrap gap-2 mt-2">
+        <div className="flex flex-wrap gap-2 mt-2 mb-2">
           {campaign.objectives?.map((item, index) => (
             <Badge key={index} variant="secondary" className="pl-2 pr-1 py-1 flex items-center">
               {item}
@@ -245,28 +250,19 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSubmit }) => {
             </Badge>
           ))}
         </div>
+        <AutoSuggestInput
+          suggestions={objectives}
+          value={inputValues.objectives}
+          onChange={(value) => handleInputValueChange('objectives', value)}
+          onSelect={(value) => handleArrayItemAdd('objectives', value)}
+          placeholder="Type or select objective"
+        />
       </div>
       
       {/* Emotional Appeal */}
       <div className="space-y-2">
         <label className="text-sm font-medium">Emotional Appeal*</label>
-        <div className="flex gap-2">
-          <Select 
-            onValueChange={(value) => handleArrayItemAdd('emotionalAppeal', value)}
-          >
-            <SelectTrigger className="flex-1">
-              <SelectValue placeholder="Add emotional appeal" />
-            </SelectTrigger>
-            <SelectContent>
-              {emotionalAppeals.map((appeal) => (
-                <SelectItem key={appeal} value={appeal}>
-                  {appeal}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex flex-wrap gap-2 mt-2">
+        <div className="flex flex-wrap gap-2 mt-2 mb-2">
           {campaign.emotionalAppeal?.map((item, index) => (
             <Badge key={index} variant="secondary" className="pl-2 pr-1 py-1 flex items-center">
               {item}
@@ -280,6 +276,13 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSubmit }) => {
             </Badge>
           ))}
         </div>
+        <AutoSuggestInput
+          suggestions={emotionalAppeals}
+          value={inputValues.emotionalAppeal}
+          onChange={(value) => handleInputValueChange('emotionalAppeal', value)}
+          onSelect={(value) => handleArrayItemAdd('emotionalAppeal', value)}
+          placeholder="Type or select emotional appeal"
+        />
       </div>
       
       <div className="flex justify-end">
