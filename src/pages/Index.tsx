@@ -1,9 +1,10 @@
+
 import { useState } from "react";
 import CampaignForm from "@/components/CampaignForm";
 import CampaignResult from "@/components/CampaignResult";
 import { CampaignInput, GeneratedCampaign, generateCampaign } from "@/lib/generateCampaign";
 import TransitionElement from "@/components/TransitionElement";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Database } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import { toast } from "sonner";
 import { OpenAIConfig, defaultOpenAIConfig, generateWithOpenAI } from "@/lib/openai";
@@ -12,6 +13,8 @@ import Plans from "@/components/Plans";
 import { CampaignFeedback } from "@/components/CampaignResult";
 import ChatWindow, { Message } from "@/components/ChatWindow";
 import { v4 as uuidv4 } from "uuid";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -192,7 +195,17 @@ const Index = () => {
       </div>
       
       <div className="container mx-auto px-4 py-12 max-w-7xl relative z-10">
-        <header className="text-center mb-12 md:mb-16">
+        <header className="text-center mb-12 md:mb-16 relative">
+          <div className="absolute right-0 top-0">
+            <Link to="/campaign-manager">
+              <Button variant="outline" size="sm" className="flex items-center gap-2">
+                <Database className="h-4 w-4" />
+                <span className="hidden sm:inline">Manage Campaign Database</span>
+                <span className="sm:hidden">Database</span>
+              </Button>
+            </Link>
+          </div>
+          
           <TransitionElement animation="slide-down">
             <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1.5 rounded-full text-sm font-medium mb-4">
               <Sparkles size={16} />

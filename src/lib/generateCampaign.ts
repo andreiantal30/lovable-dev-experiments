@@ -1,5 +1,7 @@
-import { Campaign, campaignData } from './campaignData';
+
+import { Campaign } from './campaignData';
 import { generateWithOpenAI, OpenAIConfig, defaultOpenAIConfig } from './openai';
+import { getCampaigns } from './campaignStorage';
 
 export interface CampaignInput {
   brand: string;
@@ -22,8 +24,11 @@ export interface GeneratedCampaign {
 
 // Helper function to find similar campaigns based on input
 const findSimilarCampaigns = (input: CampaignInput): Campaign[] => {
+  // Get campaigns from local storage or use default data
+  const allCampaigns = getCampaigns();
+  
   // Score each campaign based on similarities
-  const scoredCampaigns = campaignData.map(campaign => {
+  const scoredCampaigns = allCampaigns.map(campaign => {
     let score = 0;
     
     // Match industry
