@@ -188,7 +188,7 @@ const Index = () => {
           </>
         )}
         
-        {/* Add How It Works section */}
+        {/* How It Works section */}
         {!generatedCampaign && !showApiKeyInput && <HowItWorks />}
         
         <footer className="mt-20 md:mt-32 text-center text-sm text-muted-foreground">
