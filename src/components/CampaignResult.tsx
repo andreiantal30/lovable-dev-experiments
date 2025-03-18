@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Card, CardContent } from "./ui/card";
 
-interface CampaignResultProps {
+export interface CampaignResultProps {
   campaign: GeneratedCampaign;
   onGenerateAnother: () => void;
   showFeedbackForm?: boolean;
