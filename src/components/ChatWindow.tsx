@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Check, Copy, Loader2, MessageSquare, Send, User } from "lucide-react";
+import { Check, Copy, Loader2, MessageSquare, Send, User, Wand2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { OpenAIConfig } from "@/lib/openai";
 import TransitionElement from "./TransitionElement";
@@ -18,6 +18,7 @@ export interface Message {
 interface ChatWindowProps {
   messages: Message[];
   onSendMessage: (message: string) => Promise<void>;
+  onRegenerateCampaign?: (feedback: string) => Promise<boolean>;
   isLoading: boolean;
   openAIConfig: OpenAIConfig;
 }
@@ -25,6 +26,7 @@ interface ChatWindowProps {
 const ChatWindow: React.FC<ChatWindowProps> = ({
   messages,
   onSendMessage,
+  onRegenerateCampaign,
   isLoading,
   openAIConfig,
 }) => {
@@ -32,6 +34,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [showRegenerateButton, setShowRegenerateButton] = useState(false);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -45,9 +49,24 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     }
   }, [isLoading]);
 
+  // Check if input contains keywords that suggest campaign regeneration
+  useEffect(() => {
+    const regenerationKeywords = [
+      'regenerate', 'recreate', 'remake', 'new campaign', 'change campaign',
+      'different campaign', 'redo campaign', 'rework', 'revise campaign',
+      'create new', 'start over', 'instead', 'prefer', 'rather have'
+    ];
+    
+    const shouldShowButton = regenerationKeywords.some(keyword => 
+      inputValue.toLowerCase().includes(keyword)
+    );
+    
+    setShowRegenerateButton(shouldShowButton && !!onRegenerateCampaign);
+  }, [inputValue, onRegenerateCampaign]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputValue.trim() === "" || isLoading) return;
+    if (inputValue.trim() === "" || isLoading || isRegenerating) return;
 
     try {
       await onSendMessage(inputValue);
@@ -55,6 +74,27 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     } catch (error) {
       toast.error("Failed to send message");
       console.error("Error sending message:", error);
+    }
+  };
+
+  const handleRegenerateCampaign = async () => {
+    if (!onRegenerateCampaign || isRegenerating || inputValue.trim() === "") return;
+    
+    setIsRegenerating(true);
+    try {
+      const feedback = inputValue;
+      
+      // Send message to chat first
+      await onSendMessage(feedback);
+      setInputValue("");
+      
+      // Then regenerate campaign
+      await onRegenerateCampaign(feedback);
+    } catch (error) {
+      toast.error("Failed to regenerate campaign");
+      console.error("Error regenerating campaign:", error);
+    } finally {
+      setIsRegenerating(false);
     }
   };
 
@@ -103,13 +143,19 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                 "group relative flex max-w-[85%] items-start gap-3 rounded-xl p-4",
                 message.role === "user"
                   ? "ml-auto bg-primary text-white"
-                  : "bg-secondary/50 dark:bg-gray-700/50"
+                  : message.role === "system" 
+                    ? "bg-amber-100/50 dark:bg-amber-900/20"
+                    : "bg-secondary/50 dark:bg-gray-700/50"
               )}
             >
               <div className="flex-shrink-0 w-6 h-6">
                 {message.role === "assistant" ? (
                   <div className="w-6 h-6 rounded-full bg-primary/15 flex items-center justify-center text-primary">
                     <MessageSquare size={14} />
+                  </div>
+                ) : message.role === "system" ? (
+                  <div className="w-6 h-6 rounded-full bg-amber-500/15 flex items-center justify-center text-amber-500">
+                    <Wand2 size={14} />
                   </div>
                 ) : (
                   <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
@@ -121,7 +167,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
               <div className="min-w-0 flex-1">
                 <p className={cn(
                   "text-sm whitespace-pre-wrap break-words",
-                  message.role === "user" ? "text-white" : "text-foreground dark:text-white/90"
+                  message.role === "user" ? "text-white" : 
+                  message.role === "system" ? "text-amber-800 dark:text-amber-300" :
+                  "text-foreground dark:text-white/90"
                 )}>
                   {formatMessageContent(message.content)}
                 </p>
@@ -174,10 +222,28 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Ask a question or provide feedback..."
-            disabled={isLoading}
+            disabled={isLoading || isRegenerating}
             className="flex-1"
           />
-          <Button type="submit" size="icon" disabled={isLoading || !inputValue.trim()}>
+          
+          {showRegenerateButton && onRegenerateCampaign && (
+            <Button 
+              type="button" 
+              onClick={handleRegenerateCampaign}
+              variant="outline"
+              disabled={isLoading || isRegenerating || !inputValue.trim()} 
+              className="gap-1"
+            >
+              {isRegenerating ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Wand2 className="h-4 w-4" />
+              )}
+              <span className="hidden sm:inline">Regenerate</span>
+            </Button>
+          )}
+          
+          <Button type="submit" size="icon" disabled={isLoading || isRegenerating || !inputValue.trim()}>
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (

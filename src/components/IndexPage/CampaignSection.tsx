@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import CampaignForm from "@/components/CampaignForm";
 import EnhancedCampaignResult from "@/components/EnhancedCampaignResult";
 import ChatWindow, { Message } from "@/components/ChatWindow";
@@ -10,41 +10,45 @@ import HowItWorks from "@/components/HowItWorks";
 import Plans from "@/components/Plans";
 import { Link } from "react-router-dom";
 import { ChevronDown, Library } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { CampaignFeedback } from "@/components/CampaignResult";
 
 interface CampaignSectionProps {
   generatedCampaign: GeneratedCampaign | null;
   isGenerating: boolean;
+  isRegenerating?: boolean;
   onGenerateCampaign: (input: CampaignInput) => Promise<void>;
   onGenerateAnother: () => void;
   messages: Message[];
   onSendMessage: (message: string) => Promise<void>;
+  onRegenerateCampaign?: (feedback: string) => Promise<boolean>;
   isProcessingMessage: boolean;
   isChatActive: boolean;
   openAIConfig: OpenAIConfig;
   onRefine: (feedback: CampaignFeedback) => Promise<void>;
   isRefining: boolean;
   lastInput: CampaignInput | null;
+  campaignResultRef: React.RefObject<HTMLDivElement>;
 }
 
 const CampaignSection = ({
   generatedCampaign,
   isGenerating,
+  isRegenerating,
   onGenerateCampaign,
   onGenerateAnother,
   messages,
   onSendMessage,
+  onRegenerateCampaign,
   isProcessingMessage,
   isChatActive,
   openAIConfig,
   onRefine,
   isRefining,
-  lastInput
+  lastInput,
+  campaignResultRef
 }: CampaignSectionProps) => {
-  const campaignResultRef = useRef<HTMLDivElement>(null);
-  const scrollArrowRef = useRef<HTMLDivElement>(null);
-  const mainScrollArrowRef = useRef<HTMLDivElement>(null);
+  const scrollArrowRef = React.useRef<HTMLDivElement>(null);
+  const mainScrollArrowRef = React.useRef<HTMLDivElement>(null);
   
   // Effect to scroll to campaign result when generated
   useEffect(() => {
@@ -57,7 +61,7 @@ const CampaignSection = ({
         });
       }, 100);
     }
-  }, [generatedCampaign]);
+  }, [generatedCampaign, campaignResultRef]);
   
   // Effect to hide arrow on scroll
   useEffect(() => {
@@ -116,6 +120,7 @@ const CampaignSection = ({
             onRefine={onRefine}
             brandName={lastInput?.brand}
             industryName={lastInput?.industry}
+            isLoading={isRefining || isRegenerating}
           />
           
           {/* Scroll down arrow */}
@@ -133,6 +138,7 @@ const CampaignSection = ({
               <ChatWindow 
                 messages={messages}
                 onSendMessage={onSendMessage}
+                onRegenerateCampaign={onRegenerateCampaign}
                 isLoading={isProcessingMessage}
                 openAIConfig={openAIConfig}
               />

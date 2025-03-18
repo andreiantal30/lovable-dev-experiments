@@ -4,18 +4,20 @@ import CampaignResult, { CampaignResultProps, CampaignFeedback } from '@/compone
 import StorytellingNarrative from './StorytellingNarrative';
 import { GeneratedCampaign } from '@/lib/generateCampaign';
 import { Button } from './ui/button';
-import { Bookmark, BookmarkCheck, Check } from 'lucide-react';
+import { Bookmark, BookmarkCheck, Check, Loader2 } from 'lucide-react';
 import { 
   saveCampaignToLibrary, 
   isCampaignSaved 
 } from '@/lib/campaignStorage';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
+import { Card } from './ui/card';
 
 interface EnhancedCampaignResultProps extends Omit<CampaignResultProps, 'campaign'> {
   campaign: GeneratedCampaign;
   brandName?: string;
   industryName?: string;
+  isLoading?: boolean;
 }
 
 const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({ 
@@ -24,7 +26,8 @@ const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({
   showFeedbackForm, 
   onRefine,
   brandName,
-  industryName
+  industryName,
+  isLoading = false
 }) => {
   const [isSaved, setIsSaved] = useState(false);
   const [isJustSaved, setIsJustSaved] = useState(false);
@@ -66,6 +69,18 @@ const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({
       toast.error('Failed to save campaign');
     }
   };
+
+  if (isLoading) {
+    return (
+      <Card className="p-8 flex flex-col items-center justify-center space-y-4 min-h-[400px]">
+        <Loader2 className="h-12 w-12 text-primary animate-spin" />
+        <h3 className="text-xl font-medium">Updating campaign...</h3>
+        <p className="text-muted-foreground text-center max-w-md">
+          We're regenerating your campaign based on your feedback. This will only take a moment.
+        </p>
+      </Card>
+    );
+  }
   
   return (
     <div className="space-y-8">

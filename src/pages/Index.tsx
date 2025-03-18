@@ -25,6 +25,7 @@ const Index = () => {
   const {
     isGenerating,
     isRefining,
+    isRegenerating,
     generatedCampaign,
     lastInput,
     messages,
@@ -34,7 +35,9 @@ const Index = () => {
     handleGenerateCampaign,
     handleGenerateAnother,
     handleRefineCampaign,
-    setMessages
+    handleRegenerateCampaign,
+    setMessages,
+    campaignResultRef
   } = useCampaignGeneration(openAIConfig);
 
   const onApiKeySubmit = (e: React.FormEvent) => {
@@ -100,16 +103,19 @@ const Index = () => {
             <CampaignSection
               generatedCampaign={generatedCampaign}
               isGenerating={isGenerating}
+              isRegenerating={isRegenerating}
               onGenerateCampaign={onGenerateCampaign}
               onGenerateAnother={handleGenerateAnother}
               messages={messages}
               onSendMessage={handleSendMessage}
+              onRegenerateCampaign={handleRegenerateCampaign}
               isProcessingMessage={isProcessingMessage}
               isChatActive={isChatActive}
               openAIConfig={openAIConfig}
               onRefine={handleRefineCampaign}
               isRefining={isRefining}
               lastInput={lastInput}
+              campaignResultRef={campaignResultRef}
             />
           )}
           

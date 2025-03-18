@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { CampaignInput, GeneratedCampaign, generateCampaign } from "@/lib/generateCampaign";
 import { OpenAIConfig } from "@/lib/openai";
 import { toast } from "sonner";
@@ -11,11 +11,13 @@ import { CampaignFeedback } from "@/components/CampaignResult";
 export function useCampaignGeneration(openAIConfig: OpenAIConfig) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isRefining, setIsRefining] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
   const [generatedCampaign, setGeneratedCampaign] = useState<GeneratedCampaign | null>(null);
   const [lastInput, setLastInput] = useState<CampaignInput | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isChatActive, setIsChatActive] = useState(false);
   const [isProcessingMessage, setIsProcessingMessage] = useState(false);
+  const campaignResultRef = useRef<HTMLDivElement | null>(null);
 
   const handleGenerateCampaign = async (input: CampaignInput) => {
     if (!openAIConfig.apiKey) {
@@ -118,12 +120,104 @@ export function useCampaignGeneration(openAIConfig: OpenAIConfig) {
         }
       }
       
+      // Scroll to campaign result
+      scrollToCampaign();
+      
       toast.success("Campaign has been refined based on your feedback!");
     } catch (error) {
       console.error("Error refining campaign:", error);
       toast.error(error instanceof Error ? error.message : "Failed to refine campaign");
     } finally {
       setIsRefining(false);
+    }
+  };
+
+  const handleRegenerateCampaign = async (userFeedback: string) => {
+    if (!lastInput) {
+      toast.error("Cannot regenerate without original input");
+      return false;
+    }
+
+    setIsRegenerating(true);
+    
+    try {
+      // Add regeneration system message
+      const regeneratingMessage: Message = {
+        id: uuidv4(),
+        role: "system",
+        content: "Regenerating campaign based on your feedback...",
+        timestamp: new Date(),
+      };
+      
+      setMessages(prev => [...prev, regeneratingMessage]);
+      
+      // Create enhanced input with user feedback
+      const enhancedInput: CampaignInput = {
+        ...lastInput,
+        additionalConstraints: `
+          Regenerate the campaign based on this user feedback:
+          "${userFeedback}"
+          
+          Previous campaign name: ${generatedCampaign?.campaignName}
+          Previous key message: ${generatedCampaign?.keyMessage}
+        `
+      };
+      
+      // Generate new campaign
+      const regeneratedCampaign = await generateCampaign(enhancedInput, openAIConfig);
+      setGeneratedCampaign(regeneratedCampaign);
+      
+      // Add confirmation message
+      const confirmationMessage: Message = {
+        id: uuidv4(),
+        role: "assistant",
+        content: `I've regenerated the campaign based on your feedback. The new campaign is called "${regeneratedCampaign.campaignName}" with the key message: "${regeneratedCampaign.keyMessage}". Is there anything else you'd like to refine?`,
+        timestamp: new Date(),
+      };
+      
+      // Remove regenerating message and add confirmation
+      setMessages(prev => [...prev.filter(msg => msg.id !== regeneratingMessage.id), confirmationMessage]);
+      
+      // Automatically save the regenerated campaign to the library
+      if (regeneratedCampaign && lastInput.brand && lastInput.industry) {
+        const savedCampaign = saveCampaignToLibrary(
+          regeneratedCampaign, 
+          lastInput.brand, 
+          lastInput.industry
+        );
+        if (savedCampaign) {
+          toast.success("Regenerated campaign saved to your library");
+        }
+      }
+      
+      // Scroll to campaign result
+      scrollToCampaign();
+      
+      return true;
+    } catch (error) {
+      console.error("Error regenerating campaign:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to regenerate campaign");
+      return false;
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
+
+  const scrollToCampaign = () => {
+    if (campaignResultRef.current) {
+      campaignResultRef.current.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      });
+    } else {
+      // Fallback if ref isn't set yet
+      const campaignElement = document.getElementById('generated-campaign');
+      if (campaignElement) {
+        campaignElement.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+      }
     }
   };
 
@@ -136,6 +230,7 @@ export function useCampaignGeneration(openAIConfig: OpenAIConfig) {
   return {
     isGenerating,
     isRefining,
+    isRegenerating,
     generatedCampaign,
     lastInput,
     messages,
@@ -145,6 +240,8 @@ export function useCampaignGeneration(openAIConfig: OpenAIConfig) {
     handleGenerateCampaign,
     handleGenerateAnother,
     handleRefineCampaign,
-    setMessages
+    handleRegenerateCampaign,
+    setMessages,
+    campaignResultRef
   };
 }
