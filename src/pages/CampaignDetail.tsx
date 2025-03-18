@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Star, Calendar, Trash2, Clipboard } from 'lucide-react';
+import { ArrowLeft, Star, Calendar, Trash2, Clipboard, Home, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import {
   getSavedCampaignById,
   removeSavedCampaign,
@@ -151,11 +159,42 @@ Expected Outcomes: ${campaign.campaign.expectedOutcomes.join('\n- ')}
   const renderContent = () => (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
       {!isInSidebar && (
-        <div className="mb-8 flex justify-between items-center">
-          <Link to="/library" className="group flex items-center text-primary hover:text-primary/80">
-            <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
-            Back to Library
-          </Link>
+        <div className="mb-8">
+          <Breadcrumb className="mb-4">
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link to="/">Home</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link to="/library">Library</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{campaign.campaign.campaignName}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+          
+          <div className="flex gap-4">
+            <Link to="/" className="inline-flex">
+              <Button variant="outline" className="flex items-center gap-2">
+                <Home size={16} />
+                Back to Campaign Generator
+              </Button>
+            </Link>
+            
+            <Link to="/library" className="inline-flex">
+              <Button variant="ghost" className="flex items-center gap-2">
+                <ArrowLeft size={16} />
+                Back to Library
+              </Button>
+            </Link>
+          </div>
         </div>
       )}
       
@@ -217,6 +256,16 @@ Expected Outcomes: ${campaign.campaign.expectedOutcomes.join('\n- ')}
             />
           </div>
         </CardContent>
+        <CardFooter>
+          <Button 
+            variant="default" 
+            className="w-full sm:w-auto flex items-center gap-2"
+            onClick={() => navigate('/')}
+          >
+            <Plus size={16} />
+            Create New Campaign
+          </Button>
+        </CardFooter>
       </Card>
     </div>
   );

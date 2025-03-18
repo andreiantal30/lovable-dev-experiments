@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Search, ArrowLeft, Filter, Grid3X3, ListFilter, Star, StarOff, Trash2 } from 'lucide-react';
+import { Search, ArrowLeft, Filter, Grid3X3, ListFilter, Star, StarOff, Trash2, Plus, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
@@ -56,7 +55,6 @@ const CampaignLibrary: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   
-  // Load saved campaigns on mount
   useEffect(() => {
     const favoritesParam = searchParams.get('favorites');
     if (favoritesParam === 'true') {
@@ -120,26 +118,21 @@ const CampaignLibrary: React.FC = () => {
     navigate(`/library?id=${id}`);
   };
   
-  // Filter and sort campaigns
   const filteredCampaigns = campaigns
     .filter(campaign => {
-      // Search filter
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch = searchTerm === '' || 
         campaign.campaign.campaignName.toLowerCase().includes(searchLower) ||
         campaign.brand.toLowerCase().includes(searchLower) ||
         campaign.campaign.keyMessage.toLowerCase().includes(searchLower);
       
-      // Industry filter
       const matchesIndustry = industryFilter === '' || campaign.industry === industryFilter;
       
-      // Favorites filter
       const matchesFavorites = !showFavoritesOnly || campaign.favorite;
       
       return matchesSearch && matchesIndustry && matchesFavorites;
     })
     .sort((a, b) => {
-      // Sort based on selected option
       switch (sortBy) {
         case 'newest':
           return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
@@ -154,7 +147,6 @@ const CampaignLibrary: React.FC = () => {
       }
     });
   
-  // Get unique industries for filter
   const uniqueIndustries = Array.from(new Set(campaigns.map(c => c.industry))).sort();
 
   const formatDate = (dateString: string) => {
@@ -168,7 +160,6 @@ const CampaignLibrary: React.FC = () => {
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
-  // If a campaign is selected, show its detail view
   if (selectedCampaignId) {
     return (
       <CampaignSidebarProvider>
@@ -201,10 +192,12 @@ const CampaignLibrary: React.FC = () => {
       <SidebarInset className="bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-950">
         <div className="container mx-auto px-4 py-6 max-w-7xl">
           <div className="mb-8 flex justify-between items-center">
-            <Link to="/" className="group flex items-center text-primary hover:text-primary/80">
-              <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
-              Back to Home
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link to="/" className="group flex items-center text-primary hover:text-primary/80">
+                <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
+                Back to Home
+              </Link>
+            </div>
             
             <div className="flex items-center gap-2">
               <Button
@@ -227,7 +220,16 @@ const CampaignLibrary: React.FC = () => {
           </div>
           
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
-            <h1 className="text-2xl font-semibold mb-6">All Campaigns</h1>
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+              <h1 className="text-2xl font-semibold">My Campaign Library</h1>
+              
+              <Link to="/">
+                <Button className="w-full sm:w-auto flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Create New Campaign
+                </Button>
+              </Link>
+            </div>
             
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
               <div className="relative flex-1">
@@ -283,9 +285,12 @@ const CampaignLibrary: React.FC = () => {
             
             {filteredCampaigns.length === 0 ? (
               <div className="text-center py-16">
-                <p className="text-muted-foreground mb-2">No saved campaigns found</p>
+                <p className="text-muted-foreground mb-4">No saved campaigns found</p>
                 <Link to="/">
-                  <Button>Create Your First Campaign</Button>
+                  <Button size="lg" className="flex items-center gap-2">
+                    <Plus className="h-5 w-5" />
+                    Create Your First Campaign
+                  </Button>
                 </Link>
               </div>
             ) : viewMode === 'grid' ? (

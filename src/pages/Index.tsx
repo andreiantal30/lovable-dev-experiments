@@ -10,6 +10,9 @@ import ApiKeyForm from "@/components/IndexPage/ApiKeyForm";
 import CampaignSection from "@/components/IndexPage/CampaignSection";
 import { useCampaignGeneration } from "@/hooks/useCampaignGeneration";
 import { useOpenAIConfig } from "@/hooks/useOpenAIConfig";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { Library } from "lucide-react";
 
 const Index = () => {
   const {
@@ -84,10 +87,19 @@ const Index = () => {
         </div>
         
         <div className="container mx-auto px-4 py-12 max-w-7xl relative z-10">
-          <Header 
-            apiKey={openAIConfig.apiKey} 
-            onChangeApiKey={handleChangeApiKey} 
-          />
+          <div className="flex justify-between items-center mb-8">
+            <Header 
+              apiKey={openAIConfig.apiKey} 
+              onChangeApiKey={handleChangeApiKey} 
+            />
+            
+            <Link to="/library">
+              <Button variant="outline" className="flex items-center gap-2">
+                <Library className="h-4 w-4" />
+                View My Library
+              </Button>
+            </Link>
+          </div>
           
           {showApiKeyInput && (
             <ApiKeyForm
