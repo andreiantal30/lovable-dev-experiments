@@ -10,7 +10,27 @@ export interface CampaignInput {
   objectives: string[];
   emotionalAppeal: string[];
   additionalConstraints?: string;
-  campaignStyle?: "digital" | "experiential" | "social";
+  campaignStyle?: 
+    | "digital" 
+    | "experiential" 
+    | "social" 
+    | "influencer" 
+    | "guerrilla" 
+    | "ugc" 
+    | "brand-activism" 
+    | "branded-entertainment" 
+    | "retail-activation" 
+    | "product-placement" 
+    | "data-personalization" 
+    | "real-time" 
+    | "event-based" 
+    | "ooh-ambient" 
+    | "ai-generated" 
+    | "co-creation" 
+    | "stunt-marketing" 
+    | "ar-vr" 
+    | "performance" 
+    | "loyalty-community";
 }
 
 export interface GeneratedCampaign {
@@ -178,22 +198,39 @@ const findSimilarCampaigns = (input: CampaignInput): Campaign[] => {
     
     // Campaign style match (0-10 points)
     if (input.campaignStyle) {
-      // Extract campaign style hints from the campaign strategy
-      const campaignStrategy = campaign.strategy.toLowerCase();
-      const isDigital = campaignStrategy.includes('digital') || 
-                        campaignStrategy.includes('online') || 
-                        campaignStrategy.includes('social media');
-      const isExperiential = campaignStrategy.includes('event') || 
-                             campaignStrategy.includes('experience') || 
-                             campaignStrategy.includes('activation');
-      const isSocial = campaignStrategy.includes('social') || 
-                       campaignStrategy.includes('community') || 
-                       campaignStrategy.includes('user generated');
+      // Extract campaign style hints from the campaign strategy and key message
+      const campaignText = (campaign.strategy + ' ' + campaign.keyMessage).toLowerCase();
       
-      if ((input.campaignStyle === 'digital' && isDigital) ||
-          (input.campaignStyle === 'experiential' && isExperiential) ||
-          (input.campaignStyle === 'social' && isSocial)) {
-        dimensionScores.style = 10;
+      // Map of style identifiers to keywords
+      const styleKeywords: Record<string, string[]> = {
+        'digital': ['digital', 'online', 'website', 'app', 'mobile'],
+        'experiential': ['experience', 'event', 'activation', 'immersive', 'interactive'],
+        'social': ['social media', 'social network', 'community', 'user generated'],
+        'influencer': ['influencer', 'creator', 'personality', 'ambassador', 'celebrity'],
+        'guerrilla': ['guerrilla', 'unconventional', 'unexpected', 'surprise', 'street'],
+        'ugc': ['user generated', 'ugc', 'community content', 'fan content'],
+        'brand-activism': ['activism', 'cause', 'social change', 'environmental', 'purpose'],
+        'branded-entertainment': ['entertainment', 'content', 'film', 'series', 'show'],
+        'retail-activation': ['retail', 'store', 'shop', 'pop-up', 'in-store'],
+        'product-placement': ['placement', 'integration', 'media', 'film', 'show'],
+        'data-personalization': ['data', 'personalization', 'personalized', 'tailored', 'custom'],
+        'real-time': ['real-time', 'trending', 'reactive', 'newsjacking', 'moment'],
+        'event-based': ['event', 'concert', 'sports', 'festival', 'cultural'],
+        'ooh-ambient': ['ooh', 'outdoor', 'billboard', 'ambient', 'street'],
+        'ai-generated': ['ai', 'artificial intelligence', 'machine learning', 'generated'],
+        'co-creation': ['collaboration', 'partnership', 'collab', 'co-create', 'artists'],
+        'stunt-marketing': ['stunt', 'bold', 'attention-grabbing', 'publicity', 'shocking'],
+        'ar-vr': ['ar', 'vr', 'augmented reality', 'virtual reality', 'mixed reality'],
+        'performance': ['performance', 'conversion', 'roi', 'results', 'metrics'],
+        'loyalty-community': ['loyalty', 'community', 'membership', 'exclusive', 'belonging']
+      };
+      
+      // Check if the campaign text contains keywords related to the selected style
+      const relevantKeywords = styleKeywords[input.campaignStyle] || [];
+      const matchCount = relevantKeywords.filter(keyword => campaignText.includes(keyword)).length;
+      
+      if (matchCount > 0) {
+        dimensionScores.style = Math.min(matchCount * 2.5, 10); // 2.5 points per keyword match, max 10
       }
     }
     
@@ -324,6 +361,37 @@ Emotional Appeal: ${campaign.emotionalAppeal.join(', ')}
 `;
   }).join('\n');
 
+  // Create a human-readable campaign style description
+  let campaignStyleDescription = input.campaignStyle || 'Any';
+  
+  // Map style values to their full descriptions for the prompt
+  const styleDescriptions: Record<string, string> = {
+    'digital': 'Digital-first approach',
+    'experiential': 'Experiential marketing approach',
+    'social': 'Social media-led approach',
+    'influencer': 'Influencer-Driven – Powered by creators & social personalities',
+    'guerrilla': 'Guerrilla Marketing – Unexpected, unconventional, and attention-grabbing',
+    'ugc': 'User-Generated Content (UGC) – Community-driven campaign',
+    'brand-activism': 'Brand Activism – Focused on social or environmental causes',
+    'branded-entertainment': 'Branded Entertainment – Storytelling through content',
+    'retail-activation': 'Retail Activation – In-store experiences, pop-ups, and interactive retail moments',
+    'product-placement': 'Product Placement & Integration – Subtle advertising in media',
+    'data-personalization': 'Data-Driven Personalization – Tailored messaging based on user data',
+    'real-time': 'Real-Time & Reactive Marketing – Capitalizing on trending topics',
+    'event-based': 'Event-Based – Tied to concerts, sports, cultural events, etc.',
+    'ooh-ambient': 'OOH & Ambient – Billboards, murals, and unexpected placements',
+    'ai-generated': 'AI-Generated – Campaign created or enhanced by AI tools',
+    'co-creation': 'Co-Creation & Collabs – Brand partnerships with artists, designers, or other brands',
+    'stunt-marketing': 'Stunt Marketing – One-time, bold activations to grab attention',
+    'ar-vr': 'AR/VR-Driven – Interactive digital experiences using augmented or virtual reality',
+    'performance': 'Performance-Driven – Focused on measurable conversions & ROI',
+    'loyalty-community': 'Loyalty & Community-Building – Built around exclusivity and brand affinity'
+  };
+  
+  if (input.campaignStyle && styleDescriptions[input.campaignStyle]) {
+    campaignStyleDescription = styleDescriptions[input.campaignStyle];
+  }
+
   return `Generate a creative marketing campaign for the following brand and requirements:
 
 BRAND INFORMATION:
@@ -332,7 +400,7 @@ Industry: ${input.industry}
 Target Audience: ${input.targetAudience.join(', ')}
 Campaign Objectives: ${input.objectives.join(', ')}
 Emotional Appeal to Focus On: ${input.emotionalAppeal.join(', ')}
-Campaign Style: ${input.campaignStyle || 'Any (digital, experiential, or social)'}
+Campaign Style: ${campaignStyleDescription}
 ${input.additionalConstraints ? `Additional Requirements: ${input.additionalConstraints}` : ''}
 
 REFERENCE CAMPAIGNS FOR INSPIRATION:
