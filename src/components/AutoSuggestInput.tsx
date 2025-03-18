@@ -25,6 +25,7 @@ const AutoSuggestInput = ({
   const [isFocused, setIsFocused] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const [showAllSuggestions, setShowAllSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLUListElement>(null);
   
@@ -34,14 +35,17 @@ const AutoSuggestInput = ({
         suggestion.toLowerCase().includes(value.toLowerCase())
       );
       setFilteredSuggestions(filtered.slice(0, 7)); // Limit to 7 suggestions for performance
+    } else if (showAllSuggestions) {
+      setFilteredSuggestions(suggestions.slice(0, 7)); // Show first 7 suggestions when button is clicked
     } else {
       setFilteredSuggestions([]);
     }
     setHighlightedIndex(-1);
-  }, [value, suggestions]);
+  }, [value, suggestions, showAllSuggestions]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange(e.target.value);
+    setShowAllSuggestions(false);
   };
 
   const handleInputFocus = () => {
@@ -53,6 +57,7 @@ const AutoSuggestInput = ({
     setTimeout(() => {
       if (!suggestionsRef.current?.contains(document.activeElement)) {
         setIsFocused(false);
+        setShowAllSuggestions(false);
       }
     }, 150);
   };
@@ -60,6 +65,13 @@ const AutoSuggestInput = ({
   const handleSuggestionClick = (suggestion: string) => {
     onSelect(suggestion);
     setIsFocused(false);
+    setShowAllSuggestions(false);
+    inputRef.current?.focus();
+  };
+
+  const handleShowAllSuggestions = () => {
+    setShowAllSuggestions(true);
+    setIsFocused(true);
     inputRef.current?.focus();
   };
 
@@ -76,8 +88,10 @@ const AutoSuggestInput = ({
       e.preventDefault();
       onSelect(filteredSuggestions[highlightedIndex]);
       setIsFocused(false);
+      setShowAllSuggestions(false);
     } else if (e.key === 'Escape') {
       setIsFocused(false);
+      setShowAllSuggestions(false);
     }
   };
 
@@ -124,17 +138,15 @@ const AutoSuggestInput = ({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => {
-            onSelect(value);
-            inputRef.current?.focus();
-          }}
+          onClick={handleShowAllSuggestions}
           className="absolute right-1 top-1 h-8 w-8 p-0"
+          title="Show all suggestions"
         >
           +
         </Button>
       </div>
       
-      {isFocused && filteredSuggestions.length > 0 && (
+      {(isFocused && filteredSuggestions.length > 0) && (
         <ul 
           ref={suggestionsRef}
           className="absolute z-50 mt-1 w-full max-h-60 overflow-auto rounded-md bg-white dark:bg-gray-800 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
