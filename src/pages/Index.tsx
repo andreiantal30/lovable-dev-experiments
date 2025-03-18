@@ -1,20 +1,18 @@
 
 import { useState } from "react";
-import CampaignForm from "@/components/CampaignForm";
-import CampaignResult from "@/components/CampaignResult";
 import { CampaignInput, GeneratedCampaign, generateCampaign } from "@/lib/generateCampaign";
-import TransitionElement from "@/components/TransitionElement";
-import { Sparkles, Database } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import { toast } from "sonner";
 import { OpenAIConfig, defaultOpenAIConfig, generateWithOpenAI } from "@/lib/openai";
-import HowItWorks from "@/components/HowItWorks";
-import Plans from "@/components/Plans";
-import { CampaignFeedback } from "@/components/CampaignResult";
-import ChatWindow, { Message } from "@/components/ChatWindow";
 import { v4 as uuidv4 } from "uuid";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { Message } from "@/components/ChatWindow";
+import { CampaignFeedback } from "@/components/CampaignResult";
+
+// Import refactored components
+import Header from "@/components/IndexPage/Header";
+import ApiKeyForm from "@/components/IndexPage/ApiKeyForm";
+import CampaignSection from "@/components/IndexPage/CampaignSection";
+import Footer from "@/components/IndexPage/Footer";
 
 const Index = () => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -195,164 +193,38 @@ const Index = () => {
       </div>
       
       <div className="container mx-auto px-4 py-12 max-w-7xl relative z-10">
-        <header className="text-center mb-12 md:mb-16 relative">
-          <div className="absolute right-0 top-0">
-            <Link 
-              to="/campaign-manager" 
-              className="inline-block"
-            >
-              <Button variant="outline" size="sm" className="w-full flex items-center gap-2">
-                <Database className="h-4 w-4" />
-                <span className="hidden sm:inline">Manage Campaign Database</span>
-                <span className="sm:hidden">Database</span>
-              </Button>
-            </Link>
-          </div>
-          
-          <TransitionElement animation="slide-down">
-            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1.5 rounded-full text-sm font-medium mb-4">
-              <Sparkles size={16} />
-              <span>AI-Powered Creative Campaign Generator</span>
-            </div>
-          </TransitionElement>
-          
-          <TransitionElement animation="slide-down" delay={100}>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight mb-4">
-              Transform Ideas into <br className="hidden md:block" />
-              <span className="text-primary">Award-Winning Campaigns</span>
-            </h1>
-          </TransitionElement>
-          
-          <TransitionElement animation="slide-down" delay={200}>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
-              Leverage OpenAI's GPT to generate creative campaign concepts inspired by  
-              previous award-winning advertising campaigns.
-            </p>
-          </TransitionElement>
-
-          {openAIConfig.apiKey && (
-            <TransitionElement animation="slide-down" delay={250}>
-              <div className="mt-2 flex justify-center">
-                <button
-                  onClick={handleChangeApiKey}
-                  className="text-sm text-primary hover:text-primary/80 underline underline-offset-2"
-                >
-                  Change OpenAI API key
-                </button>
-              </div>
-            </TransitionElement>
-          )}
-        </header>
+        <Header 
+          apiKey={openAIConfig.apiKey} 
+          onChangeApiKey={handleChangeApiKey} 
+        />
         
         {showApiKeyInput && (
-          <TransitionElement animation="fade">
-            <div className="max-w-md mx-auto mb-10 bg-white/70 dark:bg-gray-800/40 backdrop-blur-lg rounded-xl p-6 shadow-subtle">
-              <h2 className="text-lg font-medium mb-3">Enter your OpenAI API Key</h2>
-              <form onSubmit={handleApiKeySubmit}>
-                <div className="space-y-1.5 mb-4">
-                  <label htmlFor="apiKey" className="text-sm font-medium">
-                    API Key
-                  </label>
-                  <input
-                    id="apiKey"
-                    type="password"
-                    value={openAIConfig.apiKey}
-                    onChange={(e) => setOpenAIConfig({...openAIConfig, apiKey: e.target.value})}
-                    placeholder="sk-..."
-                    className="w-full px-3 py-2 border rounded-md bg-white/90 dark:bg-gray-800/60"
-                    required
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Your API key is stored locally and never sent to our servers.
-                  </p>
-                </div>
-
-                <div className="space-y-1.5 mb-4">
-                  <label htmlFor="model" className="text-sm font-medium">
-                    OpenAI Model
-                  </label>
-                  <select
-                    id="model"
-                    value={openAIConfig.model}
-                    onChange={(e) => setOpenAIConfig({...openAIConfig, model: e.target.value})}
-                    className="w-full px-3 py-2 border rounded-md bg-white/90 dark:bg-gray-800/60"
-                  >
-                    <option value="gpt-4o">GPT-4o (Best quality)</option>
-                    <option value="gpt-4o-mini">GPT-4o Mini (Faster, cheaper)</option>
-                    <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Fastest, cheapest)</option>
-                  </select>
-                </div>
-
-                <div className="flex justify-end">
-                  {generatedCampaign && (
-                    <button
-                      type="button"
-                      onClick={() => setShowApiKeyInput(false)}
-                      className="mr-2 px-3 py-1.5 text-sm border rounded-md"
-                    >
-                      Cancel
-                    </button>
-                  )}
-                  <button
-                    type="submit"
-                    className="px-3 py-1.5 bg-primary text-primary-foreground rounded-md text-sm"
-                  >
-                    Save API Key
-                  </button>
-                </div>
-              </form>
-            </div>
-          </TransitionElement>
+          <ApiKeyForm
+            openAIConfig={openAIConfig}
+            setOpenAIConfig={setOpenAIConfig}
+            onSubmit={handleApiKeySubmit}
+            hasGeneratedCampaign={!!generatedCampaign}
+            onCancel={generatedCampaign ? () => setShowApiKeyInput(false) : undefined}
+          />
         )}
         
         {!showApiKeyInput && (
-          <>
-            {!generatedCampaign ? (
-              <CampaignForm onSubmit={handleGenerateCampaign} isGenerating={isGenerating} />
-            ) : (
-              <div className="space-y-12">
-                <CampaignResult 
-                  campaign={generatedCampaign} 
-                  onGenerateAnother={handleGenerateAnother}
-                  showFeedbackForm={!isChatActive}
-                  onRefine={handleRefineCampaign}
-                />
-                
-                {isChatActive && (
-                  <TransitionElement animation="slide-up" delay={100}>
-                    <ChatWindow 
-                      messages={messages}
-                      onSendMessage={handleSendMessage}
-                      isLoading={isProcessingMessage}
-                      openAIConfig={openAIConfig}
-                    />
-                  </TransitionElement>
-                )}
-              </div>
-            )}
-            
-            {generatedCampaign && (
-              <div className="mt-8 text-center">
-                <TransitionElement animation="fade" delay={700}>
-                  <button
-                    onClick={handleGenerateAnother}
-                    className="text-primary hover:text-primary/80 font-medium underline underline-offset-4 text-sm mx-auto"
-                  >
-                    Create a new campaign
-                  </button>
-                </TransitionElement>
-              </div>
-            )}
-          </>
+          <CampaignSection
+            generatedCampaign={generatedCampaign}
+            isGenerating={isGenerating}
+            onGenerateCampaign={handleGenerateCampaign}
+            onGenerateAnother={handleGenerateAnother}
+            messages={messages}
+            onSendMessage={handleSendMessage}
+            isProcessingMessage={isProcessingMessage}
+            isChatActive={isChatActive}
+            openAIConfig={openAIConfig}
+            onRefine={handleRefineCampaign}
+            isRefining={isRefining}
+          />
         )}
         
-        {!generatedCampaign && !showApiKeyInput && <HowItWorks />}
-        
-        {!generatedCampaign && !showApiKeyInput && <Plans />}
-        
-        <footer className="mt-20 md:mt-32 text-center text-sm text-muted-foreground">
-          <p>© 2023 Creative Campaign Generator. All rights reserved.</p>
-        </footer>
+        <Footer />
       </div>
     </div>
   );
