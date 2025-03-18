@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { OpenAIConfig, defaultOpenAIConfig, generateWithOpenAI } from "@/lib/openai";
 import { Message } from "@/components/ChatWindow";
@@ -52,12 +51,17 @@ export function useOpenAIConfig() {
         Industry: ${lastInput.industry}
         Campaign Name: ${generatedCampaign.campaignName}
         Key Message: ${generatedCampaign.keyMessage}
-        Creative Strategy: ${generatedCampaign.creativeStrategy.join(', ')}
-        Execution Plan: ${generatedCampaign.executionPlan.join(', ')}
+        Creative Strategy: ${Array.isArray(generatedCampaign.creativeStrategy) ? generatedCampaign.creativeStrategy.join(', ') : generatedCampaign.creativeStrategy}
+        Execution Plan: ${Array.isArray(generatedCampaign.executionPlan) ? generatedCampaign.executionPlan.join(', ') : generatedCampaign.executionPlan}
+        Target Audience: ${Array.isArray(lastInput.targetAudience) ? lastInput.targetAudience.join(', ') : lastInput.targetAudience}
+        Objectives: ${Array.isArray(lastInput.objectives) ? lastInput.objectives.join(', ') : lastInput.objectives}
+        Emotional Appeal: ${Array.isArray(lastInput.emotionalAppeal) ? lastInput.emotionalAppeal.join(', ') : lastInput.emotionalAppeal}
+        ${lastInput.campaignStyle ? `Campaign Style: ${lastInput.campaignStyle}` : ''}
+        ${lastInput.additionalConstraints ? `Additional Notes: ${lastInput.additionalConstraints}` : ''}
         
         User's Question or Feedback: ${content}
         
-        Respond as a helpful creative campaign assistant. Provide specific ideas for improvement if requested.
+        Respond as a helpful creative campaign assistant. Provide specific ideas for improvement if requested. Be thorough in your response.
         `;
       }
       
