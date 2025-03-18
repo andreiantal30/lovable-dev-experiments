@@ -77,8 +77,8 @@ const CampaignSection = ({
   return (
     <>
       {!generatedCampaign ? (
-        <div className="flex flex-col items-center">
-          <div className="w-full max-w-4xl mx-auto">
+        <div className="flex justify-center w-full">
+          <div className="w-full max-w-4xl">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
                 <CampaignForm 
