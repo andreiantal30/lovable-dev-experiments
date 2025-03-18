@@ -1,6 +1,7 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Star, Calendar, Clock, Trash2, Clipboard } from 'lucide-react';
+import { ArrowLeft, Star, Calendar, Trash2, Clipboard } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,12 +19,21 @@ import {
   toggleFavoriteStatus
 } from '@/lib/campaignStorage';
 import EnhancedCampaignResult, { CampaignFeedback } from '@/components/EnhancedCampaignResult';
+import { CampaignSidebarProvider } from '@/components/CampaignSidebarProvider';
+import CampaignSidebar from '@/components/CampaignSidebar';
+import { SidebarInset } from '@/components/ui/sidebar';
 
-const CampaignDetail: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+interface CampaignDetailProps {
+  id?: string;
+}
+
+const CampaignDetail: React.FC<CampaignDetailProps> = ({ id: propId }) => {
+  const { id: paramId } = useParams<{ id: string }>();
+  const id = propId || paramId;
   const navigate = useNavigate();
   const [campaign, setCampaign] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isInSidebar, setIsInSidebar] = useState(!!propId);
 
   useEffect(() => {
     if (!id) return;
@@ -115,6 +125,10 @@ Expected Outcomes: ${campaign.campaign.expectedOutcomes.join('\n- ')}
     return Promise.resolve();
   };
 
+  const handleCampaignSelect = (campaignId: string) => {
+    navigate(`/campaign/${campaignId}`);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -134,84 +148,92 @@ Expected Outcomes: ${campaign.campaign.expectedOutcomes.join('\n- ')}
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-950 overflow-hidden relative">
-      <div className="container mx-auto px-4 py-12 max-w-7xl relative z-10">
+  const renderContent = () => (
+    <div className="container mx-auto px-4 py-6 max-w-7xl">
+      {!isInSidebar && (
         <div className="mb-8 flex justify-between items-center">
           <Link to="/library" className="group flex items-center text-primary hover:text-primary/80">
             <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
             Back to Library
           </Link>
-          
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleToggleFavorite}
-              className="flex items-center"
-            >
-              <Star className={`mr-2 h-4 w-4 ${campaign.favorite ? 'text-yellow-500 fill-yellow-500' : ''}`} />
-              {campaign.favorite ? 'Favorited' : 'Add to Favorites'}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleCopyToClipboard}
-              className="flex items-center"
-            >
-              <Clipboard className="mr-2 h-4 w-4" />
-              Copy to Clipboard
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDelete}
-              className="flex items-center text-destructive hover:text-destructive"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </Button>
-          </div>
         </div>
-        
-        <Card className="mb-8">
-          <CardHeader>
-            <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-              <div>
-                <CardTitle className="text-2xl">{campaign.campaign.campaignName}</CardTitle>
-                <CardDescription className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
-                  <span className="font-medium">{campaign.brand}</span>
-                  <span>•</span>
-                  <span>{campaign.industry}</span>
-                  <span>•</span>
-                  <div className="flex items-center">
-                    <Calendar className="h-3.5 w-3.5 mr-1" />
-                    <span>{formatDate(campaign.timestamp)}</span>
-                  </div>
-                </CardDescription>
-              </div>
-              
-              {campaign.favorite && (
-                <Badge variant="secondary" className="flex items-center">
-                  <Star className="h-3.5 w-3.5 mr-1.5 text-yellow-500 fill-yellow-500" />
-                  Favorite
-                </Badge>
-              )}
+      )}
+      
+      <Card className="mb-8">
+        <CardHeader>
+          <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+            <div>
+              <CardTitle className="text-2xl">{campaign.campaign.campaignName}</CardTitle>
+              <CardDescription className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
+                <span className="font-medium">{campaign.brand}</span>
+                <span>•</span>
+                <span>{campaign.industry}</span>
+                <span>•</span>
+                <div className="flex items-center">
+                  <Calendar className="h-3.5 w-3.5 mr-1" />
+                  <span>{formatDate(campaign.timestamp)}</span>
+                </div>
+              </CardDescription>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              <EnhancedCampaignResult 
-                campaign={campaign.campaign}
-                onGenerateAnother={() => navigate('/')}
-                showFeedbackForm={false}
-                onRefine={handleRefine}
-              />
+            
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleToggleFavorite}
+                className="flex items-center"
+              >
+                <Star className={`mr-2 h-4 w-4 ${campaign.favorite ? 'text-yellow-500 fill-yellow-500' : ''}`} />
+                {campaign.favorite ? 'Favorited' : 'Add to Favorites'}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCopyToClipboard}
+                className="flex items-center"
+              >
+                <Clipboard className="mr-2 h-4 w-4" />
+                Copy
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDelete}
+                className="flex items-center text-destructive hover:text-destructive"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </Button>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            <EnhancedCampaignResult 
+              campaign={campaign.campaign}
+              onGenerateAnother={() => navigate('/')}
+              showFeedbackForm={false}
+              onRefine={handleRefine}
+            />
+          </div>
+        </CardContent>
+      </Card>
     </div>
+  );
+
+  // If component is used directly (not from router), render just the content
+  if (isInSidebar) {
+    return renderContent();
+  }
+
+  // If accessed via route, wrap with sidebar
+  return (
+    <CampaignSidebarProvider>
+      <CampaignSidebar onCampaignSelect={handleCampaignSelect} selectedCampaignId={id} />
+      <SidebarInset className="bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-950">
+        {renderContent()}
+      </SidebarInset>
+    </CampaignSidebarProvider>
   );
 };
 
