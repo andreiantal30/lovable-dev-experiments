@@ -44,6 +44,7 @@ const CampaignSection = ({
 }: CampaignSectionProps) => {
   const campaignResultRef = useRef<HTMLDivElement>(null);
   const scrollArrowRef = useRef<HTMLDivElement>(null);
+  const mainScrollArrowRef = useRef<HTMLDivElement>(null);
   
   // Effect to scroll to campaign result when generated
   useEffect(() => {
@@ -64,6 +65,10 @@ const CampaignSection = ({
       if (scrollArrowRef.current && window.scrollY > 100) {
         scrollArrowRef.current.classList.add('opacity-0');
       }
+      
+      if (mainScrollArrowRef.current && window.scrollY > 100) {
+        mainScrollArrowRef.current.classList.add('opacity-0');
+      }
     };
     
     window.addEventListener('scroll', handleScroll);
@@ -73,12 +78,33 @@ const CampaignSection = ({
     };
   }, []);
 
+  const scrollToContent = () => {
+    if (!generatedCampaign) {
+      // Find the HowItWorks section and scroll to it
+      const howItWorksSection = document.getElementById('how-it-works');
+      if (howItWorksSection) {
+        howItWorksSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  };
+
   return (
     <>
       {!generatedCampaign ? (
         <div className="flex flex-col w-full">
           <div className="flex justify-center w-full">
             <CampaignForm onSubmit={onGenerateCampaign} isGenerating={isGenerating} />
+          </div>
+          
+          {/* Main page scroll down arrow */}
+          <div 
+            ref={mainScrollArrowRef}
+            className="flex justify-center mt-8 mb-8 transition-opacity duration-500"
+            onClick={scrollToContent}
+          >
+            <div className="animate-bounce-fade text-muted-foreground cursor-pointer hover:text-primary transition-colors duration-300">
+              <ChevronDown className="h-6 w-6" />
+            </div>
           </div>
         </div>
       ) : (
@@ -137,7 +163,7 @@ const CampaignSection = ({
         </div>
       )}
       
-      {!generatedCampaign && <HowItWorks />}
+      {!generatedCampaign && <HowItWorks id="how-it-works" />}
       {!generatedCampaign && <Plans />}
     </>
   );
