@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { CampaignInput, GeneratedCampaign, generateCampaign } from "@/lib/generateCampaign";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -8,7 +7,6 @@ import { v4 as uuidv4 } from "uuid";
 import { Message } from "@/components/ChatWindow";
 import { CampaignFeedback } from "@/components/CampaignResult";
 
-// Import refactored components
 import Header from "@/components/IndexPage/Header";
 import ApiKeyForm from "@/components/IndexPage/ApiKeyForm";
 import CampaignSection from "@/components/IndexPage/CampaignSection";
@@ -27,6 +25,7 @@ const Index = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isChatActive, setIsChatActive] = useState(false);
   const [isProcessingMessage, setIsProcessingMessage] = useState(false);
+  const [selectedIndustry, setSelectedIndustry] = useState<string>("");
 
   const handleApiKeySubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,6 +43,7 @@ const Index = () => {
 
     setIsGenerating(true);
     setLastInput(input);
+    setSelectedIndustry(input.industry);
     
     try {
       const campaign = await generateCampaign(input, openAIConfig);

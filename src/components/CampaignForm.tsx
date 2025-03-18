@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import InputField from "@/components/InputField";
@@ -12,9 +11,10 @@ import CampaignStyleSelector, { CampaignStyle } from './CampaignStyleSelector';
 interface CampaignFormProps {
   onSubmit: (input: CampaignInput) => void;
   isGenerating: boolean;
+  onIndustryChange?: (industry: string) => void;
 }
 
-const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) => {
+const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating, onIndustryChange }) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [formData, setFormData] = useState<CampaignInput>({
     brand: "",
@@ -68,12 +68,15 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
     if (errors[name as keyof typeof errors]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
+    
+    if (name === 'industry' && onIndustryChange) {
+      onIndustryChange(value);
+    }
   };
 
   const addTagItem = (key: 'targetAudience' | 'objectives' | 'emotionalAppeal', value: string) => {
     if (!value.trim()) return;
     
-    // Don't add duplicates
     if (formData[key].includes(value.trim())) return;
     
     setFormData(prev => ({
@@ -81,12 +84,10 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
       [key]: [...prev[key], value.trim()]
     }));
     
-    // Clear input field
     if (key === 'targetAudience') setAudienceInput('');
     else if (key === 'objectives') setObjectiveInput('');
     else if (key === 'emotionalAppeal') setEmotionalAppealInput('');
     
-    // Clear any errors
     if (errors[key]) {
       setErrors(prev => ({ ...prev, [key]: undefined }));
     }
@@ -102,7 +103,6 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate form
     const newErrors: typeof errors = {};
     
     if (!formData.brand.trim()) {
@@ -162,12 +162,10 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
   ) => {
     const { value } = e.target;
     
-    // Only update the input field without adding the item yet
     if (key === 'targetAudience') setAudienceInput(value);
     else if (key === 'objectives') setObjectiveInput(value);
     else if (key === 'emotionalAppeal') setEmotionalAppealInput(value);
     
-    // If a valid option from the datalist is selected, add it immediately
     const validOptions = key === 'targetAudience' 
       ? targetAudiences 
       : key === 'objectives' 

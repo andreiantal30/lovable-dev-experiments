@@ -1,7 +1,7 @@
-
 import { Campaign } from './campaignData';
 import { generateWithOpenAI, OpenAIConfig, defaultOpenAIConfig } from './openai';
 import { getCampaigns } from './campaignStorage';
+import { getTrendingTopics, createTrendPrompt, TrendData } from './trendMonitor';
 
 export interface CampaignInput {
   brand: string;
@@ -20,6 +20,7 @@ export interface GeneratedCampaign {
   executionPlan: string[];
   expectedOutcomes: string[];
   referenceCampaigns: Campaign[];
+  incorporatedTrends?: TrendData[];
 }
 
 // Helper function to find similar campaigns based on input
@@ -70,7 +71,7 @@ const findSimilarCampaigns = (input: CampaignInput): Campaign[] => {
 /**
  * Creates a detailed prompt for OpenAI to generate a creative campaign
  */
-const createCampaignPrompt = (input: CampaignInput, referenceCampaigns: Campaign[]): string => {
+const createCampaignPrompt = async (input: CampaignInput, referenceCampaigns: Campaign[]): Promise<string> => {
   const referenceCampaignsText = referenceCampaigns.map(campaign => {
     return `
 Campaign Name: ${campaign.name}
@@ -84,6 +85,18 @@ Emotional Appeal: ${campaign.emotionalAppeal.join(', ')}
 `;
   }).join('\n');
 
+  // Get trending topics for the industry
+  let trendPrompt = "";
+  try {
+    const trends = await getTrendingTopics(input.industry);
+    if (trends.length > 0) {
+      trendPrompt = createTrendPrompt(trends);
+    }
+  } catch (error) {
+    console.error("Error fetching trends for prompt:", error);
+    // Continue without trends if there's an error
+  }
+
   return `Generate a creative marketing campaign for the following brand and requirements:
 
 BRAND INFORMATION:
@@ -94,6 +107,8 @@ Campaign Objectives: ${input.objectives.join(', ')}
 Emotional Appeal to Focus On: ${input.emotionalAppeal.join(', ')}
 Campaign Style: ${input.campaignStyle || 'Any (digital, experiential, or social)'}
 ${input.additionalConstraints ? `Additional Requirements: ${input.additionalConstraints}` : ''}
+
+${trendPrompt}
 
 REFERENCE CAMPAIGNS FOR INSPIRATION:
 ${referenceCampaignsText}
@@ -144,8 +159,17 @@ export const generateCampaign = async (
     // Find similar reference campaigns
     const referenceCampaigns = findSimilarCampaigns(input);
     
+    // Get trending topics for the industry
+    let incorporatedTrends: TrendData[] = [];
+    try {
+      incorporatedTrends = await getTrendingTopics(input.industry);
+    } catch (error) {
+      console.error("Error fetching trends:", error);
+      // Continue without trends if there's an error
+    }
+    
     // Create a detailed prompt for OpenAI
-    const prompt = createCampaignPrompt(input, referenceCampaigns);
+    const prompt = await createCampaignPrompt(input, referenceCampaigns);
     
     // Generate campaign using OpenAI
     const response = await generateWithOpenAI(prompt, openAIConfig);
@@ -156,10 +180,11 @@ export const generateCampaign = async (
     // Parse the JSON response
     const generatedContent = JSON.parse(cleanedResponse);
     
-    // Return the campaign with references
+    // Return the campaign with references and trends
     return {
       ...generatedContent,
-      referenceCampaigns
+      referenceCampaigns,
+      incorporatedTrends: incorporatedTrends.length > 0 ? incorporatedTrends : undefined
     };
   } catch (error) {
     console.error("Error generating campaign:", error);
