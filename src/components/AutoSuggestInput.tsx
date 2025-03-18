@@ -34,9 +34,9 @@ const AutoSuggestInput = ({
       const filtered = suggestions.filter(suggestion => 
         suggestion.toLowerCase().includes(value.toLowerCase())
       );
-      setFilteredSuggestions(filtered.slice(0, 7)); // Limit to 7 suggestions for performance
+      setFilteredSuggestions(filtered);
     } else if (showAllSuggestions) {
-      setFilteredSuggestions(suggestions.slice(0, 7)); // Show first 7 suggestions when button is clicked
+      setFilteredSuggestions(suggestions); // Show all suggestions when button is clicked
     } else {
       setFilteredSuggestions([]);
     }
