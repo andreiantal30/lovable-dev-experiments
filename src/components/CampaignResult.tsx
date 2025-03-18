@@ -1,19 +1,45 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { GeneratedCampaign } from "@/lib/generateCampaign";
 import TransitionElement from "./TransitionElement";
 import { Campaign } from "@/lib/campaignData";
-import { Check, Copy, RefreshCw } from "lucide-react";
+import { Check, Copy, MessageSquare, RefreshCw, Star, ThumbsDown, ThumbsUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 
 interface CampaignResultProps {
   campaign: GeneratedCampaign;
   onGenerateAnother: () => void;
+  onRefine?: (feedback: CampaignFeedback) => Promise<void>;
 }
 
-const CampaignResult: React.FC<CampaignResultProps> = ({ campaign, onGenerateAnother }) => {
-  const [copied, setCopied] = React.useState(false);
+export interface CampaignFeedback {
+  campaignId: string;
+  overallRating: number;
+  elementRatings: {
+    campaignName: number;
+    keyMessage: number;
+    creativeStrategy: number;
+    executionPlan: number;
+  };
+  comments: string;
+}
+
+const CampaignResult: React.FC<CampaignResultProps> = ({ campaign, onGenerateAnother, onRefine }) => {
+  const [copied, setCopied] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [overallRating, setOverallRating] = useState(0);
+  const [elementRatings, setElementRatings] = useState({
+    campaignName: 0,
+    keyMessage: 0,
+    creativeStrategy: 0,
+    executionPlan: 0,
+  });
+  const [comments, setComments] = useState("");
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
+  const [refinementRequested, setRefinementRequested] = useState(false);
 
   const handleCopy = () => {
     const campaignText = `
@@ -34,6 +60,40 @@ ${campaign.expectedOutcomes.map(outcome => `- ${outcome}`).join('\n')}
     navigator.clipboard.writeText(campaignText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleElementRating = (element: keyof typeof elementRatings, rating: number) => {
+    setElementRatings(prev => ({
+      ...prev,
+      [element]: rating
+    }));
+  };
+
+  const handleSubmitFeedback = async () => {
+    if (!onRefine) {
+      toast.error("Refinement functionality is not available");
+      return;
+    }
+
+    setSubmittingFeedback(true);
+    
+    try {
+      const feedback: CampaignFeedback = {
+        campaignId: campaign.campaignName, // Using campaign name as an ID for now
+        overallRating,
+        elementRatings,
+        comments
+      };
+      
+      await onRefine(feedback);
+      toast.success("Thanks for your feedback! We're refining your campaign.");
+      setRefinementRequested(true);
+    } catch (error) {
+      toast.error("Failed to submit feedback. Please try again.");
+      console.error("Feedback submission error:", error);
+    } finally {
+      setSubmittingFeedback(false);
+    }
   };
 
   return (
@@ -62,6 +122,103 @@ ${campaign.expectedOutcomes.map(outcome => `- ${outcome}`).join('\n')}
             </Button>
           </div>
         </div>
+        
+        {!feedbackOpen && !refinementRequested && (
+          <div className="mb-6">
+            <Button 
+              variant="secondary" 
+              className="w-full flex items-center justify-center gap-2"
+              onClick={() => setFeedbackOpen(true)}
+            >
+              <MessageSquare size={16} />
+              Rate & Refine This Campaign
+            </Button>
+          </div>
+        )}
+
+        {feedbackOpen && !refinementRequested && (
+          <TransitionElement animation="fade" className="mb-8">
+            <div className="bg-secondary/30 backdrop-blur-sm rounded-xl p-4 mb-6">
+              <h3 className="text-lg font-medium mb-4">Rate This Campaign</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <div className="text-sm font-medium mb-2">Overall Rating</div>
+                  <StarRating value={overallRating} onChange={setOverallRating} />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-sm font-medium mb-2">Campaign Name</div>
+                    <ThumbRating 
+                      value={elementRatings.campaignName} 
+                      onChange={(v) => handleElementRating('campaignName', v)} 
+                    />
+                  </div>
+                  
+                  <div>
+                    <div className="text-sm font-medium mb-2">Key Message</div>
+                    <ThumbRating 
+                      value={elementRatings.keyMessage} 
+                      onChange={(v) => handleElementRating('keyMessage', v)} 
+                    />
+                  </div>
+                  
+                  <div>
+                    <div className="text-sm font-medium mb-2">Creative Strategy</div>
+                    <ThumbRating 
+                      value={elementRatings.creativeStrategy} 
+                      onChange={(v) => handleElementRating('creativeStrategy', v)} 
+                    />
+                  </div>
+                  
+                  <div>
+                    <div className="text-sm font-medium mb-2">Execution Plan</div>
+                    <ThumbRating 
+                      value={elementRatings.executionPlan} 
+                      onChange={(v) => handleElementRating('executionPlan', v)} 
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="text-sm font-medium mb-2">Comments or Refinement Suggestions</div>
+                  <textarea
+                    className="w-full rounded-md border border-input bg-white/90 p-3 text-sm"
+                    rows={3}
+                    placeholder="What would you like to improve or change?"
+                    value={comments}
+                    onChange={(e) => setComments(e.target.value)}
+                  />
+                </div>
+                
+                <div className="flex gap-2 justify-end">
+                  <Button variant="outline" size="sm" onClick={() => setFeedbackOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    onClick={handleSubmitFeedback}
+                    disabled={submittingFeedback || overallRating === 0}
+                  >
+                    {submittingFeedback ? "Submitting..." : "Submit & Refine"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </TransitionElement>
+        )}
+
+        {refinementRequested && (
+          <TransitionElement animation="fade" className="mb-6">
+            <Alert>
+              <AlertTitle>Refining your campaign</AlertTitle>
+              <AlertDescription>
+                We're analyzing your feedback to improve the campaign. A refined version will be available soon.
+              </AlertDescription>
+            </Alert>
+          </TransitionElement>
+        )}
         
         <div className="space-y-8">
           <TransitionElement delay={100} animation="slide-up">
@@ -143,6 +300,51 @@ ${campaign.expectedOutcomes.map(outcome => `- ${outcome}`).join('\n')}
         </div>
       </div>
     </TransitionElement>
+  );
+};
+
+const StarRating: React.FC<{ value: number; onChange: (value: number) => void }> = ({ value, onChange }) => {
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          onClick={() => onChange(star)}
+          className={`p-1 rounded-full hover:bg-primary/10 transition-colors ${
+            star <= value ? "text-primary" : "text-muted-foreground/40"
+          }`}
+        >
+          <Star size={20} fill={star <= value ? "currentColor" : "none"} />
+        </button>
+      ))}
+    </div>
+  );
+};
+
+const ThumbRating: React.FC<{ value: number; onChange: (value: number) => void }> = ({ value, onChange }) => {
+  return (
+    <div className="flex gap-2">
+      <button
+        type="button"
+        onClick={() => onChange(value === -1 ? 0 : -1)}
+        className={`p-1.5 rounded-full hover:bg-destructive/10 transition-colors ${
+          value === -1 ? "bg-destructive/20 text-destructive" : "text-muted-foreground"
+        }`}
+      >
+        <ThumbsDown size={18} />
+      </button>
+      
+      <button
+        type="button"
+        onClick={() => onChange(value === 1 ? 0 : 1)}
+        className={`p-1.5 rounded-full hover:bg-primary/10 transition-colors ${
+          value === 1 ? "bg-primary/20 text-primary" : "text-muted-foreground"
+        }`}
+      >
+        <ThumbsUp size={18} />
+      </button>
+    </div>
   );
 };
 

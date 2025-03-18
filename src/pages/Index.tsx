@@ -10,9 +10,11 @@ import { toast } from "sonner";
 import { OpenAIConfig, defaultOpenAIConfig } from "@/lib/openai";
 import HowItWorks from "@/components/HowItWorks";
 import Plans from "@/components/Plans";
+import { CampaignFeedback } from "@/components/CampaignResult";
 
 const Index = () => {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isRefining, setIsRefining] = useState(false);
   const [generatedCampaign, setGeneratedCampaign] = useState<GeneratedCampaign | null>(null);
   const [openAIConfig, setOpenAIConfig] = useState<OpenAIConfig>(() => {
     // Try to get the API key from localStorage
@@ -20,6 +22,7 @@ const Index = () => {
     return savedConfig ? JSON.parse(savedConfig) : defaultOpenAIConfig;
   });
   const [showApiKeyInput, setShowApiKeyInput] = useState(!openAIConfig.apiKey);
+  const [lastInput, setLastInput] = useState<CampaignInput | null>(null);
 
   const handleApiKeySubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +40,7 @@ const Index = () => {
     }
 
     setIsGenerating(true);
+    setLastInput(input);
     
     try {
       const campaign = await generateCampaign(input, openAIConfig);
@@ -56,6 +60,55 @@ const Index = () => {
 
   const handleChangeApiKey = () => {
     setShowApiKeyInput(true);
+  };
+
+  const handleRefineCampaign = async (feedback: CampaignFeedback) => {
+    if (!lastInput) {
+      toast.error("Cannot refine without original input");
+      return;
+    }
+
+    setIsRefining(true);
+    
+    try {
+      // Create an enhanced prompt with the feedback
+      const enhancedInput: CampaignInput = {
+        ...lastInput,
+        additionalConstraints: `
+          Refine based on user feedback:
+          Overall rating: ${feedback.overallRating}/5
+          Campaign Name rating: ${getFeedbackText(feedback.elementRatings.campaignName)}
+          Key Message rating: ${getFeedbackText(feedback.elementRatings.keyMessage)}
+          Creative Strategy rating: ${getFeedbackText(feedback.elementRatings.creativeStrategy)}
+          Execution Plan rating: ${getFeedbackText(feedback.elementRatings.executionPlan)}
+          User comments: ${feedback.comments || "No specific comments"}
+
+          Previous campaign name: ${generatedCampaign?.campaignName}
+          Previous key message: ${generatedCampaign?.keyMessage}
+        `
+      };
+      
+      // Wait a bit to simulate processing (optional)
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Generate a refined campaign
+      const refinedCampaign = await generateCampaign(enhancedInput, openAIConfig);
+      setGeneratedCampaign(refinedCampaign);
+      
+      toast.success("Campaign has been refined based on your feedback!");
+    } catch (error) {
+      console.error("Error refining campaign:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to refine campaign");
+    } finally {
+      setIsRefining(false);
+    }
+  };
+
+  // Helper function to convert thumb rating to text
+  const getFeedbackText = (rating: number): string => {
+    if (rating === 1) return "Positive";
+    if (rating === -1) return "Negative";
+    return "Neutral";
   };
 
   return (
@@ -171,7 +224,11 @@ const Index = () => {
             {!generatedCampaign ? (
               <CampaignForm onSubmit={handleGenerateCampaign} isGenerating={isGenerating} />
             ) : (
-              <CampaignResult campaign={generatedCampaign} onGenerateAnother={handleGenerateAnother} />
+              <CampaignResult 
+                campaign={generatedCampaign} 
+                onGenerateAnother={handleGenerateAnother} 
+                onRefine={handleRefineCampaign}
+              />
             )}
             
             {generatedCampaign && (
