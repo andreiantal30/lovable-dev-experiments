@@ -77,24 +77,28 @@ const CampaignSection = ({
   return (
     <>
       {!generatedCampaign ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <CampaignForm 
-              onSubmit={onGenerateCampaign} 
-              isGenerating={isGenerating} 
-              onIndustryChange={handleFormIndustryChange}
-            />
-          </div>
-          
-          {selectedIndustry && (
-            <div className="lg:col-span-1">
-              <TrendingTopics 
-                trends={trends} 
-                isLoading={isLoadingTrends}
-                className="bg-white/50 dark:bg-gray-800/40 backdrop-blur-lg border border-border dark:border-gray-700/50 rounded-2xl shadow-subtle p-6"
-              />
+        <div className="flex flex-col items-center">
+          <div className="w-full max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <CampaignForm 
+                  onSubmit={onGenerateCampaign} 
+                  isGenerating={isGenerating} 
+                  onIndustryChange={handleFormIndustryChange}
+                />
+              </div>
+              
+              {selectedIndustry && (
+                <div className="lg:col-span-1">
+                  <TrendingTopics 
+                    trends={trends} 
+                    isLoading={isLoadingTrends}
+                    className="bg-white/50 dark:bg-gray-800/40 backdrop-blur-lg border border-border dark:border-gray-700/50 rounded-2xl shadow-subtle p-6"
+                  />
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       ) : (
         <div className="space-y-12">
