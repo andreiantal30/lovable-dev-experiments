@@ -133,6 +133,7 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
   };
 
   const handleAddFromDropdown = (key: 'targetAudience' | 'objectives' | 'emotionalAppeal', value: string) => {
+    if (!value) return;
     addTagItem(key, value);
   };
 
@@ -497,3 +498,4 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
 };
 
 export default CampaignForm;
+
