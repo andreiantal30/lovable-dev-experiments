@@ -8,6 +8,7 @@ import { Sparkles } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import { toast } from "sonner";
 import { OpenAIConfig, defaultOpenAIConfig } from "@/lib/openai";
+import HowItWorks from "@/components/HowItWorks";
 
 const Index = () => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -224,6 +225,9 @@ const Index = () => {
             </TransitionElement>
           </div>
         )}
+        
+        {/* Add How It Works section */}
+        {!generatedCampaign && !showApiKeyInput && <HowItWorks />}
         
         <footer className="mt-20 md:mt-32 text-center text-sm text-muted-foreground">
           <p>© 2023 Creative Campaign Generator. All rights reserved.</p>
