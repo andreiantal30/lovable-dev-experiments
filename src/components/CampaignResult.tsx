@@ -15,7 +15,6 @@ interface CampaignResultProps {
   onGenerateAnother: () => void;
   showFeedbackForm?: boolean;
   onRefine?: (feedback: CampaignFeedback) => Promise<void>;
-  isRefining?: boolean;
 }
 
 export interface CampaignFeedback {
@@ -34,8 +33,7 @@ const CampaignResult: React.FC<CampaignResultProps> = ({
   campaign, 
   onGenerateAnother, 
   showFeedbackForm = true,
-  onRefine,
-  isRefining = false
+  onRefine 
 }) => {
   const [copied, setCopied] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
@@ -228,17 +226,6 @@ ${campaign.expectedOutcomes.map(outcome => `- ${outcome}`).join('\n')}
                 <AlertTitle>Refining your campaign</AlertTitle>
                 <AlertDescription>
                   We're analyzing your feedback to improve the campaign. A refined version will be available soon.
-                </AlertDescription>
-              </Alert>
-            </TransitionElement>
-          )}
-          
-          {isRefining && (
-            <TransitionElement animation="fade" className="mb-6">
-              <Alert>
-                <AlertTitle>Processing your feedback</AlertTitle>
-                <AlertDescription>
-                  Please wait while we refine your campaign based on your feedback...
                 </AlertDescription>
               </Alert>
             </TransitionElement>
