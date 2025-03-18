@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import CampaignForm from "@/components/CampaignForm";
 import EnhancedCampaignResult from "@/components/EnhancedCampaignResult";
 import ChatWindow, { Message } from "@/components/ChatWindow";
@@ -9,7 +9,7 @@ import { OpenAIConfig } from "@/lib/openai";
 import HowItWorks from "@/components/HowItWorks";
 import Plans from "@/components/Plans";
 import { Link } from "react-router-dom";
-import { Library } from "lucide-react";
+import { ChevronDown, Library } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CampaignFeedback } from "@/components/CampaignResult";
 
@@ -42,6 +42,37 @@ const CampaignSection = ({
   isRefining,
   lastInput
 }: CampaignSectionProps) => {
+  const campaignResultRef = useRef<HTMLDivElement>(null);
+  const scrollArrowRef = useRef<HTMLDivElement>(null);
+  
+  // Effect to scroll to campaign result when generated
+  useEffect(() => {
+    if (generatedCampaign && campaignResultRef.current) {
+      // Scroll to the campaign result with smooth behavior
+      setTimeout(() => {
+        campaignResultRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+      }, 100);
+    }
+  }, [generatedCampaign]);
+  
+  // Effect to hide arrow on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (scrollArrowRef.current && window.scrollY > 100) {
+        scrollArrowRef.current.classList.add('opacity-0');
+      }
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
   return (
     <>
       {!generatedCampaign ? (
@@ -51,7 +82,7 @@ const CampaignSection = ({
           </div>
         </div>
       ) : (
-        <div className="space-y-12">
+        <div className="space-y-12" ref={campaignResultRef} id="generated-campaign">
           <EnhancedCampaignResult 
             campaign={generatedCampaign} 
             onGenerateAnother={onGenerateAnother}
@@ -60,6 +91,16 @@ const CampaignSection = ({
             brandName={lastInput?.brand}
             industryName={lastInput?.industry}
           />
+          
+          {/* Scroll down arrow */}
+          <div 
+            ref={scrollArrowRef}
+            className="flex justify-center mt-2 mb-8 transition-opacity duration-500"
+          >
+            <div className="animate-bounce-fade text-muted-foreground">
+              <ChevronDown className="h-6 w-6" />
+            </div>
+          </div>
           
           {isChatActive && (
             <TransitionElement animation="slide-up" delay={100}>
