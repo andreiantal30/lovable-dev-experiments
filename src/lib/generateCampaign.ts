@@ -50,6 +50,9 @@ export interface GeneratedCampaign {
   consumerInteraction?: string;
   referenceCampaigns: Campaign[];
   storytelling?: StorytellingOutput;
+  viralElement?: string;
+  callToAction?: string;
+  emotionalAppeal?: string[];
 }
 
 type SentimentCategory = 'positive' | 'neutral' | 'negative';
@@ -409,6 +412,8 @@ Please generate a campaign concept that includes:
 5. **A cultural hook or viral trigger** (e.g., meme, challenge, unexpected collab, internet trend)  
 6. **A unique brand-consumer interaction mechanic** (e.g., gamification, user participation, real-world touchpoint)  
 7. **Four expected outcomes or success metrics**  
+8. **A viral element** (e.g., a specific viral trigger or campaign element that will drive engagement)
+9. **A call to action** (e.g., a clear call to action for the audience to take)
 
 ---
 
@@ -423,7 +428,9 @@ Provide your response in **JSON format** with the following structure:
   "executionPlan": ["Execution item 1", "Execution item 2", "Execution item 3", "Execution item 4", "Execution item 5"],
   "viralHook": "How the campaign becomes culturally relevant and shareable",
   "consumerInteraction": "How the audience actively participates",
-  "expectedOutcomes": ["Outcome 1", "Outcome 2", "Outcome 3", "Outcome 4"]
+  "expectedOutcomes": ["Outcome 1", "Outcome 2", "Outcome 3", "Outcome 4"],
+  "viralElement": "Viral element description",
+  "callToAction": "Call to action description"
 }
 \`\`\`
 
