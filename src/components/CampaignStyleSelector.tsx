@@ -10,7 +10,7 @@ import {
   SelectValue
 } from "@/components/ui/select";
 
-// Update the type to include the new advanced styles
+// Update the type to include the new styles
 export type CampaignStyle = 
   | "digital" 
   | "experiential" 
@@ -32,6 +32,8 @@ export type CampaignStyle =
   | "ar-vr" 
   | "performance" 
   | "loyalty-community" 
+  | "stunt"
+  | "UGC"
   | undefined;
 
 // Create a map of style values to display names for the dropdown
@@ -52,7 +54,9 @@ const advancedStyleOptions = [
   { value: "stunt-marketing", label: "Stunt Marketing" },
   { value: "ar-vr", label: "AR/VR-Driven" },
   { value: "performance", label: "Performance-Driven" },
-  { value: "loyalty-community", label: "Loyalty & Community-Building" }
+  { value: "loyalty-community", label: "Loyalty & Community-Building" },
+  { value: "stunt", label: "PR Stunt" },
+  { value: "UGC", label: "User-Generated Content" }
 ];
 
 interface CampaignStyleSelectorProps {
