@@ -70,10 +70,10 @@ const Plans = () => {
           {/* Coming Soon Overlay */}
           <div className="absolute inset-0 backdrop-blur-sm bg-white/30 dark:bg-gray-900/30 z-10 flex flex-col items-center justify-center rounded-xl">
             <TransitionElement animation="fade" delay={500}>
-              <div className="bg-primary/90 dark:bg-primary/80 text-primary-foreground px-8 py-4 rounded-xl shadow-lg">
-                <h3 className="text-2xl font-semibold mb-2">Coming Soon</h3>
-                <p className="text-primary-foreground/90">
-                  Subscription plans will be available shortly
+              <div className="bg-primary/90 dark:bg-primary/80 text-primary-foreground px-8 py-6 rounded-xl shadow-lg">
+                <h3 className="text-2xl font-semibold mb-3 text-white">Coming Soon</h3>
+                <p className="text-white dark:text-white">
+                  Subscription plans will be available shortly. Enjoy the free version for now.
                 </p>
               </div>
             </TransitionElement>
