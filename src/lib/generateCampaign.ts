@@ -1,8 +1,9 @@
-
 import { Campaign } from './campaignData';
 import { generateWithOpenAI, OpenAIConfig, defaultOpenAIConfig } from './openai';
 import { getCampaigns } from './campaignStorage';
 import { generateStorytellingNarrative, StorytellingOutput } from './storytellingGenerator';
+import { findSimilarCampaignsWithEmbeddings } from './embeddingsUtil';
+import { toast } from "sonner";
 
 export interface CampaignInput {
   brand: string;
@@ -51,7 +52,6 @@ export interface GeneratedCampaign {
   storytelling?: StorytellingOutput;
 }
 
-// Sentiment categories for more nuanced matching
 type SentimentCategory = 'positive' | 'neutral' | 'negative';
 type ToneCategory = 'formal' | 'casual' | 'humorous' | 'serious' | 'inspirational';
 
@@ -69,9 +69,6 @@ interface EnhancedSimilarityScore {
   };
 }
 
-/**
- * Determine sentiment category based on emotional appeal
- */
 const determineSentiment = (emotionalAppeal: string[]): SentimentCategory => {
   const positiveEmotions = ['joy', 'happiness', 'excitement', 'optimism', 'inspiration', 'pride', 'comfort'];
   const negativeEmotions = ['fear', 'anxiety', 'sadness', 'anger', 'guilt', 'shame'];
@@ -93,11 +90,7 @@ const determineSentiment = (emotionalAppeal: string[]): SentimentCategory => {
   return 'neutral';
 };
 
-/**
- * Determine tone category based on objectives and emotional appeal
- */
 const determineTone = (objectives: string[], emotionalAppeal: string[]): ToneCategory => {
-  // Check for formal indicators
   if (
     objectives.some(obj => obj.toLowerCase().includes('professional') || 
                            obj.toLowerCase().includes('authority') ||
@@ -106,7 +99,6 @@ const determineTone = (objectives: string[], emotionalAppeal: string[]): ToneCat
     return 'formal';
   }
   
-  // Check for humorous indicators
   if (
     emotionalAppeal.some(emo => emo.toLowerCase().includes('fun') || 
                                emo.toLowerCase().includes('humor') ||
@@ -115,7 +107,6 @@ const determineTone = (objectives: string[], emotionalAppeal: string[]): ToneCat
     return 'humorous';
   }
   
-  // Check for inspirational indicators
   if (
     emotionalAppeal.some(emo => emo.toLowerCase().includes('inspir') || 
                                emo.toLowerCase().includes('motivat') ||
@@ -124,7 +115,6 @@ const determineTone = (objectives: string[], emotionalAppeal: string[]): ToneCat
     return 'inspirational';
   }
   
-  // Check for serious indicators
   if (
     objectives.some(obj => obj.toLowerCase().includes('awareness') || 
                            obj.toLowerCase().includes('education') ||
@@ -133,23 +123,38 @@ const determineTone = (objectives: string[], emotionalAppeal: string[]): ToneCat
     return 'serious';
   }
   
-  // Default to casual
   return 'casual';
 };
 
-/**
- * Enhanced function to find similar campaigns based on multi-dimensional scoring
- */
-const findSimilarCampaigns = (input: CampaignInput): Campaign[] => {
-  // Get campaigns from local storage or use default data
+const findSimilarCampaigns = async (
+  input: CampaignInput, 
+  openAIConfig: OpenAIConfig = defaultOpenAIConfig
+): Promise<Campaign[]> => {
   const allCampaigns = getCampaigns();
+  
+  if (openAIConfig.apiKey) {
+    try {
+      const embeddingResults = await findSimilarCampaignsWithEmbeddings(
+        input, 
+        allCampaigns,
+        openAIConfig
+      );
+      
+      if (embeddingResults && embeddingResults.length > 0) {
+        console.log('Using embedding-based campaign matches');
+        return embeddingResults;
+      }
+    } catch (error) {
+      console.error('Error with embedding-based matching:', error);
+    }
+  }
+  
+  console.log('Using traditional campaign matching');
   
   const inputSentiment = determineSentiment(input.emotionalAppeal);
   const inputTone = determineTone(input.objectives, input.emotionalAppeal);
   
-  // Score each campaign based on multiple dimensions
   const scoredCampaigns: EnhancedSimilarityScore[] = allCampaigns.map(campaign => {
-    // Initialize dimension scores
     const dimensionScores = {
       industry: 0,
       audience: 0,
@@ -160,7 +165,6 @@ const findSimilarCampaigns = (input: CampaignInput): Campaign[] => {
       tone: 0
     };
     
-    // Industry match (0-5 points)
     if (campaign.industry.toLowerCase() === input.industry.toLowerCase()) {
       dimensionScores.industry = 5;
     } else if (campaign.industry.toLowerCase().includes(input.industry.toLowerCase()) || 
@@ -168,7 +172,6 @@ const findSimilarCampaigns = (input: CampaignInput): Campaign[] => {
       dimensionScores.industry = 3;
     }
     
-    // Target audience match (0-5 points per match, max 15)
     let audienceMatchCount = 0;
     input.targetAudience.forEach(audience => {
       if (campaign.targetAudience.some(a => 
@@ -180,7 +183,6 @@ const findSimilarCampaigns = (input: CampaignInput): Campaign[] => {
     });
     dimensionScores.audience = Math.min(audienceMatchCount * 5, 15);
     
-    // Objectives match (0-5 points per match, max 15)
     let objectivesMatchCount = 0;
     input.objectives.forEach(objective => {
       if (campaign.objectives.some(o => 
@@ -192,7 +194,6 @@ const findSimilarCampaigns = (input: CampaignInput): Campaign[] => {
     });
     dimensionScores.objectives = Math.min(objectivesMatchCount * 5, 15);
     
-    // Emotional appeal match (0-5 points per match, max 15)
     let emotionMatchCount = 0;
     input.emotionalAppeal.forEach(emotion => {
       if (campaign.emotionalAppeal.some(e => 
@@ -204,19 +205,17 @@ const findSimilarCampaigns = (input: CampaignInput): Campaign[] => {
     });
     dimensionScores.emotion = Math.min(emotionMatchCount * 5, 15);
     
-    // Campaign style match (0-10 points)
     if (input.campaignStyle) {
-      // Extract campaign style hints from the campaign strategy and key message
       const campaignText = (campaign.strategy + ' ' + campaign.keyMessage).toLowerCase();
       
-      // Map of style identifiers to keywords
       const styleKeywords: Record<string, string[]> = {
         'digital': ['digital', 'online', 'website', 'app', 'mobile'],
         'experiential': ['experience', 'event', 'activation', 'immersive', 'interactive'],
         'social': ['social media', 'social network', 'community', 'user generated'],
         'influencer': ['influencer', 'creator', 'personality', 'ambassador', 'celebrity'],
         'guerrilla': ['guerrilla', 'unconventional', 'unexpected', 'surprise', 'street'],
-        'ugc': ['user generated', 'ugc', 'community content', 'fan content'],
+        'stunt': ['stunt', 'bold', 'attention-grabbing', 'publicity', 'shocking'],
+        'UGC': ['user generated', 'ugc', 'community content', 'fan content'],
         'brand-activism': ['activism', 'cause', 'social change', 'environmental', 'purpose'],
         'branded-entertainment': ['entertainment', 'content', 'film', 'series', 'show'],
         'retail-activation': ['retail', 'store', 'shop', 'pop-up', 'in-store'],
@@ -233,16 +232,14 @@ const findSimilarCampaigns = (input: CampaignInput): Campaign[] => {
         'loyalty-community': ['loyalty', 'community', 'membership', 'exclusive', 'belonging']
       };
       
-      // Check if the campaign text contains keywords related to the selected style
       const relevantKeywords = styleKeywords[input.campaignStyle] || [];
       const matchCount = relevantKeywords.filter(keyword => campaignText.includes(keyword)).length;
       
       if (matchCount > 0) {
-        dimensionScores.style = Math.min(matchCount * 2.5, 10); // 2.5 points per keyword match, max 10
+        dimensionScores.style = Math.min(matchCount * 2.5, 10);
       }
     }
     
-    // Sentiment analysis match (0-10 points)
     const campaignSentiment = determineSentiment(campaign.emotionalAppeal);
     if (inputSentiment === campaignSentiment) {
       dimensionScores.sentiment = 10;
@@ -253,12 +250,10 @@ const findSimilarCampaigns = (input: CampaignInput): Campaign[] => {
       dimensionScores.sentiment = 5;
     }
     
-    // Tone match (0-10 points)
     const campaignTone = determineTone(campaign.objectives, campaign.emotionalAppeal);
     if (inputTone === campaignTone) {
       dimensionScores.tone = 10;
     } else {
-      // Some tones are more compatible than others
       const toneCompatibility: Record<ToneCategory, Record<ToneCategory, number>> = {
         'formal': { 'casual': 3, 'humorous': 1, 'serious': 7, 'inspirational': 5, 'formal': 10 },
         'casual': { 'formal': 3, 'humorous': 7, 'serious': 3, 'inspirational': 5, 'casual': 10 },
@@ -270,7 +265,6 @@ const findSimilarCampaigns = (input: CampaignInput): Campaign[] => {
       dimensionScores.tone = toneCompatibility[inputTone][campaignTone];
     }
     
-    // Calculate total score
     const totalScore = Object.values(dimensionScores).reduce((sum, score) => sum + score, 0);
     
     return {
@@ -280,22 +274,15 @@ const findSimilarCampaigns = (input: CampaignInput): Campaign[] => {
     };
   });
   
-  // Use dimension diversity for selection
-  // First, get top 10 by total score
   const topScoring = scoredCampaigns
     .sort((a, b) => b.totalScore - a.totalScore)
     .slice(0, 10);
   
-  // Then, select 3 campaigns that maximize diversity across dimensions
   const selected: EnhancedSimilarityScore[] = [];
   
-  // Always include the highest scoring campaign
   selected.push(topScoring[0]);
   
-  // For the next selections, prefer campaigns that are strong in dimensions
-  // where currently selected campaigns are weaker
   while (selected.length < 3 && selected.length < topScoring.length) {
-    // Calculate average dimension scores for currently selected campaigns
     const avgDimensionScores: Record<string, number> = {};
     Object.keys(topScoring[0].dimensionScores).forEach(dimension => {
       avgDimensionScores[dimension] = selected.reduce(
@@ -304,21 +291,17 @@ const findSimilarCampaigns = (input: CampaignInput): Campaign[] => {
       ) / selected.length;
     });
     
-    // Find campaign that's strong where current selection is weak
     let bestComplement: EnhancedSimilarityScore | null = null;
     let bestComplementScore = -1;
     
     for (const candidate of topScoring) {
-      // Skip if already selected
       if (selected.some(s => s.campaign.id === candidate.campaign.id)) {
         continue;
       }
       
-      // Calculate how well this candidate complements existing selection
       let complementScore = 0;
       Object.entries(avgDimensionScores).forEach(([dimension, avgScore]) => {
         const dimensionKey = dimension as keyof typeof candidate.dimensionScores;
-        // If we're weak in this dimension and candidate is strong, that's good
         if (avgScore < 7 && candidate.dimensionScores[dimensionKey] > avgScore) {
           complementScore += (candidate.dimensionScores[dimensionKey] - avgScore);
         }
@@ -330,7 +313,6 @@ const findSimilarCampaigns = (input: CampaignInput): Campaign[] => {
       }
     }
     
-    // If we found a good complement, add it; otherwise just take next highest scoring
     if (bestComplement) {
       selected.push(bestComplement);
     } else {
@@ -343,7 +325,7 @@ const findSimilarCampaigns = (input: CampaignInput): Campaign[] => {
     }
   }
   
-  console.log('Enhanced campaign selection:', selected.map(s => ({
+  console.log('Traditional campaign selection:', selected.map(s => ({
     name: s.campaign.name,
     score: s.totalScore,
     dimensions: s.dimensionScores
@@ -352,9 +334,6 @@ const findSimilarCampaigns = (input: CampaignInput): Campaign[] => {
   return selected.map(s => s.campaign);
 };
 
-/**
- * Creates a detailed prompt for OpenAI to generate a creative campaign
- */
 const createCampaignPrompt = (input: CampaignInput, referenceCampaigns: Campaign[]): string => {
   const referenceCampaignsText = referenceCampaigns.map(campaign => {
     return `
@@ -371,7 +350,6 @@ Viral Element: ${campaign.viralElement || 'N/A'}
 `;
   }).join('\n');
 
-  // Generate campaign style description
   let campaignStyleDescription = input.campaignStyle || 'Any';
   const styleDescriptions: Record<string, string> = {
     'digital': 'Digital-first approach with highly shareable, interactive content',
@@ -462,52 +440,37 @@ Provide your response in **JSON format** with the following structure:
 `;
 };
 
-/**
- * Extracts JSON from a potentially markdown-formatted string
- * This handles cases where OpenAI returns JSON wrapped in markdown code blocks
- */
 const extractJsonFromResponse = (text: string): string => {
-  // Check if the response is wrapped in markdown code blocks
   const jsonRegex = /```(?:json)?\s*([\s\S]*?)```/;
   const match = text.match(jsonRegex);
   
-  // If we found a JSON block in markdown format, extract it
   if (match && match[1]) {
     return match[1].trim();
   }
   
-  // Otherwise return the original text
   return text.trim();
 };
 
-// Main function to generate a campaign
 export const generateCampaign = async (
   input: CampaignInput, 
   openAIConfig: OpenAIConfig = defaultOpenAIConfig
 ): Promise<GeneratedCampaign> => {
   try {
-    // Find similar reference campaigns with enhanced scoring
-    const referenceCampaigns = findSimilarCampaigns(input);
+    const referenceCampaigns = await findSimilarCampaigns(input, openAIConfig);
     
-    // Create a detailed prompt for OpenAI
     const prompt = createCampaignPrompt(input, referenceCampaigns);
     
-    // Generate campaign using OpenAI
     const response = await generateWithOpenAI(prompt, openAIConfig);
     
-    // Clean the response to extract just the JSON
     const cleanedResponse = extractJsonFromResponse(response);
     
-    // Parse the JSON response
     const generatedContent = JSON.parse(cleanedResponse);
     
-    // Create the base campaign with references
     const campaign: GeneratedCampaign = {
       ...generatedContent,
       referenceCampaigns
     };
     
-    // Generate storytelling narrative
     try {
       const storytellingInput = {
         brand: input.brand,
@@ -522,7 +485,7 @@ export const generateCampaign = async (
       campaign.storytelling = storytelling;
     } catch (error) {
       console.error("Error generating storytelling content:", error);
-      // Continue without storytelling if it fails
+      toast.error("Error generating storytelling content");
     }
     
     return campaign;

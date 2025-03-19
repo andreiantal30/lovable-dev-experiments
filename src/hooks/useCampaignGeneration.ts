@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { CampaignInput, GeneratedCampaign, generateCampaign } from "@/lib/generateCampaign";
 import { OpenAIConfig } from "@/lib/openai";
