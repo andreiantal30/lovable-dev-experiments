@@ -21,6 +21,7 @@ interface CampaignSectionProps {
   messages: Message[];
   onSendMessage: (message: string) => Promise<void>;
   onRegenerateCampaign?: (feedback: string, targetSection?: string) => Promise<boolean>;
+  onApplyChangesAndRegenerate?: () => Promise<boolean>;
   isProcessingMessage: boolean;
   isChatActive: boolean;
   openAIConfig: OpenAIConfig;
@@ -39,6 +40,7 @@ const CampaignSection = ({
   messages,
   onSendMessage,
   onRegenerateCampaign,
+  onApplyChangesAndRegenerate,
   isProcessingMessage,
   isChatActive,
   openAIConfig,
@@ -139,6 +141,7 @@ const CampaignSection = ({
                 messages={messages}
                 onSendMessage={onSendMessage}
                 onRegenerateCampaign={onRegenerateCampaign}
+                onApplyChangesAndRegenerate={onApplyChangesAndRegenerate}
                 isLoading={isProcessingMessage}
                 openAIConfig={openAIConfig}
               />

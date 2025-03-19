@@ -10,6 +10,7 @@ import { CampaignFeedback } from "@/components/CampaignResult";
 import { useCampaignChat } from "./campaign/useCampaignChat";
 import { useCampaignRefinement } from "./campaign/useCampaignRefinement";
 import { useCampaignRegeneration } from "./campaign/useCampaignRegeneration";
+import { useCampaignChatRefinement } from "./campaign/useCampaignChatRefinement";
 
 export function useCampaignGeneration(openAIConfig: OpenAIConfig) {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -68,6 +69,19 @@ export function useCampaignGeneration(openAIConfig: OpenAIConfig) {
     scrollToCampaign
   );
 
+  // Import chat refinement functionality
+  const { 
+    isApplyingChanges,
+    applyChangesAndRegenerateCampaign 
+  } = useCampaignChatRefinement(
+    openAIConfig,
+    lastInput,
+    generatedCampaign,
+    setGeneratedCampaign,
+    messages,
+    scrollToCampaign
+  );
+
   const handleGenerateCampaign = async (input: CampaignInput) => {
     if (!openAIConfig.apiKey) {
       toast.error("Please enter your OpenAI API key first");
@@ -110,6 +124,7 @@ export function useCampaignGeneration(openAIConfig: OpenAIConfig) {
     isGenerating,
     isRefining,
     isRegenerating,
+    isApplyingChanges,
     generatedCampaign,
     lastInput,
     messages,
@@ -120,6 +135,7 @@ export function useCampaignGeneration(openAIConfig: OpenAIConfig) {
     handleGenerateAnother,
     handleRefineCampaign,
     handleRegenerateCampaign,
+    applyChangesAndRegenerateCampaign,
     setMessages,
     campaignResultRef
   };

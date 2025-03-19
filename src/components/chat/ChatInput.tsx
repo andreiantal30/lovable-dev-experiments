@@ -2,12 +2,13 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Send, Wand2, RefreshCw } from "lucide-react";
+import { Loader2, Send, Wand2, RefreshCw, RotateCw } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface ChatInputProps {
   onSendMessage: (message: string) => Promise<void>;
   onRegenerateCampaign?: (feedback: string, targetSection?: string) => Promise<boolean>;
+  onApplyChangesAndRegenerate?: () => Promise<boolean>;
   isLoading: boolean;
   isRegenerating: boolean;
   showRegenerateButton: boolean;
@@ -26,6 +27,7 @@ const refinementSections = [
 const ChatInput: React.FC<ChatInputProps> = ({
   onSendMessage,
   onRegenerateCampaign,
+  onApplyChangesAndRegenerate,
   isLoading,
   isRegenerating,
   showRegenerateButton,
@@ -80,6 +82,16 @@ const ChatInput: React.FC<ChatInputProps> = ({
       setTargetSection(undefined);
     } catch (error) {
       console.error("Error regenerating campaign:", error);
+    }
+  };
+
+  const handleApplyChangesAndRegenerate = async () => {
+    if (!onApplyChangesAndRegenerate || isRegenerating) return;
+    
+    try {
+      await onApplyChangesAndRegenerate();
+    } catch (error) {
+      console.error("Error applying changes and regenerating campaign:", error);
     }
   };
 
@@ -191,6 +203,22 @@ const ChatInput: React.FC<ChatInputProps> = ({
           )}
         </Button>
       </div>
+
+      {/* Apply Changes & Regenerate Campaign button */}
+      {onApplyChangesAndRegenerate && (
+        <div className="flex justify-end mt-3">
+          <Button
+            onClick={handleApplyChangesAndRegenerate}
+            variant="outline"
+            size="sm"
+            className="gap-1 text-xs"
+            disabled={isLoading || isRegenerating}
+          >
+            <RotateCw className="h-3.5 w-3.5 mr-1" />
+            Apply Changes & Regenerate Campaign
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

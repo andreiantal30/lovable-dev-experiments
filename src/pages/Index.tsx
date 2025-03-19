@@ -26,6 +26,7 @@ const Index = () => {
     isGenerating,
     isRefining,
     isRegenerating,
+    isApplyingChanges,
     generatedCampaign,
     lastInput,
     messages,
@@ -36,6 +37,7 @@ const Index = () => {
     handleGenerateAnother,
     handleRefineCampaign,
     handleRegenerateCampaign,
+    applyChangesAndRegenerateCampaign,
     setMessages,
     campaignResultRef
   } = useCampaignGeneration(openAIConfig);
@@ -105,12 +107,13 @@ const Index = () => {
             <CampaignSection
               generatedCampaign={generatedCampaign}
               isGenerating={isGenerating}
-              isRegenerating={isRegenerating}
+              isRegenerating={isRegenerating || isApplyingChanges}
               onGenerateCampaign={onGenerateCampaign}
               onGenerateAnother={handleGenerateAnother}
               messages={messages}
               onSendMessage={handleSendMessage}
               onRegenerateCampaign={handleRegenerateCampaign}
+              onApplyChangesAndRegenerate={applyChangesAndRegenerateCampaign}
               isProcessingMessage={isProcessingMessage}
               isChatActive={isChatActive}
               openAIConfig={openAIConfig}

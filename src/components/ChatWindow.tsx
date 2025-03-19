@@ -18,6 +18,7 @@ interface ChatWindowProps {
   messages: Message[];
   onSendMessage: (message: string) => Promise<void>;
   onRegenerateCampaign?: (feedback: string, targetSection?: string) => Promise<boolean>;
+  onApplyChangesAndRegenerate?: () => Promise<boolean>;
   isLoading: boolean;
   openAIConfig: OpenAIConfig;
 }
@@ -26,6 +27,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   messages,
   onSendMessage,
   onRegenerateCampaign,
+  onApplyChangesAndRegenerate,
   isLoading,
   openAIConfig,
 }) => {
@@ -81,6 +83,22 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     }
   };
 
+  const handleApplyChangesAndRegenerate = async () => {
+    if (!onApplyChangesAndRegenerate) return false;
+    
+    setIsRegenerating(true);
+    try {
+      const result = await onApplyChangesAndRegenerate();
+      return result;
+    } catch (error) {
+      toast.error("Failed to apply changes and regenerate campaign");
+      console.error("Error applying changes and regenerating campaign:", error);
+      return false;
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-[500px] md:h-[600px] bg-white/50 dark:bg-gray-800/30 backdrop-blur-lg border border-border rounded-xl shadow-subtle overflow-hidden">
       {/* Chat header */}
@@ -107,6 +125,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         <ChatInput 
           onSendMessage={handleSendMessage}
           onRegenerateCampaign={handleRegenerateCampaign}
+          onApplyChangesAndRegenerate={onApplyChangesAndRegenerate}
           isLoading={isLoading}
           isRegenerating={isRegenerating}
           showRegenerateButton={showRegenerateButton}
