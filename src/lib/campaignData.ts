@@ -1,3 +1,4 @@
+
 export interface Campaign {
   id: string;
   name: string;
@@ -11,6 +12,8 @@ export interface Campaign {
   features: string[];
   emotionalAppeal: string[];
   outcomes: string[];
+  creativeActivation?: string; // Adding the missing property
+  viralElement?: string; // Adding the missing property
 }
 
 export const campaignData: Campaign[] = [
