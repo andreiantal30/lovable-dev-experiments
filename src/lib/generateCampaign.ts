@@ -1,3 +1,4 @@
+
 import { Campaign } from './campaignData';
 import { generateWithOpenAI, OpenAIConfig, defaultOpenAIConfig } from './openai';
 import { getCampaigns } from './campaignStorage';
@@ -10,6 +11,9 @@ export interface CampaignInput {
   objectives: string[];
   emotionalAppeal: string[];
   additionalConstraints?: string;
+  brandPersonality?: string;
+  differentiator?: string;
+  culturalInsights?: string;
   campaignStyle?: 
     | "digital" 
     | "experiential" 
@@ -30,7 +34,9 @@ export interface CampaignInput {
     | "stunt-marketing" 
     | "ar-vr" 
     | "performance" 
-    | "loyalty-community";
+    | "loyalty-community"
+    | "stunt"
+    | "UGC";
 }
 
 export interface GeneratedCampaign {
@@ -39,6 +45,8 @@ export interface GeneratedCampaign {
   creativeStrategy: string[];
   executionPlan: string[];
   expectedOutcomes: string[];
+  viralHook?: string;
+  consumerInteraction?: string;
   referenceCampaigns: Campaign[];
   storytelling?: StorytellingOutput;
 }
@@ -358,20 +366,21 @@ Objectives: ${campaign.objectives.join(', ')}
 Key Message: ${campaign.keyMessage}
 Strategy: ${campaign.strategy}
 Emotional Appeal: ${campaign.emotionalAppeal.join(', ')}
+Creative Activation: ${campaign.creativeActivation || 'N/A'}
+Viral Element: ${campaign.viralElement || 'N/A'}
 `;
   }).join('\n');
 
-  // Create a human-readable campaign style description
+  // Generate campaign style description
   let campaignStyleDescription = input.campaignStyle || 'Any';
-  
-  // Map style values to their full descriptions for the prompt
   const styleDescriptions: Record<string, string> = {
-    'digital': 'Digital-first approach',
-    'experiential': 'Experiential marketing approach',
-    'social': 'Social media-led approach',
-    'influencer': 'Influencer-Driven – Powered by creators & social personalities',
-    'guerrilla': 'Guerrilla Marketing – Unexpected, unconventional, and attention-grabbing',
-    'ugc': 'User-Generated Content (UGC) – Community-driven campaign',
+    'digital': 'Digital-first approach with highly shareable, interactive content',
+    'experiential': 'Experiential marketing focused on real-world brand immersion',
+    'social': 'Social-led approach optimized for engagement and virality',
+    'influencer': 'Influencer-driven marketing leveraging creators & personalities',
+    'guerrilla': 'Unexpected, disruptive guerrilla marketing activation',
+    'stunt': 'Attention-grabbing PR stunt designed to generate buzz',
+    'UGC': 'User-generated content strategy encouraging consumer participation',
     'brand-activism': 'Brand Activism – Focused on social or environmental causes',
     'branded-entertainment': 'Branded Entertainment – Storytelling through content',
     'retail-activation': 'Retail Activation – In-store experiences, pop-ups, and interactive retail moments',
@@ -392,37 +401,65 @@ Emotional Appeal: ${campaign.emotionalAppeal.join(', ')}
     campaignStyleDescription = styleDescriptions[input.campaignStyle];
   }
 
-  return `Generate a creative marketing campaign for the following brand and requirements:
+  return `### Generate a groundbreaking marketing campaign with the following key elements:
 
-BRAND INFORMATION:
-Brand Name: ${input.brand}
-Industry: ${input.industry}
-Target Audience: ${input.targetAudience.join(', ')}
-Campaign Objectives: ${input.objectives.join(', ')}
-Emotional Appeal to Focus On: ${input.emotionalAppeal.join(', ')}
-Campaign Style: ${campaignStyleDescription}
-${input.additionalConstraints ? `Additional Requirements: ${input.additionalConstraints}` : ''}
+#### **Brand & Strategic Positioning**
+- **Brand Name:** ${input.brand}
+- **Industry:** ${input.industry}
+- **Target Audience:** ${input.targetAudience.join(', ')}
+- **Brand Personality:** ${input.brandPersonality || 'Flexible – Adapt to campaign needs'}
+- **Competitive Differentiator:** ${input.differentiator || 'N/A'}
+- **Current Market Trends / Cultural Insights to Consider:** ${input.culturalInsights || 'N/A'}
+- **Emotional Appeal to Tap Into:** ${input.emotionalAppeal.join(', ')}
 
-REFERENCE CAMPAIGNS FOR INSPIRATION:
+#### **Campaign Details**
+- **Primary Objective:** ${input.objectives.join(', ')}
+- **Campaign Style:** ${campaignStyleDescription}
+- **Additional Constraints:** ${input.additionalConstraints || 'None'}
+
+#### **Reference Campaigns for Inspiration**
 ${referenceCampaignsText}
 
-Please create a comprehensive campaign with the following components:
-1. A creative and memorable campaign name
-2. A powerful key message that resonates with the target audience
-3. Three innovative creative strategy points
-4. Five detailed execution plan items
-5. Four expected outcomes or KPIs
+---
 
-Format your response as JSON in the following structure:
+#### **Campaign Output Requirements:**
+Please generate a campaign concept that includes:
+1. **A campaign name that is bold, memorable, and culturally relevant**  
+2. **A key message that is both simple and emotionally powerful**  
+3. **Three creative strategies that push boundaries and bring fresh energy**  
+4. **Five executional elements that maximize reach, engagement, and participation**  
+5. **A cultural hook or viral trigger** (e.g., meme, challenge, unexpected collab, internet trend)  
+6. **A unique brand-consumer interaction mechanic** (e.g., gamification, user participation, real-world touchpoint)  
+7. **Four expected outcomes or success metrics**  
+
+---
+
+### **Response Format:**  
+Provide your response in **JSON format** with the following structure:
+
+\`\`\`json
 {
-  "campaignName": "Name of Campaign",
-  "keyMessage": "The key message",
-  "creativeStrategy": ["Strategy point 1", "Strategy point 2", "Strategy point 3"],
+  "campaignName": "Innovative Campaign Name",
+  "keyMessage": "Short, impactful key message",
+  "creativeStrategy": ["Creative strategy 1", "Creative strategy 2", "Creative strategy 3"],
   "executionPlan": ["Execution item 1", "Execution item 2", "Execution item 3", "Execution item 4", "Execution item 5"],
+  "viralHook": "How the campaign becomes culturally relevant and shareable",
+  "consumerInteraction": "How the audience actively participates",
   "expectedOutcomes": ["Outcome 1", "Outcome 2", "Outcome 3", "Outcome 4"]
 }
+\`\`\`
 
-Make the campaign innovative, impactful, and aligned with current marketing trends. Ensure it addresses the specific objectives and connects emotionally with the target audience.`;
+---
+
+### **Guidelines:**
+- **Make it groundbreaking:** Think beyond traditional ads—consider experiential, tech-driven, or culture-hacking approaches.  
+- **Make it insightful:** Tie the campaign to a real-world trend, behavior, or cultural moment.  
+- **Make it entertaining:** Infuse humor, surprise, or an emotional twist to make the campaign unforgettable.  
+
+---
+
+**Objective:** Generate a campaign that feels like an award-winning, culture-defining moment rather than just another ad. 🚀  
+`;
 };
 
 /**
