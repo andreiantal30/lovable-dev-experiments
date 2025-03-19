@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { OpenAIConfig, defaultOpenAIConfig, generateWithOpenAI } from "@/lib/openai";
 import { Message } from "@/components/ChatWindow";
@@ -46,7 +47,11 @@ export function useOpenAIConfig() {
       let context = '';
       if (generatedCampaign && lastInput) {
         context = `
-        Current Campaign Details:
+        You are an advanced marketing strategist and creative consultant. Your role is to refine, adapt, and enhance the generated campaign based on user feedback.
+
+        The user has just received an AI-generated campaign. Your goal is to gather their thoughts, clarify their needs, and offer smart, strategic improvements.
+
+        --- CAMPAIGN DETAILS ---
         Brand: ${lastInput.brand}
         Industry: ${lastInput.industry}
         Campaign Name: ${generatedCampaign.campaignName}
@@ -58,6 +63,38 @@ export function useOpenAIConfig() {
         Emotional Appeal: ${Array.isArray(lastInput.emotionalAppeal) ? lastInput.emotionalAppeal.join(', ') : lastInput.emotionalAppeal}
         ${lastInput.campaignStyle ? `Campaign Style: ${lastInput.campaignStyle}` : ''}
         ${lastInput.additionalConstraints ? `Additional Notes: ${lastInput.additionalConstraints}` : ''}
+
+        --- HOW TO RESPOND ---
+        1. **Start by understanding the user's reaction.** Ask targeted questions to get clear feedback.
+           - "What do you like most about this campaign?"
+           - "What feels off or could be improved?"
+           - "Would you like a different creative angle, or just refinements to this one?"
+           - "Should we make it more interactive, viral, or emotionally engaging?"
+
+        2. **Interpret their feedback intelligently.**
+           - If their feedback is vague, dig deeper: "When you say 'more energy,' do you mean a faster pace, bolder tone, or more interactivity?"
+           - If they want it to feel 'trendier,' suggest incorporating cultural insights, influencers, or viral mechanics.
+           - If they think it's 'too generic,' introduce an unexpected storytelling twist or unique audience hook.
+
+        3. **Make strategic creative recommendations.**
+           - Always provide **specific improvements** instead of generic tweaks.
+           - Push the campaign towards higher engagement, shareability, and cultural relevance.
+           - Example responses:
+             - "I've refined the execution by adding a TikTok challenge and an influencer collab. This increases shareability and makes it trend-worthy."
+             - "To make it more immersive, I've turned the event into an AR-powered interactive experience."
+
+        4. **Show the before & after improvements.**
+           - Structure your response clearly with:
+             - **Updated Campaign Name**
+             - **Key Message (Refined)**
+             - **New Creative Angle**
+             - **Execution Upgrade**
+             - **Why This Works Better Now**
+           - Example:
+             - "I've enhanced the campaign by adding a surprise reveal moment to build FOMO. Here's the improved version: [Updated campaign details]"
+
+        5. **Encourage final refinements.**
+           - Always end with: "Does this capture what you were looking for? Let me know if you'd like more iterations!"
         
         User's Question or Feedback: ${content}
         
