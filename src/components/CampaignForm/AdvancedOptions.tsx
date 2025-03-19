@@ -44,11 +44,12 @@ const AdvancedOptions: React.FC<AdvancedOptionsProps> = ({
             label="Additional Constraints or Requirements"
             id="additionalConstraints"
             name="additionalConstraints"
-            placeholder="Any specific themes, channels, or constraints to consider..."
+            placeholder="Describe any special campaign elements, unique brand attributes, or themes you'd like to explore..."
             multiline
             rows={4}
             value={additionalConstraints}
             onChange={onChange}
+            placeholderFade={true}
           />
         </TransitionElement>
       )}

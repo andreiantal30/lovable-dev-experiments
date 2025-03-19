@@ -13,6 +13,7 @@ interface InputFieldProps extends React.InputHTMLAttributes<HTMLInputElement | H
   inputClassName?: string;
   labelClassName?: string;
   chip?: string;
+  placeholderFade?: boolean;
 }
 
 const InputField = ({
@@ -26,26 +27,50 @@ const InputField = ({
   inputClassName,
   labelClassName,
   chip,
+  placeholderFade = false,
   ...props
 }: InputFieldProps) => {
   const [focused, setFocused] = useState(false);
   const [filled, setFilled] = useState(!!props.value);
+  const [isFadingPlaceholder, setIsFadingPlaceholder] = useState(false);
 
   const handleFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFocused(true);
+    if (placeholderFade && !filled) {
+      setIsFadingPlaceholder(true);
+    }
     if (props.onFocus) props.onFocus(e as any);
   };
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFocused(false);
-    setFilled(!!e.target.value);
+    const hasValue = !!e.target.value;
+    setFilled(hasValue);
+    
+    if (placeholderFade && !hasValue) {
+      setIsFadingPlaceholder(false);
+    }
+    
     if (props.onBlur) props.onBlur(e as any);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFilled(!!e.target.value);
+    const hasValue = !!e.target.value;
+    setFilled(hasValue);
+    
+    if (placeholderFade) {
+      setIsFadingPlaceholder(hasValue);
+    }
+    
     if (props.onChange) props.onChange(e as any);
   };
+
+  // Create placeholder styling class
+  const placeholderClass = placeholderFade 
+    ? isFadingPlaceholder || filled
+      ? "placeholder:opacity-0"
+      : "placeholder:opacity-100" 
+    : "";
 
   return (
     <div className={cn("space-y-1.5", className)}>
@@ -77,6 +102,8 @@ const InputField = ({
           className={cn(
             "w-full px-3 py-2 rounded-lg glass-input",
             "placeholder:text-muted-foreground/60 dark:placeholder:text-white/40",
+            "placeholder:transition-opacity placeholder:duration-300",
+            placeholderClass,
             error ? "border-destructive/50 focus:ring-destructive/20" : "",
             inputClassName
           )}
@@ -91,6 +118,8 @@ const InputField = ({
           className={cn(
             "w-full h-10 px-3 rounded-lg glass-input",
             "placeholder:text-muted-foreground/60 dark:placeholder:text-white/40",
+            "placeholder:transition-opacity placeholder:duration-300",
+            placeholderClass,
             error ? "border-destructive/50 focus:ring-destructive/20" : "",
             inputClassName
           )}
