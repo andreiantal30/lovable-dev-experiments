@@ -2,14 +2,15 @@
 import React, { useState } from "react";
 import { CampaignInput } from "@/lib/generateCampaign";
 import TransitionElement from "@/components/TransitionElement";
-import InputField from "@/components/InputField";
-import { industries, emotionalAppeals, objectives, targetAudiences } from "@/lib/campaignData";
-import CampaignStyleSelector, { CampaignStyle } from '@/components/CampaignStyleSelector';
+import { CampaignStyle } from '@/components/CampaignStyleSelector';
 import FormSection from "./FormSection";
 import IndustrySelector from "./IndustrySelector";
 import AdvancedOptions from "./AdvancedOptions";
 import FormHeader from "./FormHeader";
 import SubmitButton from "./SubmitButton";
+import TagManager from "./TagManager";
+import BrandInput from "./BrandInput";
+import StyleSelection from "./StyleSelection";
 
 interface CampaignFormProps {
   onSubmit: (input: CampaignInput) => void;
@@ -135,73 +136,62 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-16 mt-8">
           <div className="space-y-12">
-            <TransitionElement delay={100}>
-              <InputField
-                label="Brand Name"
-                id="brand"
-                name="brand"
-                placeholder="e.g. Nike, Apple, Spotify"
-                value={formData.brand}
-                onChange={handleInputChange}
-                error={errors.brand}
-                chip="Required"
-              />
-            </TransitionElement>
+            <BrandInput
+              value={formData.brand}
+              onChange={handleInputChange}
+              error={errors.brand}
+            />
             
             <IndustrySelector
               value={formData.industry}
               onChange={handleSelectChange}
               error={errors.industry}
-              delay={200}
             />
             
-            <CampaignStyleSelector
+            <StyleSelection
               value={formData.campaignStyle}
               onChange={handleStyleChange}
             />
             
-            <FormSection
+            <TagManager
               title="Target Audience"
               required
               delay={300}
-              suggestions={targetAudiences}
+              keyName="targetAudience"
               selectedItems={formData.targetAudience}
               inputValue={audienceInput}
               setInputValue={setAudienceInput}
               addItem={(value) => addTagItem('targetAudience', value)}
               removeItem={(index) => removeTagItem('targetAudience', index)}
               error={errors.targetAudience}
-              keyName="targetAudience"
             />
           </div>
           
           <div className="space-y-12">
-            <FormSection
+            <TagManager
               title="Campaign Objectives"
               required
               delay={400}
-              suggestions={objectives}
+              keyName="objectives"
               selectedItems={formData.objectives}
               inputValue={objectiveInput}
               setInputValue={setObjectiveInput}
               addItem={(value) => addTagItem('objectives', value)}
               removeItem={(index) => removeTagItem('objectives', index)}
               error={errors.objectives}
-              keyName="objectives"
             />
             
-            <FormSection
+            <TagManager
               title="Emotional Appeal"
               required
               delay={500}
-              suggestions={emotionalAppeals}
+              keyName="emotionalAppeal"
               selectedItems={formData.emotionalAppeal}
               inputValue={emotionalAppealInput}
               setInputValue={setEmotionalAppealInput}
               addItem={(value) => addTagItem('emotionalAppeal', value)}
               removeItem={(index) => removeTagItem('emotionalAppeal', index)}
               error={errors.emotionalAppeal}
-              keyName="emotionalAppeal"
             />
           </div>
         </div>
