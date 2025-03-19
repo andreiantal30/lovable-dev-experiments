@@ -108,6 +108,76 @@ export function createInputEmbeddingText(input: CampaignInput): string {
 }
 
 /**
+ * Create a text representation of a specific section of campaign for targeted embedding
+ */
+export function createSectionEmbeddingText(
+  section: string,
+  input: CampaignInput,
+  existingCampaign?: any
+): string {
+  let baseText = `
+    Brand: ${input.brand}
+    Industry: ${input.industry}
+    Target Audience: ${input.targetAudience.join(', ')}
+    Objectives: ${input.objectives.join(', ')}
+    ${input.emotionalAppeal ? `Emotional Appeal: ${input.emotionalAppeal.join(', ')}` : ''}
+  `;
+  
+  // Add section-specific context
+  if (section === "campaignName") {
+    return `${baseText}
+      Generating campaign name for ${input.brand} in ${input.industry}.
+      ${existingCampaign?.campaignName ? `Previous campaign name: ${existingCampaign.campaignName}` : ''}
+      ${input.brandPersonality ? `Brand Personality: ${input.brandPersonality}` : ''}
+    `;
+  } else if (section === "keyMessage") {
+    return `${baseText}
+      Generating key message for ${input.brand} in ${input.industry}.
+      ${existingCampaign?.keyMessage ? `Previous key message: ${existingCampaign.keyMessage}` : ''}
+      ${existingCampaign?.campaignName ? `Campaign name: ${existingCampaign.campaignName}` : ''}
+      ${input.differentiator ? `Differentiator: ${input.differentiator}` : ''}
+    `;
+  } else if (section === "creativeStrategy") {
+    return `${baseText}
+      Generating creative strategy for ${input.brand} in ${input.industry}.
+      ${existingCampaign?.campaignName ? `Campaign name: ${existingCampaign.campaignName}` : ''}
+      ${existingCampaign?.keyMessage ? `Key message: ${existingCampaign.keyMessage}` : ''}
+      ${input.campaignStyle ? `Campaign Style: ${input.campaignStyle}` : ''}
+    `;
+  } else if (section === "executionPlan") {
+    return `${baseText}
+      Generating execution plan for ${input.brand} in ${input.industry}.
+      ${existingCampaign?.campaignName ? `Campaign name: ${existingCampaign.campaignName}` : ''}
+      ${existingCampaign?.keyMessage ? `Key message: ${existingCampaign.keyMessage}` : ''}
+      ${existingCampaign?.creativeStrategy ? `Creative strategy: ${Array.isArray(existingCampaign.creativeStrategy) ? existingCampaign.creativeStrategy.join(', ') : existingCampaign.creativeStrategy}` : ''}
+    `;
+  } else if (section === "viralElement") {
+    return `${baseText}
+      Generating viral element for ${input.brand} in ${input.industry}.
+      ${existingCampaign?.campaignName ? `Campaign name: ${existingCampaign.campaignName}` : ''}
+      ${existingCampaign?.keyMessage ? `Key message: ${existingCampaign.keyMessage}` : ''}
+      ${input.culturalInsights ? `Cultural Insights: ${input.culturalInsights}` : ''}
+    `;
+  } else if (section === "callToAction") {
+    return `${baseText}
+      Generating call to action for ${input.brand} in ${input.industry}.
+      ${existingCampaign?.keyMessage ? `Key message: ${existingCampaign.keyMessage}` : ''}
+      ${input.differentiator ? `Differentiator: ${input.differentiator}` : ''}
+    `;
+  } else if (section === "emotionalAppeal") {
+    return `${baseText}
+      Generating emotional appeal for ${input.brand} in ${input.industry}.
+      ${existingCampaign?.campaignName ? `Campaign name: ${existingCampaign.campaignName}` : ''}
+      ${existingCampaign?.keyMessage ? `Key message: ${existingCampaign.keyMessage}` : ''}
+      ${input.brandPersonality ? `Brand Personality: ${input.brandPersonality}` : ''}
+    `;
+  }
+  
+  // Default to general campaign text if section is not recognized
+  return createInputEmbeddingText(input);
+}
+
+/**
  * Save embeddings to local storage
  */
 export function saveEmbeddings(embeddings: CampaignEmbedding[]): boolean {
@@ -192,7 +262,8 @@ export async function findSimilarCampaignsWithEmbeddings(
   input: CampaignInput,
   allCampaigns: Campaign[],
   config: OpenAIConfig,
-  numberOfResults: number = 3
+  numberOfResults: number = 3,
+  targetSection?: string
 ): Promise<Campaign[]> {
   try {
     // Check if we have stored embeddings
@@ -205,7 +276,10 @@ export async function findSimilarCampaignsWithEmbeddings(
     }
     
     // Generate embedding for the input
-    const inputText = createInputEmbeddingText(input);
+    const inputText = targetSection 
+      ? createSectionEmbeddingText(targetSection, input)
+      : createInputEmbeddingText(input);
+      
     const inputEmbedding = await generateEmbedding(inputText, config);
     
     // Calculate similarity scores for each campaign

@@ -14,7 +14,7 @@ const FormHeader: React.FC<FormHeaderProps> = ({ title, subtitle }) => {
           {title}
         </h2>
         <span className="ml-3 px-2 py-1 text-xs font-medium bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-full">
-          AI Embeddings
+          AI Embeddings + Granular Control
         </span>
       </div>
       <p className="text-sm text-muted-foreground text-center max-w-2xl mx-auto mb-16">

@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import { CampaignInput, GeneratedCampaign, generateCampaign } from "@/lib/generateCampaign";
 import { OpenAIConfig } from "@/lib/openai";
@@ -131,9 +132,9 @@ export function useCampaignGeneration(openAIConfig: OpenAIConfig) {
     }
   };
 
-  const handleRegenerateCampaign = async (userFeedback: string) => {
-    if (!lastInput) {
-      toast.error("Cannot regenerate without original input");
+  const handleRegenerateCampaign = async (userFeedback: string, targetSection?: string) => {
+    if (!lastInput || !generatedCampaign) {
+      toast.error("Cannot regenerate without original input and campaign");
       return false;
     }
 
@@ -141,36 +142,102 @@ export function useCampaignGeneration(openAIConfig: OpenAIConfig) {
     
     try {
       // Add regeneration system message
+      const systemMessage = targetSection 
+        ? `Regenerating the ${getSectionDisplayName(targetSection)} based on your feedback...`
+        : "Regenerating campaign based on your feedback...";
+        
       const regeneratingMessage: Message = {
         id: uuidv4(),
         role: "system",
-        content: "Regenerating campaign based on your feedback...",
+        content: systemMessage,
         timestamp: new Date(),
       };
       
       setMessages(prev => [...prev, regeneratingMessage]);
       
-      // Create enhanced input with user feedback
-      const enhancedInput: CampaignInput = {
-        ...lastInput,
-        additionalConstraints: `
-          Regenerate the campaign based on this user feedback:
-          "${userFeedback}"
-          
-          Previous campaign name: ${generatedCampaign?.campaignName}
-          Previous key message: ${generatedCampaign?.keyMessage}
-        `
-      };
+      // Create a copy of the current campaign to modify
+      const updatedCampaign = { ...generatedCampaign };
       
-      // Generate new campaign
-      const regeneratedCampaign = await generateCampaign(enhancedInput, openAIConfig);
-      setGeneratedCampaign(regeneratedCampaign);
+      if (targetSection) {
+        // Targeted regeneration of a specific section
+        const result = await regenerateTargetedSection(
+          targetSection, 
+          userFeedback, 
+          generatedCampaign, 
+          lastInput
+        );
+        
+        // Only update the specified section of the campaign
+        if (targetSection === "campaignName") {
+          updatedCampaign.campaignName = result;
+        } else if (targetSection === "keyMessage") {
+          updatedCampaign.keyMessage = result;
+        } else if (targetSection === "creativeStrategy") {
+          try {
+            // Try to parse as array if possible
+            const parsedResult = JSON.parse(result);
+            updatedCampaign.creativeStrategy = Array.isArray(parsedResult) ? parsedResult : [result];
+          } catch {
+            // If not JSON, treat as single string or split by newlines
+            updatedCampaign.creativeStrategy = result.includes('\n') 
+              ? result.split('\n').filter(line => line.trim()) 
+              : [result];
+          }
+        } else if (targetSection === "executionPlan") {
+          try {
+            // Try to parse as array if possible
+            const parsedResult = JSON.parse(result);
+            updatedCampaign.executionPlan = Array.isArray(parsedResult) ? parsedResult : [result];
+          } catch {
+            // If not JSON, treat as single string or split by newlines
+            updatedCampaign.executionPlan = result.includes('\n') 
+              ? result.split('\n').filter(line => line.trim()) 
+              : [result];
+          }
+        } else if (targetSection === "viralElement") {
+          updatedCampaign.viralElement = result;
+        } else if (targetSection === "callToAction") {
+          updatedCampaign.callToAction = result;
+        } else if (targetSection === "emotionalAppeal") {
+          try {
+            // Try to parse as array if possible
+            const parsedResult = JSON.parse(result);
+            updatedCampaign.emotionalAppeal = Array.isArray(parsedResult) ? parsedResult : [result];
+          } catch {
+            // If not JSON, treat as single string or split by newlines
+            updatedCampaign.emotionalAppeal = result.includes('\n') 
+              ? result.split('\n').filter(line => line.trim()) 
+              : [result];
+          }
+        }
+        
+        // Update the campaign with modified section
+        setGeneratedCampaign(updatedCampaign);
+      } else {
+        // Full campaign regeneration
+        const enhancedInput: CampaignInput = {
+          ...lastInput,
+          additionalConstraints: `
+            Regenerate the campaign based on this user feedback:
+            "${userFeedback}"
+            
+            Previous campaign name: ${generatedCampaign.campaignName}
+            Previous key message: ${generatedCampaign.keyMessage}
+          `
+        };
+        
+        // Generate new campaign
+        const regeneratedCampaign = await generateCampaign(enhancedInput, openAIConfig);
+        setGeneratedCampaign(regeneratedCampaign);
+      }
       
       // Add confirmation message
       const confirmationMessage: Message = {
         id: uuidv4(),
         role: "assistant",
-        content: `I've regenerated the campaign based on your feedback. The new campaign is called "${regeneratedCampaign.campaignName}" with the key message: "${regeneratedCampaign.keyMessage}". Is there anything else you'd like to refine?`,
+        content: targetSection
+          ? `I've updated the ${getSectionDisplayName(targetSection)} based on your feedback. Is there anything else you'd like to refine?`
+          : `I've regenerated the campaign based on your feedback. The new campaign is called "${updatedCampaign.campaignName}" with the key message: "${updatedCampaign.keyMessage}". Is there anything else you'd like to refine?`,
         timestamp: new Date(),
       };
       
@@ -178,14 +245,17 @@ export function useCampaignGeneration(openAIConfig: OpenAIConfig) {
       setMessages(prev => [...prev.filter(msg => msg.id !== regeneratingMessage.id), confirmationMessage]);
       
       // Automatically save the regenerated campaign to the library
-      if (regeneratedCampaign && lastInput.brand && lastInput.industry) {
+      if (lastInput.brand && lastInput.industry) {
         const savedCampaign = saveCampaignToLibrary(
-          regeneratedCampaign, 
+          updatedCampaign, 
           lastInput.brand, 
           lastInput.industry
         );
         if (savedCampaign) {
-          toast.success("Regenerated campaign saved to your library");
+          toast.success(targetSection 
+            ? `Updated campaign ${getSectionDisplayName(targetSection)} saved to your library` 
+            : "Regenerated campaign saved to your library"
+          );
         }
       }
       
@@ -200,6 +270,70 @@ export function useCampaignGeneration(openAIConfig: OpenAIConfig) {
     } finally {
       setIsRegenerating(false);
     }
+  };
+
+  const regenerateTargetedSection = async (
+    section: string,
+    userFeedback: string,
+    currentCampaign: GeneratedCampaign,
+    input: CampaignInput
+  ): Promise<string> => {
+    const prompt = `
+      You are an expert marketing consultant focusing on regenerating just ONE part of a marketing campaign.
+      Please ONLY regenerate the ${getSectionDisplayName(section)} based on this feedback: "${userFeedback}"
+      
+      Original campaign details:
+      - Brand: ${input.brand}
+      - Industry: ${input.industry}
+      - Campaign Name: ${currentCampaign.campaignName}
+      - Key Message: ${currentCampaign.keyMessage}
+      - Target Audience: ${input.targetAudience?.join(', ')}
+      - Objectives: ${input.objectives?.join(', ')}
+      
+      Focus specifically on creating a new ${getSectionDisplayName(section)} that addresses this feedback.
+      Respond with ONLY the new content for ${getSectionDisplayName(section)} without any additional explanations.
+    `;
+    
+    try {
+      const result = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${openAIConfig.apiKey}`,
+        },
+        body: JSON.stringify({
+          model: openAIConfig.model,
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.7,
+          max_tokens: 500,
+        }),
+      });
+      
+      if (!result.ok) {
+        const error = await result.json();
+        throw new Error(error.error?.message || `Error generating ${section}`);
+      }
+      
+      const data = await result.json();
+      return data.choices[0].message.content.trim();
+    } catch (error) {
+      console.error(`Error regenerating ${section}:`, error);
+      throw error;
+    }
+  };
+
+  const getSectionDisplayName = (section: string): string => {
+    const sectionNames: Record<string, string> = {
+      campaignName: "Campaign Name",
+      keyMessage: "Key Message",
+      creativeStrategy: "Creative Strategy",
+      executionPlan: "Execution Plan",
+      viralElement: "Viral Element",
+      callToAction: "Call to Action",
+      emotionalAppeal: "Emotional Appeal"
+    };
+    
+    return sectionNames[section] || section;
   };
 
   const scrollToCampaign = () => {

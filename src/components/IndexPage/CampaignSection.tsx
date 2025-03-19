@@ -20,7 +20,7 @@ interface CampaignSectionProps {
   onGenerateAnother: () => void;
   messages: Message[];
   onSendMessage: (message: string) => Promise<void>;
-  onRegenerateCampaign?: (feedback: string) => Promise<boolean>;
+  onRegenerateCampaign?: (feedback: string, targetSection?: string) => Promise<boolean>;
   isProcessingMessage: boolean;
   isChatActive: boolean;
   openAIConfig: OpenAIConfig;

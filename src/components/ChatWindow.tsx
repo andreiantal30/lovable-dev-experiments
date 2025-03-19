@@ -17,7 +17,7 @@ export interface Message {
 interface ChatWindowProps {
   messages: Message[];
   onSendMessage: (message: string) => Promise<void>;
-  onRegenerateCampaign?: (feedback: string) => Promise<boolean>;
+  onRegenerateCampaign?: (feedback: string, targetSection?: string) => Promise<boolean>;
   isLoading: boolean;
   openAIConfig: OpenAIConfig;
 }
@@ -44,7 +44,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     const regenerationKeywords = [
       'regenerate', 'recreate', 'remake', 'new campaign', 'change campaign',
       'different campaign', 'redo campaign', 'rework', 'revise campaign',
-      'create new', 'start over', 'instead', 'prefer', 'rather have'
+      'create new', 'start over', 'instead', 'prefer', 'rather have',
+      'update', 'modify', 'adjust', 'improve', 'enhance', 'refine'
     ];
     
     const shouldShowButton = regenerationKeywords.some(keyword => 
@@ -64,12 +65,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     }
   };
 
-  const handleRegenerateCampaign = async (feedback: string) => {
+  const handleRegenerateCampaign = async (feedback: string, targetSection?: string) => {
     if (!onRegenerateCampaign) return false;
     
     setIsRegenerating(true);
     try {
-      const result = await onRegenerateCampaign(feedback);
+      const result = await onRegenerateCampaign(feedback, targetSection);
       return result;
     } catch (error) {
       toast.error("Failed to regenerate campaign");
