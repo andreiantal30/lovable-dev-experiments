@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Send, Wand2, RefreshCw, RotateCw } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import PromptCarousel from "./PromptCarousel";
 
 interface ChatInputProps {
   onSendMessage: (message: string) => Promise<void>;
@@ -24,6 +25,15 @@ const refinementSections = [
   { id: "emotionalAppeal", label: "Emotional Appeal" },
 ];
 
+// Prompt suggestions for the carousel
+const promptSuggestions = [
+  "Want to refine the messaging? Try asking for a stronger call to action or a punchier headline!",
+  "Looking to enhance the emotional appeal? Ask for a more relatable story or an unexpected twist!",
+  "Need a different angle? Ask for a more viral approach, a bold influencer collab, or a trend-driven hook!",
+  "How about optimizing for specific platforms? Request a TikTok-ready version or a more engaging Instagram campaign!",
+  "Want a tighter focus? Ask to refine the target audience or shift the tone for broader appeal!"
+];
+
 const ChatInput: React.FC<ChatInputProps> = ({
   onSendMessage,
   onRegenerateCampaign,
@@ -35,6 +45,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const [inputValue, setInputValue] = useState("");
   const [targetSection, setTargetSection] = useState<string | undefined>(undefined);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [isTyping, setIsTyping] = useState(false);
 
   // Focus input when component mounts
   useEffect(() => {
@@ -51,6 +62,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
       await onSendMessage(inputValue);
       setInputValue("");
       setTargetSection(undefined);
+      setIsTyping(false);
     } catch (error) {
       console.error("Error sending message:", error);
     }
@@ -76,6 +88,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
       // Send message to chat first
       await onSendMessage(feedback);
       setInputValue("");
+      setIsTyping(false);
       
       // Then regenerate campaign section
       await onRegenerateCampaign(feedback, targetSection);
@@ -100,6 +113,23 @@ const ChatInput: React.FC<ChatInputProps> = ({
     inputRef.current?.focus();
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newValue = e.target.value;
+    setInputValue(newValue);
+    setIsTyping(newValue.length > 0);
+  };
+
+  const handlePromptClick = (prompt: string) => {
+    // Extract the suggestion part after "Try asking for" or similar phrases
+    const suggestionMatch = prompt.match(/(?:try asking for|ask for|request)(.*?)(?:!|$)/i);
+    const suggestion = suggestionMatch ? suggestionMatch[1].trim() : prompt;
+    
+    // Set a simplified version of the prompt as input
+    setInputValue(`Can you ${suggestion.toLowerCase()}?`);
+    setIsTyping(true);
+    inputRef.current?.focus();
+  };
+
   return (
     <div className="space-y-2">
       {targetSection && (
@@ -118,19 +148,32 @@ const ChatInput: React.FC<ChatInputProps> = ({
       )}
       
       <div className="flex gap-2">
-        <Textarea
-          ref={inputRef}
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={targetSection 
-            ? `Provide feedback for the ${refinementSections.find(s => s.id === targetSection)?.label}...` 
-            : "Ask a question or provide feedback..."
-          }
-          disabled={isLoading || isRegenerating}
-          className="flex-1 min-h-[60px] max-h-32 resize-none"
-          rows={3}
-        />
+        <div className="relative flex-1">
+          <Textarea
+            ref={inputRef}
+            value={inputValue}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            placeholder={targetSection 
+              ? `Provide feedback for the ${refinementSections.find(s => s.id === targetSection)?.label}...` 
+              : "Ask a question or provide feedback..."
+            }
+            disabled={isLoading || isRegenerating}
+            className="flex-1 min-h-[60px] max-h-32 resize-none"
+            rows={3}
+          />
+          
+          {/* Prompt Carousel - positioned absolutely within the textarea */}
+          <div className="absolute inset-0 flex items-center px-3 pointer-events-none">
+            <div className="pointer-events-auto">
+              <PromptCarousel 
+                prompts={promptSuggestions}
+                isTyping={isTyping || isLoading || isRegenerating}
+                onPromptClick={handlePromptClick}
+              />
+            </div>
+          </div>
+        </div>
         
         {showRegenerateButton && onRegenerateCampaign && (
           <Popover>
