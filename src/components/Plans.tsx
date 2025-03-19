@@ -65,8 +65,20 @@ const Plans = () => {
           </div>
         </TransitionElement>
         
-        {/* Pricing cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        {/* Pricing cards with Coming Soon overlay */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto relative">
+          {/* Coming Soon Overlay */}
+          <div className="absolute inset-0 backdrop-blur-sm bg-white/30 dark:bg-gray-900/30 z-10 flex flex-col items-center justify-center rounded-xl">
+            <TransitionElement animation="fade" delay={500}>
+              <div className="bg-primary/90 dark:bg-primary/80 text-primary-foreground px-8 py-4 rounded-xl shadow-lg">
+                <h3 className="text-2xl font-semibold mb-2">Coming Soon</h3>
+                <p className="text-primary-foreground/90">
+                  Subscription plans will be available shortly
+                </p>
+              </div>
+            </TransitionElement>
+          </div>
+          
           {/* Starter Plan */}
           <TransitionElement animation="slide-up" delay={200}>
             <div className="bg-white/80 dark:bg-gray-800/40 backdrop-blur-xl p-8 rounded-xl border border-border dark:border-gray-700 hover:border-primary/30 dark:hover:border-primary/30 transition-all h-full shadow-subtle flex flex-col">
