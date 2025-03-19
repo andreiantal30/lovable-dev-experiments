@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Send, Wand2, RefreshCw } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
@@ -32,7 +32,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
 }) => {
   const [inputValue, setInputValue] = useState("");
   const [targetSection, setTargetSection] = useState<string | undefined>(undefined);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Focus input when component mounts
   useEffect(() => {
@@ -41,8 +41,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
     }
   }, [isLoading]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (inputValue.trim() === "" || isLoading || isRegenerating) return;
 
     try {
@@ -52,6 +52,17 @@ const ChatInput: React.FC<ChatInputProps> = ({
     } catch (error) {
       console.error("Error sending message:", error);
     }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Check for Enter without Shift or Cmd/Ctrl to send message
+    if (e.key === 'Enter' && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
+      e.preventDefault(); // Prevent default to avoid newline
+      handleSubmit();
+    }
+    
+    // Allow Shift+Enter or Cmd/Ctrl+Enter for newline
+    // This is the default behavior, so we don't need to do anything special
   };
 
   const handleRegenerateCampaign = async () => {
@@ -95,16 +106,18 @@ const ChatInput: React.FC<ChatInputProps> = ({
       )}
       
       <div className="flex gap-2">
-        <Input
+        <Textarea
           ref={inputRef}
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder={targetSection 
             ? `Provide feedback for the ${refinementSections.find(s => s.id === targetSection)?.label}...` 
             : "Ask a question or provide feedback..."
           }
           disabled={isLoading || isRegenerating}
-          className="flex-1"
+          className="flex-1 min-h-[60px] max-h-32 resize-none"
+          rows={3}
         />
         
         {showRegenerateButton && onRegenerateCampaign && (
@@ -166,7 +179,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
         </Button>
         
         <Button 
-          onClick={handleSubmit} 
+          onClick={() => handleSubmit()} 
           type="submit" 
           size="icon" 
           disabled={isLoading || isRegenerating || !inputValue.trim()}
