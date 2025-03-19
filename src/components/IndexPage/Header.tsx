@@ -30,12 +30,6 @@ const Header = ({ apiKey, onChangeApiKey }: HeaderProps) => {
         </p>
       </TransitionElement>
 
-      <TransitionElement animation="slide-down" delay={250}>
-        <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto mt-2">
-          Unlock creative strategies, fresh angles, and cutting-edge executions drawn from global campaigns that have made a lasting impact.
-        </p>
-      </TransitionElement>
-
       {apiKey && (
         <TransitionElement animation="slide-down" delay={300}>
           <div className="mt-2 flex justify-center">

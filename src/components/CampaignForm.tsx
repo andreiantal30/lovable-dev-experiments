@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import InputField from "@/components/InputField";
@@ -74,7 +73,6 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
   const addTagItem = (key: 'targetAudience' | 'objectives' | 'emotionalAppeal', value: string) => {
     if (!value.trim()) return;
     
-    // Don't add duplicates
     if (formData[key].includes(value.trim())) return;
     
     setFormData(prev => ({
@@ -82,12 +80,10 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
       [key]: [...prev[key], value.trim()]
     }));
     
-    // Clear input field
     if (key === 'targetAudience') setAudienceInput('');
     else if (key === 'objectives') setObjectiveInput('');
     else if (key === 'emotionalAppeal') setEmotionalAppealInput('');
     
-    // Clear any errors
     if (errors[key]) {
       setErrors(prev => ({ ...prev, [key]: undefined }));
     }
@@ -103,7 +99,6 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate form
     const newErrors: typeof errors = {};
     
     if (!formData.brand.trim()) {
@@ -147,9 +142,12 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
         onSubmit={handleFormSubmit} 
         className="bg-white/50 dark:bg-gray-800/40 backdrop-blur-lg border border-border dark:border-gray-700/50 rounded-2xl shadow-subtle p-6 md:p-8"
       >
-        <h2 className="text-2xl md:text-3xl font-medium text-center mb-8 text-foreground">
+        <h2 className="text-2xl md:text-3xl font-medium text-center mb-2 text-foreground">
           Create Your Campaign
         </h2>
+        <p className="text-sm text-muted-foreground text-center max-w-2xl mx-auto mb-8">
+          Unlock creative strategies, fresh angles, and cutting-edge executions drawn from global campaigns that have made a lasting impact.
+        </p>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-6">
