@@ -126,15 +126,15 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
     <TransitionElement animation="slide-up" className="w-full max-w-4xl mx-auto">
       <form 
         onSubmit={handleFormSubmit} 
-        className="bg-white/50 dark:bg-gray-800/40 backdrop-blur-lg border border-border dark:border-gray-700/50 rounded-2xl shadow-subtle p-6 md:p-8"
+        className="bg-white/50 dark:bg-gray-800/40 backdrop-blur-lg border border-border dark:border-gray-700/50 rounded-2xl shadow-subtle p-8 md:p-10"
       >
         <FormHeader 
           title="Create Your Campaign"
           subtitle="Unlock creative strategies, fresh angles, and cutting-edge executions drawn from global campaigns that have made a lasting impact."
         />
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-4">
+          <div className="space-y-8">
             <TransitionElement delay={100}>
               <InputField
                 label="Brand Name"
@@ -175,7 +175,7 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
             />
           </div>
           
-          <div className="space-y-6">
+          <div className="space-y-8">
             <FormSection
               title="Campaign Objectives"
               required

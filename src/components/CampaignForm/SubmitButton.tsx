@@ -13,7 +13,7 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({
   delay = 600
 }) => {
   return (
-    <div className="mt-8 flex justify-center">
+    <div className="mt-12 flex justify-center">
       <TransitionElement delay={delay} animation="slide-up">
         <Button 
           type="submit" 

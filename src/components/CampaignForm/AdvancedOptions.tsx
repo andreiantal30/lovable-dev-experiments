@@ -19,7 +19,7 @@ const AdvancedOptions: React.FC<AdvancedOptionsProps> = ({
   onChange
 }) => {
   return (
-    <div className="mt-6">
+    <div className="mt-10">
       <Button
         type="button"
         variant="ghost"
@@ -39,7 +39,7 @@ const AdvancedOptions: React.FC<AdvancedOptionsProps> = ({
       </Button>
       
       {showAdvanced && (
-        <TransitionElement animation="slide-down" className="mt-4">
+        <TransitionElement animation="slide-down" className="mt-6">
           <InputField
             label="Additional Constraints or Requirements"
             id="additionalConstraints"
