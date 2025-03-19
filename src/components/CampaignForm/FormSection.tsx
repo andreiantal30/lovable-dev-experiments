@@ -35,7 +35,7 @@ const FormSection: React.FC<FormSectionProps> = ({
 }) => {
   return (
     <TransitionElement delay={delay}>
-      <div className="space-y-2">
+      <div className="space-y-3">
         <label className="text-sm font-medium flex items-center justify-between text-foreground dark:text-white/90">
           <span className="flex items-center">
             {title}
@@ -61,11 +61,11 @@ const FormSection: React.FC<FormSectionProps> = ({
           </Button>
         </label>
         
-        <div className="flex flex-wrap gap-2 mb-3 min-h-8">
+        <div className="flex flex-wrap gap-2 mb-4 min-h-10 p-1">
           {selectedItems.map((item, index) => (
             <span
               key={index}
-              className="px-2 py-1 bg-primary/15 text-primary dark:bg-primary/30 dark:text-white flex items-center gap-1 rounded-md text-sm border border-primary/20 dark:border-primary/40 shadow-sm"
+              className="px-3 py-1.5 bg-primary/15 text-primary dark:bg-primary/30 dark:text-white flex items-center gap-2 rounded-md text-sm border border-primary/20 dark:border-primary/40 shadow-sm"
             >
               {item}
               <button
@@ -89,10 +89,10 @@ const FormSection: React.FC<FormSectionProps> = ({
         />
         
         {error && (
-          <p className="text-xs text-destructive dark:text-red-400 mt-1">{error}</p>
+          <p className="text-xs text-destructive dark:text-red-400 mt-2">{error}</p>
         )}
         {selectedItems.length === 0 && !error && (
-          <p className="text-xs text-muted-foreground dark:text-white/60 mt-1">
+          <p className="text-xs text-muted-foreground dark:text-white/60 mt-2">
             At least one {keyName === 'emotionalAppeal' ? 'emotional appeal' : keyName === 'objectives' ? 'objective' : 'target audience'} is required
           </p>
         )}

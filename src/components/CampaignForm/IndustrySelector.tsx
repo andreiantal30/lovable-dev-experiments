@@ -19,7 +19,7 @@ const IndustrySelector: React.FC<IndustrySelectorProps> = ({
 }) => {
   return (
     <TransitionElement delay={delay}>
-      <div className="space-y-2">
+      <div className="space-y-3">
         <label htmlFor="industry" className="text-sm font-medium text-foreground dark:text-white/90 flex items-center">
           Industry
           <span className="ml-2 text-xs font-medium px-2 py-0.5 bg-primary/10 text-primary dark:bg-primary/30 dark:text-primary-foreground rounded-full">
@@ -32,7 +32,7 @@ const IndustrySelector: React.FC<IndustrySelectorProps> = ({
           value={value}
           onChange={onChange}
           className={cn(
-            "w-full h-10 px-3 bg-white/80 dark:bg-gray-800/60 border rounded-md appearance-none transition-all duration-200",
+            "w-full h-12 px-4 bg-white/80 dark:bg-gray-800/60 border rounded-md appearance-none transition-all duration-200",
             "hover:bg-white dark:hover:bg-gray-800/80 focus:bg-white dark:focus:bg-gray-800/80 focus:ring-2 focus:ring-primary/20 focus:border-primary/50",
             "text-foreground dark:text-white",
             error
@@ -48,7 +48,7 @@ const IndustrySelector: React.FC<IndustrySelectorProps> = ({
           ))}
         </select>
         {error && (
-          <p className="text-xs text-destructive dark:text-red-400 mt-1">{error}</p>
+          <p className="text-xs text-destructive dark:text-red-400 mt-2">{error}</p>
         )}
       </div>
     </TransitionElement>

@@ -9,10 +9,10 @@ interface FormHeaderProps {
 const FormHeader: React.FC<FormHeaderProps> = ({ title, subtitle }) => {
   return (
     <>
-      <h2 className="text-2xl md:text-3xl font-medium text-center mb-4 text-foreground">
+      <h2 className="text-2xl md:text-3xl font-medium text-center mb-6 text-foreground">
         {title}
       </h2>
-      <p className="text-sm text-muted-foreground text-center max-w-2xl mx-auto mb-10">
+      <p className="text-sm text-muted-foreground text-center max-w-2xl mx-auto mb-16">
         {subtitle}
       </p>
     </>

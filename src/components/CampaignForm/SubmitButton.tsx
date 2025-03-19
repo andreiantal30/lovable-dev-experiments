@@ -13,12 +13,12 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({
   delay = 600
 }) => {
   return (
-    <div className="mt-12 flex justify-center">
+    <div className="mt-20 flex justify-center">
       <TransitionElement delay={delay} animation="slide-up">
         <Button 
           type="submit" 
           disabled={isGenerating}
-          className="w-full md:w-auto px-8 py-6 h-auto text-lg font-medium rounded-xl shadow-subtle hover:shadow-md transition-all duration-300 bg-primary text-primary-foreground"
+          className="w-full md:w-auto px-12 py-6 h-auto text-lg font-medium rounded-xl shadow-subtle hover:shadow-md transition-all duration-300 bg-primary text-primary-foreground"
         >
           {isGenerating ? "Generating Campaign..." : "Generate Campaign Idea"}
         </Button>
