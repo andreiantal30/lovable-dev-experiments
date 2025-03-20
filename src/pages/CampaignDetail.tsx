@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Star, Calendar, Trash2, Clipboard, Home, Plus } from 'lucide-react';
@@ -26,7 +25,8 @@ import {
   removeSavedCampaign,
   toggleFavoriteStatus
 } from '@/lib/campaignStorage';
-import EnhancedCampaignResult, { CampaignFeedback } from '@/components/EnhancedCampaignResult';
+import EnhancedCampaignResult from '@/components/EnhancedCampaignResult';
+import { CampaignFeedback } from '@/components/CampaignResult';
 import { CampaignSidebarProvider } from '@/components/CampaignSidebarProvider';
 import CampaignSidebar from '@/components/CampaignSidebar';
 import { SidebarInset } from '@/components/ui/sidebar';
