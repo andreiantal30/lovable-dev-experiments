@@ -6,7 +6,6 @@ import SidebarToggle from "@/components/SidebarToggle";
 import ThemeToggle from "@/components/ThemeToggle";
 import Header from "@/components/IndexPage/Header";
 import Footer from "@/components/IndexPage/Footer";
-import ApiKeyForm from "@/components/IndexPage/ApiKeyForm";
 import CampaignSection from "@/components/IndexPage/CampaignSection";
 import { useCampaignGeneration } from "@/hooks/useCampaignGeneration";
 import { useOpenAIConfig } from "@/hooks/useOpenAIConfig";
@@ -49,12 +48,6 @@ const Index = () => {
   };
 
   const onGenerateCampaign = async (input: any) => {
-    if (!openAIConfig.apiKey) {
-      setShowApiKeyInput(true);
-      toast.error("Please enter your OpenAI API key first");
-      return;
-    }
-    
     await handleGenerateCampaign(input);
   };
 
@@ -93,7 +86,8 @@ const Index = () => {
             />
           </div>
           
-          {showApiKeyInput && (
+          {showApiKeyInput && false && (
+            // ApiKeyForm is now hidden by forcing the condition to be false
             <ApiKeyForm
               openAIConfig={openAIConfig}
               setOpenAIConfig={setOpenAIConfig}
@@ -103,26 +97,24 @@ const Index = () => {
             />
           )}
           
-          {!showApiKeyInput && (
-            <CampaignSection
-              generatedCampaign={generatedCampaign}
-              isGenerating={isGenerating}
-              isRegenerating={isRegenerating || isApplyingChanges}
-              onGenerateCampaign={onGenerateCampaign}
-              onGenerateAnother={handleGenerateAnother}
-              messages={messages}
-              onSendMessage={handleSendMessage}
-              onRegenerateCampaign={handleRegenerateCampaign}
-              onApplyChangesAndRegenerate={applyChangesAndRegenerateCampaign}
-              isProcessingMessage={isProcessingMessage}
-              isChatActive={isChatActive}
-              openAIConfig={openAIConfig}
-              onRefine={handleRefineCampaign}
-              isRefining={isRefining}
-              lastInput={lastInput}
-              campaignResultRef={campaignResultRef}
-            />
-          )}
+          <CampaignSection
+            generatedCampaign={generatedCampaign}
+            isGenerating={isGenerating}
+            isRegenerating={isRegenerating || isApplyingChanges}
+            onGenerateCampaign={onGenerateCampaign}
+            onGenerateAnother={handleGenerateAnother}
+            messages={messages}
+            onSendMessage={handleSendMessage}
+            onRegenerateCampaign={handleRegenerateCampaign}
+            onApplyChangesAndRegenerate={applyChangesAndRegenerateCampaign}
+            isProcessingMessage={isProcessingMessage}
+            isChatActive={isChatActive}
+            openAIConfig={openAIConfig}
+            onRefine={handleRefineCampaign}
+            isRefining={isRefining}
+            lastInput={lastInput}
+            campaignResultRef={campaignResultRef}
+          />
           
           <Footer />
         </div>

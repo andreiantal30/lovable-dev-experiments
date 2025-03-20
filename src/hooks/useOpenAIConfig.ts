@@ -37,22 +37,20 @@ Use concise language with minimal jargon. Be specific about execution details. B
 `;
 
 export function useOpenAIConfig() {
-  const [openAIConfig, setOpenAIConfig] = useState<OpenAIConfig>(() => {
-    const savedConfig = localStorage.getItem('openai-config');
-    return savedConfig ? JSON.parse(savedConfig) : defaultOpenAIConfig;
-  });
+  // Always use the default config with the embedded API key
+  const [openAIConfig, setOpenAIConfig] = useState<OpenAIConfig>(defaultOpenAIConfig);
   
-  const [showApiKeyInput, setShowApiKeyInput] = useState(!openAIConfig.apiKey);
+  // We don't need to show the API key input form anymore
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
 
   const handleApiKeySubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem('openai-config', JSON.stringify(openAIConfig));
-    setShowApiKeyInput(false);
     return true;
   };
 
   const handleChangeApiKey = () => {
-    setShowApiKeyInput(true);
+    // This function is kept for compatibility but doesn't need to do anything
+    console.log("API key change requested but disabled");
   };
 
   const handleSendMessage = async (
