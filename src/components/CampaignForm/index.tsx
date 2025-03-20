@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { CampaignInput } from "@/lib/generateCampaign";
 import TransitionElement from "@/components/TransitionElement";
@@ -52,11 +51,10 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
     }
   };
 
-  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name as keyof typeof errors]) {
-      setErrors((prev) => ({ ...prev, [name]: undefined }));
+  const handleIndustryChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, industry: value }));
+    if (errors.industry) {
+      setErrors((prev) => ({ ...prev, industry: undefined }));
     }
   };
 
@@ -161,8 +159,9 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
             
             <IndustrySelector
               value={formData.industry}
-              onChange={handleSelectChange}
+              onChange={handleIndustryChange}
               error={errors.industry}
+              delay={200}
             />
             
             <StyleSelection

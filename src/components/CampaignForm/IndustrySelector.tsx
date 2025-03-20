@@ -1,12 +1,18 @@
 
 import React from "react";
-import { cn } from "@/lib/utils";
 import TransitionElement from "@/components/TransitionElement";
 import { industries } from "@/lib/campaignData";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface IndustrySelectorProps {
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  onChange: (value: string) => void;
   error?: string;
   delay?: number;
 }
@@ -17,6 +23,10 @@ const IndustrySelector: React.FC<IndustrySelectorProps> = ({
   error,
   delay = 0
 }) => {
+  const handleValueChange = (newValue: string) => {
+    onChange(newValue);
+  };
+
   return (
     <TransitionElement delay={delay}>
       <div className="space-y-3">
@@ -26,27 +36,23 @@ const IndustrySelector: React.FC<IndustrySelectorProps> = ({
             Required
           </span>
         </label>
-        <select
-          id="industry"
-          name="industry"
-          value={value}
-          onChange={onChange}
-          className={cn(
-            "w-full h-12 px-4 bg-white/80 dark:bg-gray-800/60 border rounded-md appearance-none transition-all duration-200",
-            "hover:bg-white dark:hover:bg-gray-800/80 focus:bg-white dark:focus:bg-gray-800/80 focus:ring-2 focus:ring-primary/20 focus:border-primary/50",
-            "text-foreground dark:text-white",
-            error
-              ? "border-destructive/50 focus:ring-destructive/20"
-              : "border-input dark:border-gray-700"
-          )}
-        >
-          <option value="">Select Industry</option>
-          {industries.map((industry) => (
-            <option key={industry} value={industry}>
-              {industry}
-            </option>
-          ))}
-        </select>
+        
+        <Select value={value} onValueChange={handleValueChange}>
+          <SelectTrigger 
+            id="industry"
+            className="w-full h-12 bg-white/80 dark:bg-gray-800/60 hover:bg-white dark:hover:bg-gray-800/80"
+          >
+            <SelectValue placeholder="Select Industry" />
+          </SelectTrigger>
+          <SelectContent className="bg-white dark:bg-gray-800 border-input dark:border-gray-700">
+            {industries.map((industry) => (
+              <SelectItem key={industry} value={industry}>
+                {industry}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        
         {error && (
           <p className="text-xs text-destructive dark:text-red-400 mt-2">{error}</p>
         )}
