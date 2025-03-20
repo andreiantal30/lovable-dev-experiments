@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { CampaignInput, GeneratedCampaign } from "@/lib/generateCampaign";
@@ -98,7 +97,7 @@ export function useCampaignRegeneration(
         id: uuidv4(),
         role: "system",
         content: systemMessage,
-        timestamp: new Date(),
+        timestamp: Date.now(),
       };
       
       setMessages(prev => [...prev, regeneratingMessage]);
@@ -179,8 +178,6 @@ export function useCampaignRegeneration(
           `
         };
         
-        // This would call the generateCampaign function which will be imported by the main hook
-        // that uses this hook
         throw new Error("Full campaign regeneration should be handled by the parent hook");
       }
       
@@ -190,7 +187,7 @@ export function useCampaignRegeneration(
         content: targetSection
           ? `I've updated the ${getSectionDisplayName(targetSection)} based on your feedback. Is there anything else you'd like to refine?`
           : `I've regenerated the campaign based on your feedback. The new campaign is called "${updatedCampaign.campaignName}" with the key message: "${updatedCampaign.keyMessage}". Is there anything else you'd like to refine?`,
-        timestamp: new Date(),
+        timestamp: Date.now(),
       };
       
       setMessages(prev => [...prev.filter(msg => msg.id !== regeneratingMessage.id), confirmationMessage]);

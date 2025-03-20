@@ -37,7 +37,7 @@ export function useOpenAIConfig() {
       id: uuidv4(),
       role: "user",
       content,
-      timestamp: new Date(),
+      timestamp: Date.now(),
     };
     
     setMessages(prev => [...prev, userMessage]);
@@ -108,7 +108,7 @@ export function useOpenAIConfig() {
         id: uuidv4(),
         role: "assistant",
         content: aiResponse,
-        timestamp: new Date(),
+        timestamp: Date.now(),
       };
       
       setMessages(prev => [...prev, assistantMessage]);

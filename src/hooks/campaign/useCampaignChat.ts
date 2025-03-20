@@ -15,13 +15,13 @@ export function useCampaignChat() {
         id: uuidv4(),
         role: "system",
         content: `I've created a campaign for ${input.brand} in the ${input.industry} industry. You can ask me questions about it or request refinements.`,
-        timestamp: new Date(),
+        timestamp: Date.now(),
       },
       {
         id: uuidv4(),
         role: "assistant",
         content: `I've generated a creative campaign called "${campaign.campaignName}" for ${input.brand}. The key message is: "${campaign.keyMessage}". What aspects would you like to refine or discuss further?`,
-        timestamp: new Date(),
+        timestamp: Date.now(),
       }
     ];
     

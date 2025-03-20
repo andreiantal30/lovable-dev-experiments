@@ -7,10 +7,10 @@ import { Message } from "../ChatWindow";
 
 interface ChatMessageProps {
   message: Message;
-  index: number;
+  index?: number;
 }
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ message, index }) => {
+const ChatMessage: React.FC<ChatMessageProps> = ({ message, index = 0 }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopyMessage = (content: string) => {
@@ -25,6 +25,9 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, index }) => {
     // In a future enhancement, we could convert markdown to HTML
     return content;
   };
+
+  // Convert timestamp to Date if it's a number
+  const messageDate = new Date(message.timestamp);
 
   return (
     <TransitionElement 
@@ -72,7 +75,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, index }) => {
             {formatMessageContent(message.content)}
           </p>
           <div className="mt-1 text-xs opacity-70">
-            {message.timestamp.toLocaleTimeString([], { 
+            {messageDate.toLocaleTimeString([], { 
               hour: '2-digit', 
               minute: '2-digit' 
             })}
