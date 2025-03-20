@@ -9,6 +9,7 @@ import Footer from "@/components/IndexPage/Footer";
 import CampaignSection from "@/components/IndexPage/CampaignSection";
 import { useCampaignGeneration } from "@/hooks/useCampaignGeneration";
 import { useOpenAIConfig } from "@/hooks/useOpenAIConfig";
+import ApiKeyForm from "@/components/IndexPage/ApiKeyForm";
 
 const Index = () => {
   const {
