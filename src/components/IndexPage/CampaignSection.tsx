@@ -1,7 +1,7 @@
 
 import React, { useEffect } from "react";
 import CampaignForm from "@/components/CampaignForm";
-import EnhancedCampaignResult from "@/components/EnhancedCampaignResult";
+import CampaignResult, { CampaignFeedback } from "@/components/CampaignResult";
 import ChatWindow, { Message } from "@/components/ChatWindow";
 import { CampaignInput, GeneratedCampaign } from "@/lib/generateCampaign";
 import TransitionElement from "@/components/TransitionElement";
@@ -10,7 +10,6 @@ import HowItWorks from "@/components/HowItWorks";
 import Plans from "@/components/Plans";
 import { Link } from "react-router-dom";
 import { ChevronDown, Library } from "lucide-react";
-import { CampaignFeedback } from "@/components/CampaignResult";
 
 interface CampaignSectionProps {
   generatedCampaign: GeneratedCampaign | null;
@@ -115,15 +114,14 @@ const CampaignSection = ({
         </div>
       ) : (
         <div className="space-y-12" ref={campaignResultRef} id="generated-campaign">
-          <EnhancedCampaignResult 
-            campaign={generatedCampaign} 
-            onGenerateAnother={onGenerateAnother}
-            showFeedbackForm={!isChatActive}
-            onRefine={onRefine}
-            brandName={lastInput?.brand}
-            industryName={lastInput?.industry}
-            isLoading={isRefining || isRegenerating}
-          />
+          <div className={isRefining || isRegenerating ? "opacity-50 pointer-events-none" : ""}>
+            <CampaignResult 
+              campaign={generatedCampaign} 
+              onGenerateAnother={onGenerateAnother}
+              showFeedbackForm={!isChatActive}
+              onRefine={onRefine}
+            />
+          </div>
           
           {/* Scroll down arrow */}
           <div 

@@ -1,424 +1,331 @@
 
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { GeneratedCampaign } from "@/lib/generateCampaign";
-import TransitionElement from "./TransitionElement";
-import { Campaign } from "@/lib/campaignData";
-import { Check, Copy, MessageSquare, RefreshCw, Star, ThumbsDown, ThumbsUp } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
-import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
-import { Card, CardContent } from "./ui/card";
-
-export interface CampaignResultProps {
-  campaign: GeneratedCampaign;
-  onGenerateAnother: () => void;
-  showFeedbackForm?: boolean;
-  onRefine?: (feedback: CampaignFeedback) => Promise<void>;
-}
+import React, { useState } from 'react';
+import { Button } from './ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { ArrowUpRight, RefreshCw, Sparkles } from 'lucide-react';
+import { GeneratedCampaign } from '@/lib/generateCampaign';
+import FeedbackSystem from './FeedbackSystem';
 
 export interface CampaignFeedback {
-  campaignId: string;
   overallRating: number;
+  comments: string;
   elementRatings: {
-    campaignName: number;
+    campaignName: number; // 1 for positive, 0 for neutral, -1 for negative
     keyMessage: number;
     creativeStrategy: number;
     executionPlan: number;
   };
-  comments: string;
 }
 
-const CampaignResult: React.FC<CampaignResultProps> = ({ 
+interface CampaignResultProps {
+  campaign: GeneratedCampaign;
+  onGenerateAnother?: () => void;
+  showFeedbackForm?: boolean;
+  onRefine?: (feedback: CampaignFeedback) => Promise<void>;
+}
+
+const CampaignResult = ({ 
   campaign, 
   onGenerateAnother, 
-  showFeedbackForm = true,
+  showFeedbackForm = false, 
   onRefine 
-}) => {
-  const [copied, setCopied] = useState(false);
-  const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const [overallRating, setOverallRating] = useState(0);
-  const [elementRatings, setElementRatings] = useState({
+}: CampaignResultProps) => {
+  const [activeTab, setActiveTab] = useState("campaign");
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  
+  const [elementRatings, setElementRatings] = useState<CampaignFeedback["elementRatings"]>({
     campaignName: 0,
     keyMessage: 0,
     creativeStrategy: 0,
     executionPlan: 0,
   });
-  const [comments, setComments] = useState("");
-  const [submittingFeedback, setSubmittingFeedback] = useState(false);
-  const [refinementRequested, setRefinementRequested] = useState(false);
-
-  const handleCopy = () => {
-    const campaignText = `
-Campaign Name: ${campaign.campaignName}
-
-Key Message: ${campaign.keyMessage}
-
-Creative Strategy:
-${campaign.creativeStrategy.map(strategy => `- ${strategy}`).join('\n')}
-
-Execution Plan:
-${campaign.executionPlan.map(plan => `- ${plan}`).join('\n')}
-
-Expected Outcomes:
-${campaign.expectedOutcomes.map(outcome => `- ${outcome}`).join('\n')}
-    `;
-    
-    navigator.clipboard.writeText(campaignText);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleElementRating = (element: keyof typeof elementRatings, rating: number) => {
+  
+  const handleElementRating = (element: keyof CampaignFeedback["elementRatings"], value: number) => {
     setElementRatings(prev => ({
       ...prev,
-      [element]: rating
+      [element]: value
     }));
   };
-
-  const handleSubmitFeedback = async () => {
-    if (!onRefine) {
-      toast.error("Refinement functionality is not available");
-      return;
-    }
-
-    setSubmittingFeedback(true);
+  
+  const handleSubmitFeedback = async (rating: number, comments: string) => {
+    if (!onRefine) return;
+    
+    setIsSubmittingFeedback(true);
+    
+    const feedback: CampaignFeedback = {
+      overallRating: rating,
+      comments,
+      elementRatings
+    };
     
     try {
-      const feedback: CampaignFeedback = {
-        campaignId: campaign.campaignName, // Using campaign name as an ID for now
-        overallRating,
-        elementRatings,
-        comments
-      };
-      
       await onRefine(feedback);
-      toast.success("Thanks for your feedback! We're refining your campaign.");
-      setRefinementRequested(true);
+      setFeedbackSubmitted(true);
     } catch (error) {
-      toast.error("Failed to submit feedback. Please try again.");
-      console.error("Feedback submission error:", error);
+      console.error("Error submitting feedback:", error);
     } finally {
-      setSubmittingFeedback(false);
+      setIsSubmittingFeedback(false);
     }
   };
-
+  
   return (
-    <TransitionElement animation="fade" className="w-full max-w-5xl mx-auto">
-      <div className="bg-white/30 backdrop-blur-xl border border-white/20 dark:bg-gray-900/40 dark:border-gray-800/50 rounded-xl shadow-subtle overflow-hidden">
-        {/* Header section */}
-        <div className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 backdrop-blur-md border-b border-white/10 dark:border-gray-800/50 p-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl md:text-3xl font-medium text-gray-800 dark:text-white tracking-tight">Generated Campaign</h2>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-1 text-sm bg-white/20 dark:bg-gray-800/20 border-gray-200/50 dark:border-gray-700/50 hover:bg-white/40 dark:hover:bg-gray-800/40"
-                onClick={handleCopy}
-              >
-                {copied ? <Check size={16} /> : <Copy size={16} />}
-                {copied ? "Copied" : "Copy"}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-1 text-sm bg-white/20 dark:bg-gray-800/20 border-gray-200/50 dark:border-gray-700/50 hover:bg-white/40 dark:hover:bg-gray-800/40"
-                onClick={onGenerateAnother}
-              >
-                <RefreshCw size={16} />
-                Regenerate
-              </Button>
-            </div>
-          </div>
-        </div>
-        
-        <div className="p-6 md:p-8">
-          {showFeedbackForm && !feedbackOpen && !refinementRequested && (
-            <div className="mb-6">
-              <Button 
-                variant="secondary" 
-                className="w-full flex items-center justify-center gap-2 bg-primary/10 text-primary hover:bg-primary/20 border-none"
-                onClick={() => setFeedbackOpen(true)}
-              >
-                <MessageSquare size={16} />
-                Rate & Refine This Campaign
-              </Button>
-            </div>
-          )}
-
-          {showFeedbackForm && feedbackOpen && !refinementRequested && (
-            <TransitionElement animation="fade" className="mb-8">
-              <div className="bg-primary/5 backdrop-blur-sm rounded-xl p-6 mb-6 border border-primary/10">
-                <h3 className="text-lg font-medium mb-4">Rate This Campaign</h3>
-                
-                <div className="space-y-4">
-                  <div>
-                    <div className="text-sm font-medium mb-2">Overall Rating</div>
-                    <StarRating value={overallRating} onChange={setOverallRating} />
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <div className="text-sm font-medium mb-2">Campaign Name</div>
-                      <ThumbRating 
-                        value={elementRatings.campaignName} 
-                        onChange={(v) => handleElementRating('campaignName', v)} 
-                      />
-                    </div>
-                    
-                    <div>
-                      <div className="text-sm font-medium mb-2">Key Message</div>
-                      <ThumbRating 
-                        value={elementRatings.keyMessage} 
-                        onChange={(v) => handleElementRating('keyMessage', v)} 
-                      />
-                    </div>
-                    
-                    <div>
-                      <div className="text-sm font-medium mb-2">Creative Strategy</div>
-                      <ThumbRating 
-                        value={elementRatings.creativeStrategy} 
-                        onChange={(v) => handleElementRating('creativeStrategy', v)} 
-                      />
-                    </div>
-                    
-                    <div>
-                      <div className="text-sm font-medium mb-2">Execution Plan</div>
-                      <ThumbRating 
-                        value={elementRatings.executionPlan} 
-                        onChange={(v) => handleElementRating('executionPlan', v)} 
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div className="text-sm font-medium mb-2">Comments or Refinement Suggestions</div>
-                    <textarea
-                      className="w-full rounded-md border border-input bg-white/90 dark:bg-gray-800/60 p-3 text-sm"
-                      rows={3}
-                      placeholder="What would you like to improve or change?"
-                      value={comments}
-                      onChange={(e) => setComments(e.target.value)}
-                    />
-                  </div>
-                  
-                  <div className="flex gap-2 justify-end">
-                    <Button variant="outline" size="sm" onClick={() => setFeedbackOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      onClick={handleSubmitFeedback}
-                      disabled={submittingFeedback || overallRating === 0}
-                    >
-                      {submittingFeedback ? "Submitting..." : "Submit & Refine"}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </TransitionElement>
-          )}
-
-          {refinementRequested && (
-            <TransitionElement animation="fade" className="mb-6">
-              <Alert>
-                <AlertTitle>Refining your campaign</AlertTitle>
-                <AlertDescription>
-                  We're analyzing your feedback to improve the campaign. A refined version will be available soon.
-                </AlertDescription>
-              </Alert>
-            </TransitionElement>
-          )}
-          
-          <div className="space-y-10">
-            {/* Campaign Name */}
-            <TransitionElement delay={100} animation="slide-up">
-              <div className="border-b border-gray-100 dark:border-gray-800/50 pb-6">
-                <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Campaign Name</h3>
-                <div className="text-4xl md:text-5xl font-medium bg-gradient-to-r from-primary to-blue-500 dark:from-primary dark:to-blue-400 bg-clip-text text-transparent">
-                  {campaign.campaignName}
-                </div>
-              </div>
-            </TransitionElement>
+    <div className="space-y-6 mb-8">
+      <Card className="overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 border-b">
+          <CardTitle className="text-2xl md:text-3xl">{campaign.campaignName}</CardTitle>
+          <CardDescription className="text-lg md:text-xl font-medium text-foreground/90">
+            {campaign.keyMessage}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-6">
+          <Tabs defaultValue="campaign" value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-6">
+              <TabsTrigger value="campaign">Campaign</TabsTrigger>
+              <TabsTrigger value="strategy">Strategy</TabsTrigger>
+              <TabsTrigger value="execution">Execution</TabsTrigger>
+              <TabsTrigger value="outcomes">Outcomes</TabsTrigger>
+            </TabsList>
             
-            {/* Key Message */}
-            <TransitionElement delay={200} animation="slide-up">
-              <div className="border-b border-gray-100 dark:border-gray-800/50 pb-6">
-                <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Key Message</h3>
-                <div className="text-xl md:text-2xl italic text-gray-700 dark:text-gray-200 leading-relaxed">{campaign.keyMessage}</div>
-              </div>
-            </TransitionElement>
-            
-            {/* Main content grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-              {/* Creative Strategy */}
-              <TransitionElement delay={300} animation="slide-up">
-                <div>
-                  <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Creative Strategy</h3>
-                  <ul className="space-y-4">
-                    {campaign.creativeStrategy.map((strategy, index) => (
-                      <li key={index} className="flex items-start gap-3 group">
-                        <span className="bg-primary/10 text-primary rounded-full p-1.5 mt-0.5 group-hover:bg-primary/20 transition-colors">
-                          <Check size={14} />
-                        </span>
-                        <span className="text-gray-700 dark:text-gray-200">{strategy}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </TransitionElement>
-              
-              {/* Execution Plan */}
-              <TransitionElement delay={400} animation="slide-up">
-                <div>
-                  <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Execution Plan</h3>
-                  <ul className="space-y-4">
-                    {campaign.executionPlan.map((plan, index) => (
-                      <li key={index} className="flex items-start gap-3 group">
-                        <span className="bg-primary/10 text-primary rounded-full p-1.5 mt-0.5 group-hover:bg-primary/20 transition-colors">
-                          <Check size={14} />
-                        </span>
-                        <span className="text-gray-700 dark:text-gray-200">{plan}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </TransitionElement>
-            </div>
-            
-            {/* Expected Outcomes */}
-            <TransitionElement delay={500} animation="slide-up">
+            <TabsContent value="campaign" className="space-y-6">
               <div>
-                <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Expected Outcomes</h3>
-                <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/40 dark:to-gray-900/40 rounded-xl p-5 border border-gray-100 dark:border-gray-800/50">
-                  <ul className="space-y-4">
-                    {campaign.expectedOutcomes.map((outcome, index) => (
-                      <li key={index} className="flex items-start gap-3 group">
-                        <span className="bg-primary/10 text-primary rounded-full p-1.5 mt-0.5 group-hover:bg-primary/20 transition-colors">
-                          <Check size={14} />
-                        </span>
-                        <span className="text-gray-700 dark:text-gray-200">{outcome}</span>
-                      </li>
-                    ))}
+                <h3 className="font-medium text-lg mb-2 flex items-center justify-between">
+                  Campaign Name
+                  {showFeedbackForm && !feedbackSubmitted && (
+                    <div className="flex gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleElementRating("campaignName", -1)}
+                        className={elementRatings.campaignName === -1 ? "bg-red-100 dark:bg-red-900/20" : ""}
+                      >
+                        <ThumbsDown className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleElementRating("campaignName", 1)}
+                        className={elementRatings.campaignName === 1 ? "bg-green-100 dark:bg-green-900/20" : ""}
+                      >
+                        <ThumbsUp className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </h3>
+                <p>{campaign.campaignName}</p>
+              </div>
+              
+              <div>
+                <h3 className="font-medium text-lg mb-2 flex items-center justify-between">
+                  Key Message
+                  {showFeedbackForm && !feedbackSubmitted && (
+                    <div className="flex gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleElementRating("keyMessage", -1)}
+                        className={elementRatings.keyMessage === -1 ? "bg-red-100 dark:bg-red-900/20" : ""}
+                      >
+                        <ThumbsDown className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleElementRating("keyMessage", 1)}
+                        className={elementRatings.keyMessage === 1 ? "bg-green-100 dark:bg-green-900/20" : ""}
+                      >
+                        <ThumbsUp className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </h3>
+                <p>{campaign.keyMessage}</p>
+              </div>
+              
+              <div>
+                <h3 className="font-medium text-lg mb-2">Viral Element</h3>
+                <p>{campaign.viralElement || campaign.viralHook || "Not specified"}</p>
+              </div>
+              
+              <div>
+                <h3 className="font-medium text-lg mb-2">Call to Action</h3>
+                <p>{campaign.callToAction || campaign.consumerInteraction || "Not specified"}</p>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="strategy" className="space-y-6">
+              <div>
+                <h3 className="font-medium text-lg mb-2 flex items-center justify-between">
+                  Creative Strategy
+                  {showFeedbackForm && !feedbackSubmitted && (
+                    <div className="flex gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleElementRating("creativeStrategy", -1)}
+                        className={elementRatings.creativeStrategy === -1 ? "bg-red-100 dark:bg-red-900/20" : ""}
+                      >
+                        <ThumbsDown className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleElementRating("creativeStrategy", 1)}
+                        className={elementRatings.creativeStrategy === 1 ? "bg-green-100 dark:bg-green-900/20" : ""}
+                      >
+                        <ThumbsUp className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </h3>
+                <ul className="list-disc list-inside space-y-2">
+                  {Array.isArray(campaign.creativeStrategy) ? 
+                    campaign.creativeStrategy.map((strategy, index) => (
+                      <li key={index}>{strategy}</li>
+                    )) : 
+                    <li>{campaign.creativeStrategy}</li>
+                  }
+                </ul>
+              </div>
+              
+              {campaign.emotionalAppeal && (
+                <div>
+                  <h3 className="font-medium text-lg mb-2">Emotional Appeal</h3>
+                  <ul className="list-disc list-inside space-y-2">
+                    {Array.isArray(campaign.emotionalAppeal) ? 
+                      campaign.emotionalAppeal.map((appeal, index) => (
+                        <li key={index}>{appeal}</li>
+                      )) : 
+                      <li>{campaign.emotionalAppeal}</li>
+                    }
                   </ul>
                 </div>
-              </div>
-            </TransitionElement>
-            
-            {/* Inspiration */}
-            <TransitionElement delay={600} animation="slide-up">
-              <div className="pt-4">
-                <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
-                  Inspired by These Award-Winning Campaigns
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {campaign.referenceCampaigns.map((ref, index) => (
-                    <InspirationCard key={index} campaign={ref} index={index} />
+              )}
+              
+              <div>
+                <h3 className="font-medium text-lg mb-2">Reference Campaigns</h3>
+                <ul className="list-disc list-inside space-y-2">
+                  {campaign.referenceCampaigns.map((refCampaign, index) => (
+                    <li key={index}>
+                      <a 
+                        href="#" 
+                        className="text-blue-600 dark:text-blue-400 hover:underline flex items-center"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setActiveTab("inspiration");
+                        }}
+                      >
+                        {refCampaign.name} by {refCampaign.brand}
+                        <ArrowUpRight className="h-3 w-3 ml-1" />
+                      </a>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </div>
-            </TransitionElement>
-          </div>
-        </div>
-      </div>
-    </TransitionElement>
-  );
-};
-
-const StarRating: React.FC<{ value: number; onChange: (value: number) => void }> = ({ value, onChange }) => {
-  return (
-    <div className="flex gap-1">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <button
-          key={star}
-          type="button"
-          onClick={() => onChange(star)}
-          className={`p-1 rounded-full hover:bg-primary/10 transition-colors ${
-            star <= value ? "text-primary" : "text-muted-foreground/40"
-          }`}
-        >
-          <Star size={20} fill={star <= value ? "currentColor" : "none"} />
-        </button>
-      ))}
-    </div>
-  );
-};
-
-const ThumbRating: React.FC<{ value: number; onChange: (value: number) => void }> = ({ value, onChange }) => {
-  return (
-    <div className="flex gap-2">
-      <button
-        type="button"
-        onClick={() => onChange(value === -1 ? 0 : -1)}
-        className={`p-1.5 rounded-full hover:bg-destructive/10 transition-colors ${
-          value === -1 ? "bg-destructive/20 text-destructive" : "text-muted-foreground"
-        }`}
-      >
-        <ThumbsDown size={18} />
-      </button>
-      
-      <button
-        type="button"
-        onClick={() => onChange(value === 1 ? 0 : 1)}
-        className={`p-1.5 rounded-full hover:bg-primary/10 transition-colors ${
-          value === 1 ? "bg-primary/20 text-primary" : "text-muted-foreground"
-        }`}
-      >
-        <ThumbsUp size={18} />
-      </button>
-    </div>
-  );
-};
-
-interface InspirationCardProps {
-  campaign: Campaign;
-  index: number;
-}
-
-const InspirationCard: React.FC<InspirationCardProps> = ({ campaign, index }) => {
-  return (
-    <TransitionElement 
-      delay={700 + index * 100} 
-      animation="slide-up"
-      className="h-full"
-    >
-      <Card className="h-full bg-white/50 dark:bg-gray-800/30 backdrop-blur-sm border border-gray-100 dark:border-gray-800/50 transition-all duration-300 hover:shadow-md hover:bg-white/70 dark:hover:bg-gray-800/40">
-        <CardContent className="p-4">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="text-xs font-medium px-2 py-0.5 bg-primary/10 text-primary rounded-full">
-                {campaign.year}
-              </div>
-              <div className="text-xs text-muted-foreground">{campaign.industry}</div>
-            </div>
+            </TabsContent>
             
-            <h4 className="font-medium text-lg">{campaign.name}</h4>
-            <div className="text-sm text-muted-foreground">by {campaign.brand}</div>
-            
-            <div>
-              <div className="text-xs font-medium text-muted-foreground mb-1">Key Message:</div>
-              <div className="text-sm italic">"{campaign.keyMessage}"</div>
-            </div>
-            
-            <div className="flex flex-wrap gap-1 pt-1">
-              {campaign.emotionalAppeal.slice(0, 3).map((emotion, i) => (
-                <span
-                  key={i}
-                  className={cn(
-                    "text-xs px-2 py-0.5 rounded-full",
-                    i === 0 ? "bg-primary/10 text-primary" : "bg-secondary text-secondary-foreground"
+            <TabsContent value="execution" className="space-y-6">
+              <div>
+                <h3 className="font-medium text-lg mb-2 flex items-center justify-between">
+                  Execution Plan
+                  {showFeedbackForm && !feedbackSubmitted && (
+                    <div className="flex gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleElementRating("executionPlan", -1)}
+                        className={elementRatings.executionPlan === -1 ? "bg-red-100 dark:bg-red-900/20" : ""}
+                      >
+                        <ThumbsDown className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleElementRating("executionPlan", 1)}
+                        className={elementRatings.executionPlan === 1 ? "bg-green-100 dark:bg-green-900/20" : ""}
+                      >
+                        <ThumbsUp className="h-4 w-4" />
+                      </Button>
+                    </div>
                   )}
-                >
-                  {emotion}
-                </span>
-              ))}
-            </div>
-          </div>
+                </h3>
+                <ol className="list-decimal list-inside space-y-2">
+                  {Array.isArray(campaign.executionPlan) ? 
+                    campaign.executionPlan.map((execution, index) => (
+                      <li key={index} className="pl-1">
+                        <span className="ml-1">{execution}</span>
+                      </li>
+                    )) : 
+                    <li>{campaign.executionPlan}</li>
+                  }
+                </ol>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="outcomes" className="space-y-6">
+              <div>
+                <h3 className="font-medium text-lg mb-2">Expected Outcomes</h3>
+                <ol className="list-decimal list-inside space-y-2">
+                  {Array.isArray(campaign.expectedOutcomes) ? 
+                    campaign.expectedOutcomes.map((outcome, index) => (
+                      <li key={index} className="pl-1">
+                        <span className="ml-1">{outcome}</span>
+                      </li>
+                    )) : 
+                    <li>{campaign.expectedOutcomes}</li>
+                  }
+                </ol>
+              </div>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
-    </TransitionElement>
+      
+      {showFeedbackForm && !feedbackSubmitted && onRefine && (
+        <div className="mt-6">
+          <FeedbackSystem 
+            onSubmitFeedback={handleSubmitFeedback}
+            isSubmitting={isSubmittingFeedback}
+          />
+        </div>
+      )}
+      
+      {feedbackSubmitted && (
+        <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+          <p className="flex items-center text-green-700 dark:text-green-400 font-medium">
+            <Sparkles className="h-5 w-5 mr-2" />
+            Thanks for your feedback! Your refined campaign is being generated.
+          </p>
+        </div>
+      )}
+      
+      {onGenerateAnother && (
+        <div className="flex justify-center mt-8">
+          <Button onClick={onGenerateAnother} variant="outline" className="mr-4">
+            Generate Another Campaign
+          </Button>
+          
+          {onRefine && !feedbackSubmitted && (
+            <Button onClick={() => {
+              const defaultFeedback: CampaignFeedback = {
+                overallRating: 4,
+                comments: "Please refine this campaign",
+                elementRatings
+              };
+              onRefine(defaultFeedback);
+              setFeedbackSubmitted(true);
+              setIsSubmittingFeedback(true);
+            }}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refine This Campaign
+            </Button>
+          )}
+        </div>
+      )}
+    </div>
   );
 };
 
+export { type CampaignFeedback };
 export default CampaignResult;
