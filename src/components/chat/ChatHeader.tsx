@@ -1,24 +1,31 @@
 
 import React from "react";
-import { MessageSquare } from "lucide-react";
 import { OpenAIConfig } from "@/lib/openai";
+import { MessageSquare } from "lucide-react";
 
 interface ChatHeaderProps {
   openAIConfig: OpenAIConfig;
+  children?: React.ReactNode;
 }
 
-const ChatHeader: React.FC<ChatHeaderProps> = ({ openAIConfig }) => {
+const ChatHeader: React.FC<ChatHeaderProps> = ({ openAIConfig, children }) => {
   return (
-    <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+    <div className="border-b p-3 flex items-center justify-between bg-muted/30">
       <div className="flex items-center gap-2">
-        <div className="bg-primary/10 text-primary p-1.5 rounded-full">
-          <MessageSquare size={18} />
+        <div className="bg-primary/10 p-1.5 rounded-md">
+          <MessageSquare className="h-5 w-5 text-primary" />
         </div>
-        <h3 className="font-medium">Campaign Assistant</h3>
+        <div>
+          <h3 className="text-sm font-medium">Campaign Assistant</h3>
+          <p className="text-xs text-muted-foreground">Using {openAIConfig.model}</p>
+        </div>
       </div>
-      <div className="text-xs text-muted-foreground">
-        Model: {openAIConfig.model}
-      </div>
+      
+      {children && (
+        <div>
+          {children}
+        </div>
+      )}
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { OpenAIConfig, defaultOpenAIConfig, generateWithOpenAI } from "@/lib/openai";
 import { Message } from "@/components/ChatWindow";
 import { v4 as uuidv4 } from "uuid";
+import { useChatMemory } from './useChatMemory';
 
 // Custom writing style instructions for the AI
 const customWritingStyle = `
@@ -42,6 +43,14 @@ export function useOpenAIConfig() {
   
   // We don't need to show the API key input form anymore
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  
+  // Use our chat memory hook
+  const { 
+    chatMemory, 
+    addInteraction, 
+    updatePreferences,
+    trackLikedCampaign 
+  } = useChatMemory();
 
   const handleApiKeySubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +60,37 @@ export function useOpenAIConfig() {
   const handleChangeApiKey = () => {
     // This function is kept for compatibility but doesn't need to do anything
     console.log("API key change requested but disabled");
+  };
+
+  // Function to construct a dynamic system prompt that evolves based on user preferences
+  const constructDynamicSystemPrompt = (basePrompt: string) => {
+    const { userPreferences } = chatMemory;
+    
+    let dynamicPrompt = basePrompt;
+    
+    // Add personalization based on user preferences
+    if (userPreferences.preferredTone) {
+      dynamicPrompt += `\n\nThe user seems to prefer a ${userPreferences.preferredTone} tone, so adjust your responses accordingly.`;
+    }
+    
+    if (userPreferences.lastLikedCampaignType) {
+      dynamicPrompt += `\n\nThe user previously showed interest in ${userPreferences.lastLikedCampaignType} approaches. Consider incorporating elements of this in your suggestions when appropriate.`;
+    }
+    
+    if (userPreferences.dislikedApproaches && userPreferences.dislikedApproaches.length > 0) {
+      dynamicPrompt += `\n\nThe user has shown less interest in these approaches: ${userPreferences.dislikedApproaches.join(', ')}. Try to avoid these unless specifically requested.`;
+    }
+    
+    // Add recent conversation context if available
+    const recentMessages = chatMemory.pastInteractions.slice(-3); // Last 3 interactions
+    if (recentMessages.length > 0) {
+      dynamicPrompt += `\n\nRecent conversation context:\n`;
+      recentMessages.forEach(msg => {
+        dynamicPrompt += `${msg.role.toUpperCase()}: ${msg.content}\n`;
+      });
+    }
+    
+    return dynamicPrompt;
   };
 
   const handleSendMessage = async (
@@ -70,16 +110,43 @@ export function useOpenAIConfig() {
       timestamp: Date.now(),
     };
     
+    // Add to chat memory
+    addInteraction(userMessage);
+    
     setMessages(prev => [...prev, userMessage]);
     setIsProcessingMessage(true);
     
     try {
+      // Analyze user message for preferences
+      const lowerContent = content.toLowerCase();
+      
+      // Simple preference detection (this could be much more sophisticated)
+      if (lowerContent.includes('like') || lowerContent.includes('prefer') || lowerContent.includes('good')) {
+        // Detect tone preferences
+        if (lowerContent.includes('bold') || lowerContent.includes('direct')) {
+          updatePreferences({ preferredTone: 'bold and direct' });
+        } else if (lowerContent.includes('friendly') || lowerContent.includes('casual')) {
+          updatePreferences({ preferredTone: 'friendly and casual' });
+        } else if (lowerContent.includes('professional') || lowerContent.includes('formal')) {
+          updatePreferences({ preferredTone: 'professional and formal' });
+        }
+        
+        // Detect campaign format preferences
+        if (lowerContent.includes('social') || lowerContent.includes('digital')) {
+          trackLikedCampaign('social media and digital');
+        } else if (lowerContent.includes('stunt') || lowerContent.includes('guerrilla')) {
+          trackLikedCampaign('stunts and guerrilla marketing');
+        } else if (lowerContent.includes('video') || lowerContent.includes('film')) {
+          trackLikedCampaign('video and film content');
+        }
+      }
+      
       let context = '';
       if (generatedCampaign && lastInput) {
         context = `
         You are an advanced marketing strategist and creative consultant. Your role is to refine, adapt, and enhance the generated campaign based on user feedback.
 
-        ${customWritingStyle}
+        ${constructDynamicSystemPrompt(customWritingStyle)}
 
         The user has just received an AI-generated campaign. Your goal is to gather their thoughts, clarify their needs, and offer smart, strategic improvements.
 
@@ -95,6 +162,16 @@ export function useOpenAIConfig() {
         Emotional Appeal: ${Array.isArray(lastInput.emotionalAppeal) ? lastInput.emotionalAppeal.join(', ') : lastInput.emotionalAppeal}
         ${lastInput.campaignStyle ? `Campaign Style: ${lastInput.campaignStyle}` : ''}
         ${lastInput.additionalConstraints ? `Additional Notes: ${lastInput.additionalConstraints}` : ''}
+
+        --- CONVERSATION HISTORY ---
+        ${chatMemory.pastInteractions.slice(-5).map(msg => 
+          `${msg.role.toUpperCase()}: ${msg.content}`
+        ).join('\n\n')}
+        
+        --- USER PREFERENCES ---
+        ${chatMemory.userPreferences.preferredTone ? `Preferred Tone: ${chatMemory.userPreferences.preferredTone}` : ''}
+        ${chatMemory.userPreferences.lastLikedCampaignType ? `Last Liked Campaign Type: ${chatMemory.userPreferences.lastLikedCampaignType}` : ''}
+        ${chatMemory.userPreferences.dislikedApproaches?.length ? `Approaches to Avoid: ${chatMemory.userPreferences.dislikedApproaches.join(', ')}` : ''}
 
         --- HOW TO RESPOND ---
         1. **Start by understanding the user's reaction.** Ask targeted questions to get clear feedback.
@@ -125,9 +202,11 @@ export function useOpenAIConfig() {
            - Example:
              - "I've enhanced the campaign by adding a surprise reveal moment to build FOMO. Here's the improved version: [Updated campaign details]"
 
-        5. **Encourage final refinements.**
-           - Always end with: "Does this capture what you were looking for? Let me know if you'd like more iterations!"
-        
+        5. **Personalize your response based on user history.**
+           - If they've previously liked bold approaches, emphasize the boldness of your suggestions.
+           - If they've shown interest in social media, highlight social elements.
+           - Reference their past feedback where relevant: "Since you mentioned liking the storytelling approach last time..."
+
         User's Question or Feedback: ${content}
         
         Respond as a helpful creative campaign assistant. Provide specific ideas for improvement if requested. Be thorough in your response.
@@ -142,6 +221,9 @@ export function useOpenAIConfig() {
         content: aiResponse,
         timestamp: Date.now(),
       };
+      
+      // Add assistant response to memory
+      addInteraction(assistantMessage);
       
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
@@ -158,6 +240,7 @@ export function useOpenAIConfig() {
     setShowApiKeyInput,
     handleApiKeySubmit,
     handleChangeApiKey,
-    handleSendMessage
+    handleSendMessage,
+    chatMemory
   };
 }

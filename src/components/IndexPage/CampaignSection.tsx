@@ -28,6 +28,10 @@ interface CampaignSectionProps {
   isRefining: boolean;
   lastInput: CampaignInput | null;
   campaignResultRef: React.RefObject<HTMLDivElement>;
+  chatMemory?: {
+    pastInteractions: Message[];
+    userPreferences: Record<string, any>;
+  };
 }
 
 const CampaignSection = ({
@@ -46,7 +50,8 @@ const CampaignSection = ({
   onRefine,
   isRefining,
   lastInput,
-  campaignResultRef
+  campaignResultRef,
+  chatMemory
 }: CampaignSectionProps) => {
   const scrollArrowRef = React.useRef<HTMLDivElement>(null);
   const mainScrollArrowRef = React.useRef<HTMLDivElement>(null);
@@ -143,6 +148,7 @@ const CampaignSection = ({
                 isLoading={isProcessingMessage}
                 openAIConfig={openAIConfig}
                 persona={lastInput?.persona}
+                chatMemory={chatMemory}
               />
             </TransitionElement>
           )}

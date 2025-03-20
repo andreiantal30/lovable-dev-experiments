@@ -19,7 +19,8 @@ const Index = () => {
     setShowApiKeyInput,
     handleApiKeySubmit,
     handleChangeApiKey,
-    handleSendMessage: processMessage
+    handleSendMessage: processMessage,
+    chatMemory
   } = useOpenAIConfig();
 
   const {
@@ -115,6 +116,7 @@ const Index = () => {
             isRefining={isRefining}
             lastInput={lastInput}
             campaignResultRef={campaignResultRef}
+            chatMemory={chatMemory}
           />
           
           <Footer />
