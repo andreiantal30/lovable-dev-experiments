@@ -4,6 +4,20 @@ import { OpenAIConfig, defaultOpenAIConfig, generateWithOpenAI } from "@/lib/ope
 import { Message } from "@/components/ChatWindow";
 import { v4 as uuidv4 } from "uuid";
 
+// Custom writing style instructions for the AI
+const customWritingStyle = `
+As a creative strategist, tailor your thinking and writing with these instructions:
+- Use concise language with minimal jargon
+- Focus on practical, actionable ideas over theoretical concepts 
+- Prioritize bold, unexpected creative approaches
+- Provide rationale for suggestions, not just the ideas themselves
+- When discussing improvements, be specific about execution details
+- Balance creativity with business practicality
+- Emphasize how campaigns can generate word-of-mouth and virality
+- Write in a confident, authoritative tone with occasional humor
+- Use analogies and examples from other industries when relevant
+`;
+
 export function useOpenAIConfig() {
   const [openAIConfig, setOpenAIConfig] = useState<OpenAIConfig>(() => {
     const savedConfig = localStorage.getItem('openai-config');
@@ -48,6 +62,8 @@ export function useOpenAIConfig() {
       if (generatedCampaign && lastInput) {
         context = `
         You are an advanced marketing strategist and creative consultant. Your role is to refine, adapt, and enhance the generated campaign based on user feedback.
+
+        ${customWritingStyle}
 
         The user has just received an AI-generated campaign. Your goal is to gather their thoughts, clarify their needs, and offer smart, strategic improvements.
 

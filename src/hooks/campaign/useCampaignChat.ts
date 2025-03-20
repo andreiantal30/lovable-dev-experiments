@@ -4,6 +4,20 @@ import { v4 as uuidv4 } from "uuid";
 import { CampaignInput, GeneratedCampaign } from "@/lib/generateCampaign";
 import { Message } from "@/components/ChatWindow";
 
+// Customization options for the AI's writing style
+const customWritingStyle = `
+As a creative strategist, tailor your thinking and writing with these instructions:
+- Use concise language with minimal jargon
+- Focus on practical, actionable ideas over theoretical concepts 
+- Prioritize bold, unexpected creative approaches
+- Provide rationale for suggestions, not just the ideas themselves
+- When discussing improvements, be specific about execution details
+- Balance creativity with business practicality
+- Emphasize how campaigns can generate word-of-mouth and virality
+- Write in a confident, authoritative tone with occasional humor
+- Use analogies and examples from other industries when relevant
+`;
+
 export function useCampaignChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isChatActive, setIsChatActive] = useState(false);
@@ -14,7 +28,9 @@ export function useCampaignChat() {
       {
         id: uuidv4(),
         role: "system",
-        content: `I've created a campaign for ${input.brand} in the ${input.industry} industry. You can ask me questions about it or request refinements.`,
+        content: `I've created a campaign for ${input.brand} in the ${input.industry} industry. You can ask me questions about it or request refinements.
+
+${customWritingStyle}`,
         timestamp: Date.now(),
       },
       {
