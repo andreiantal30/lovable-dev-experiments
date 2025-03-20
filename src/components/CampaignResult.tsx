@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { ArrowUpRight, RefreshCw, Sparkles } from 'lucide-react';
+import { ArrowUpRight, RefreshCw, Sparkles, ThumbsDown as ThumbsDownIcon, ThumbsUp as ThumbsUpIcon } from 'lucide-react';
 import { GeneratedCampaign } from '@/lib/generateCampaign';
 import FeedbackSystem from './FeedbackSystem';
 
@@ -18,14 +18,14 @@ export interface CampaignFeedback {
   };
 }
 
-interface CampaignResultProps {
+export interface CampaignResultProps {
   campaign: GeneratedCampaign;
   onGenerateAnother?: () => void;
   showFeedbackForm?: boolean;
   onRefine?: (feedback: CampaignFeedback) => Promise<void>;
 }
 
-const CampaignResult = ({ 
+const CampaignResult: React.FC<CampaignResultProps> = ({ 
   campaign, 
   onGenerateAnother, 
   showFeedbackForm = false, 
@@ -100,7 +100,7 @@ const CampaignResult = ({
                         onClick={() => handleElementRating("campaignName", -1)}
                         className={elementRatings.campaignName === -1 ? "bg-red-100 dark:bg-red-900/20" : ""}
                       >
-                        <ThumbsDown className="h-4 w-4" />
+                        <ThumbsDownIcon className="h-4 w-4" />
                       </Button>
                       <Button 
                         variant="ghost" 
@@ -108,7 +108,7 @@ const CampaignResult = ({
                         onClick={() => handleElementRating("campaignName", 1)}
                         className={elementRatings.campaignName === 1 ? "bg-green-100 dark:bg-green-900/20" : ""}
                       >
-                        <ThumbsUp className="h-4 w-4" />
+                        <ThumbsUpIcon className="h-4 w-4" />
                       </Button>
                     </div>
                   )}
@@ -127,7 +127,7 @@ const CampaignResult = ({
                         onClick={() => handleElementRating("keyMessage", -1)}
                         className={elementRatings.keyMessage === -1 ? "bg-red-100 dark:bg-red-900/20" : ""}
                       >
-                        <ThumbsDown className="h-4 w-4" />
+                        <ThumbsDownIcon className="h-4 w-4" />
                       </Button>
                       <Button 
                         variant="ghost" 
@@ -135,7 +135,7 @@ const CampaignResult = ({
                         onClick={() => handleElementRating("keyMessage", 1)}
                         className={elementRatings.keyMessage === 1 ? "bg-green-100 dark:bg-green-900/20" : ""}
                       >
-                        <ThumbsUp className="h-4 w-4" />
+                        <ThumbsUpIcon className="h-4 w-4" />
                       </Button>
                     </div>
                   )}
@@ -166,7 +166,7 @@ const CampaignResult = ({
                         onClick={() => handleElementRating("creativeStrategy", -1)}
                         className={elementRatings.creativeStrategy === -1 ? "bg-red-100 dark:bg-red-900/20" : ""}
                       >
-                        <ThumbsDown className="h-4 w-4" />
+                        <ThumbsDownIcon className="h-4 w-4" />
                       </Button>
                       <Button 
                         variant="ghost" 
@@ -174,7 +174,7 @@ const CampaignResult = ({
                         onClick={() => handleElementRating("creativeStrategy", 1)}
                         className={elementRatings.creativeStrategy === 1 ? "bg-green-100 dark:bg-green-900/20" : ""}
                       >
-                        <ThumbsUp className="h-4 w-4" />
+                        <ThumbsUpIcon className="h-4 w-4" />
                       </Button>
                     </div>
                   )}
@@ -237,7 +237,7 @@ const CampaignResult = ({
                         onClick={() => handleElementRating("executionPlan", -1)}
                         className={elementRatings.executionPlan === -1 ? "bg-red-100 dark:bg-red-900/20" : ""}
                       >
-                        <ThumbsDown className="h-4 w-4" />
+                        <ThumbsDownIcon className="h-4 w-4" />
                       </Button>
                       <Button 
                         variant="ghost" 
@@ -245,7 +245,7 @@ const CampaignResult = ({
                         onClick={() => handleElementRating("executionPlan", 1)}
                         className={elementRatings.executionPlan === 1 ? "bg-green-100 dark:bg-green-900/20" : ""}
                       >
-                        <ThumbsUp className="h-4 w-4" />
+                        <ThumbsUpIcon className="h-4 w-4" />
                       </Button>
                     </div>
                   )}
@@ -327,5 +327,4 @@ const CampaignResult = ({
   );
 };
 
-export { type CampaignFeedback };
 export default CampaignResult;

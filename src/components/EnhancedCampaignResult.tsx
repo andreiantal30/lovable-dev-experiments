@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import CampaignResult, { CampaignResultProps, CampaignFeedback } from '@/components/CampaignResult';
+import CampaignResult, { CampaignFeedback, CampaignResultProps } from '@/components/CampaignResult';
 import StorytellingNarrative from './StorytellingNarrative';
 import { GeneratedCampaign } from '@/lib/generateCampaign';
 import { Button } from './ui/button';
@@ -141,5 +141,4 @@ const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({
   );
 };
 
-export { type CampaignFeedback };
 export default EnhancedCampaignResult;
