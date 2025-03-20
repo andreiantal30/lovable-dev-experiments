@@ -11,6 +11,8 @@ import SubmitButton from "./SubmitButton";
 import TagManager from "./TagManager";
 import BrandInput from "./BrandInput";
 import StyleSelection from "./StyleSelection";
+import PersonaSelector from "./PersonaSelector";
+import { PersonaType } from "@/types/persona";
 
 interface CampaignFormProps {
   onSubmit: (input: CampaignInput) => void;
@@ -26,7 +28,8 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
     objectives: [],
     emotionalAppeal: [],
     additionalConstraints: "",
-    campaignStyle: undefined
+    campaignStyle: undefined,
+    persona: undefined
   });
 
   const [errors, setErrors] = useState<{
@@ -122,6 +125,13 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
       campaignStyle: style
     }));
   };
+  
+  const handlePersonaChange = (personaId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      persona: personaId as PersonaType
+    }));
+  };
 
   return (
     <TransitionElement animation="slide-up" className="w-full max-w-4xl mx-auto">
@@ -134,7 +144,14 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
           subtitle="Unlock creative strategies, fresh angles, and cutting-edge executions drawn from global campaigns that have made a lasting impact."
         />
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 mt-8">
+        <div className="mt-8 mb-10">
+          <PersonaSelector 
+            selectedPersona={formData.persona} 
+            onChange={handlePersonaChange} 
+          />
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
           <div className="space-y-12">
             <BrandInput
               value={formData.brand}

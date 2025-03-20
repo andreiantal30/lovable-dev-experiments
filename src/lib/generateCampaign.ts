@@ -4,6 +4,7 @@ import { getCampaigns } from './campaignStorage';
 import { generateStorytellingNarrative, StorytellingOutput } from './storytellingGenerator';
 import { findSimilarCampaignsWithEmbeddings } from './embeddingsUtil';
 import { toast } from "sonner";
+import { PersonaType } from '@/types/persona';
 
 export interface CampaignInput {
   brand: string;
@@ -38,6 +39,7 @@ export interface CampaignInput {
     | "loyalty-community"
     | "stunt"
     | "UGC";
+  persona?: PersonaType;
 }
 
 export interface GeneratedCampaign {
@@ -382,7 +384,65 @@ Viral Element: ${campaign.viralElement || 'N/A'}
     campaignStyleDescription = styleDescriptions[input.campaignStyle];
   }
 
+  let personaInstructions = '';
+  if (input.persona) {
+    switch (input.persona) {
+      case 'bold-risk-taker':
+        personaInstructions = `
+### Strategist Persona: Bold Risk-Taker
+As a Bold Risk-Taker, create a campaign that:
+- Challenges conventions and pushes boundaries
+- Contains unexpected elements that surprise the audience
+- Uses provocative messaging that starts conversations
+- Takes creative risks that other brands wouldn't attempt
+- Focuses on standing out rather than fitting in`;
+        break;
+      case 'safe-brand-builder':
+        personaInstructions = `
+### Strategist Persona: Safe Brand Builder
+As a Safe Brand Builder, create a campaign that:
+- Prioritizes brand consistency and reputation
+- Uses proven strategies with reliable outcomes
+- Maintains brand integrity while still being creative
+- Focuses on long-term brand equity over short-term attention
+- Creates a sense of trust and reliability`;
+        break;
+      case 'viral-trend-expert':
+        personaInstructions = `
+### Strategist Persona: Viral Trend Expert
+As a Viral Trend Expert, create a campaign that:
+- Leverages current cultural trends and conversations
+- Incorporates highly shareable elements and challenges
+- Is optimized for specific platform mechanics and algorithms
+- Contains clear viral triggers that encourage spreading
+- Feels timely and connected to the current moment`;
+        break;
+      case 'storytelling-artist':
+        personaInstructions = `
+### Strategist Persona: Storytelling Artist
+As a Storytelling Artist, create a campaign that:
+- Centers around a compelling narrative arc
+- Develops relatable characters or situations
+- Creates emotional resonance and connection
+- Takes audiences on a meaningful journey
+- Values authenticity and human connection`;
+        break;
+      case 'data-driven-strategist':
+        personaInstructions = `
+### Strategist Persona: Data-Driven Strategist
+As a Data-Driven Strategist, create a campaign that:
+- Is precisely targeted to specific audience segments
+- Incorporates clear performance metrics and benchmarks
+- Includes elements that can be A/B tested and optimized
+- Focuses on conversion paths and customer journey
+- Balances creativity with measurable outcomes`;
+        break;
+    }
+  }
+
   return `### Generate a groundbreaking marketing campaign with the following key elements:
+
+${personaInstructions}
 
 #### **Brand & Strategic Positioning**
 - **Brand Name:** ${input.brand}

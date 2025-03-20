@@ -144,6 +144,7 @@ const CampaignSection = ({
                 onApplyChangesAndRegenerate={onApplyChangesAndRegenerate}
                 isLoading={isProcessingMessage}
                 openAIConfig={openAIConfig}
+                persona={lastInput?.persona}
               />
             </TransitionElement>
           )}

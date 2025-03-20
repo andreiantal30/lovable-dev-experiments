@@ -1,17 +1,20 @@
 
-import React, { useState, useRef, useEffect } from "react";
-import { toast } from "sonner";
+import { useEffect, useRef } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import ChatInput from "@/components/chat/ChatInput";
+import { Card } from "@/components/ui/card";
 import { OpenAIConfig } from "@/lib/openai";
-import ChatHeader from "./chat/ChatHeader";
-import ChatMessage from "./chat/ChatMessage";
-import ChatLoadingIndicator from "./chat/ChatLoadingIndicator";
-import ChatInput from "./chat/ChatInput";
+import ChatHeader from "@/components/chat/ChatHeader";
+import ChatMessage from "@/components/chat/ChatMessage";
+import ChatLoadingIndicator from "@/components/chat/ChatLoadingIndicator";
+import { cn } from "@/lib/utils";
+import { PersonaType } from "@/types/persona";
 
 export interface Message {
-  id: string;
-  role: "user" | "assistant" | "system";
+  role: 'system' | 'user' | 'assistant';
   content: string;
-  timestamp: Date;
+  id: string;
+  timestamp: number;
 }
 
 interface ChatWindowProps {
@@ -21,117 +24,57 @@ interface ChatWindowProps {
   onApplyChangesAndRegenerate?: () => Promise<boolean>;
   isLoading: boolean;
   openAIConfig: OpenAIConfig;
+  className?: string;
+  persona?: PersonaType;
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({
+const ChatWindow = ({
   messages,
   onSendMessage,
   onRegenerateCampaign,
   onApplyChangesAndRegenerate,
   isLoading,
   openAIConfig,
-}) => {
+  className,
+  persona
+}: ChatWindowProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [isRegenerating, setIsRegenerating] = useState(false);
-  const [showRegenerateButton, setShowRegenerateButton] = useState(false);
-  const [inputValue, setInputValue] = useState("");
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll to the bottom of the chat when new messages arrive
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  // Check if input contains keywords that suggest campaign regeneration
-  useEffect(() => {
-    const regenerationKeywords = [
-      'regenerate', 'recreate', 'remake', 'new campaign', 'change campaign',
-      'different campaign', 'redo campaign', 'rework', 'revise campaign',
-      'create new', 'start over', 'instead', 'prefer', 'rather have',
-      'update', 'modify', 'adjust', 'improve', 'enhance', 'refine'
-    ];
-    
-    const shouldShowButton = regenerationKeywords.some(keyword => 
-      inputValue.toLowerCase().includes(keyword)
-    );
-    
-    setShowRegenerateButton(shouldShowButton && !!onRegenerateCampaign);
-  }, [inputValue, onRegenerateCampaign]);
-
-  const handleSendMessage = async (message: string) => {
-    try {
-      await onSendMessage(message);
-      setInputValue("");
-    } catch (error) {
-      toast.error("Failed to send message");
-      console.error("Error sending message:", error);
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  };
-
-  const handleRegenerateCampaign = async (feedback: string, targetSection?: string) => {
-    if (!onRegenerateCampaign) return false;
-    
-    setIsRegenerating(true);
-    try {
-      const result = await onRegenerateCampaign(feedback, targetSection);
-      return result;
-    } catch (error) {
-      toast.error("Failed to regenerate campaign");
-      console.error("Error regenerating campaign:", error);
-      return false;
-    } finally {
-      setIsRegenerating(false);
-    }
-  };
-
-  const handleApplyChangesAndRegenerate = async () => {
-    if (!onApplyChangesAndRegenerate) return false;
-    
-    setIsRegenerating(true);
-    try {
-      const result = await onApplyChangesAndRegenerate();
-      return result;
-    } catch (error) {
-      toast.error("Failed to apply changes and regenerate campaign");
-      console.error("Error applying changes and regenerating campaign:", error);
-      return false;
-    } finally {
-      setIsRegenerating(false);
-    }
-  };
+  }, [messages, isLoading]);
 
   return (
-    <div className="flex flex-col h-[500px] md:h-[600px] bg-white/50 dark:bg-gray-800/30 backdrop-blur-lg border border-border rounded-xl shadow-subtle overflow-hidden">
-      {/* Chat header */}
+    <Card className={cn("overflow-hidden border shadow-md p-0", className)}>
       <ChatHeader openAIConfig={openAIConfig} />
-
-      {/* Messages container */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
-        {messages.map((message, index) => (
-          <ChatMessage 
-            key={message.id} 
-            message={message} 
-            index={index} 
-          />
+      
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-card">
+        {messages.filter(msg => msg.role !== 'system').map((message) => (
+          <ChatMessage key={message.id} message={message} />
         ))}
         
-        {/* Loading indicator */}
-        {isLoading && <ChatLoadingIndicator />}
+        {isLoading && (
+          <ChatLoadingIndicator />
+        )}
         
         <div ref={messagesEndRef} />
       </div>
-
-      {/* Input area */}
-      <div className="border-t border-border p-4">
+      
+      <div className="p-4 border-t">
         <ChatInput 
-          onSendMessage={handleSendMessage}
-          onRegenerateCampaign={handleRegenerateCampaign}
+          onSendMessage={onSendMessage}
+          onRegenerateCampaign={onRegenerateCampaign}
           onApplyChangesAndRegenerate={onApplyChangesAndRegenerate}
           isLoading={isLoading}
-          isRegenerating={isRegenerating}
-          showRegenerateButton={showRegenerateButton}
+          isRegenerating={false}
+          showRegenerateButton={!!onRegenerateCampaign}
+          persona={persona}
         />
       </div>
-    </div>
+    </Card>
   );
 };
 

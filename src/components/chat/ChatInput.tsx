@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Send, Wand2, RefreshCw, RotateCw } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import PromptCarousel from "./PromptCarousel";
+import { PersonaType } from "@/types/persona";
 
 interface ChatInputProps {
   onSendMessage: (message: string) => Promise<void>;
@@ -13,6 +14,7 @@ interface ChatInputProps {
   isLoading: boolean;
   isRegenerating: boolean;
   showRegenerateButton: boolean;
+  persona?: PersonaType;
 }
 
 const refinementSections = [
@@ -25,14 +27,53 @@ const refinementSections = [
   { id: "emotionalAppeal", label: "Emotional Appeal" },
 ];
 
-// Prompt suggestions for the carousel
-const promptSuggestions = [
+// Default prompt suggestions
+const defaultPromptSuggestions = [
   "Want to refine the messaging? Try asking for a stronger call to action or a punchier headline!",
   "Looking to enhance the emotional appeal? Ask for a more relatable story or an unexpected twist!",
   "Need a different angle? Ask for a more viral approach, a bold influencer collab, or a trend-driven hook!",
   "How about optimizing for specific platforms? Request a TikTok-ready version or a more engaging Instagram campaign!",
   "Want a tighter focus? Ask to refine the target audience or shift the tone for broader appeal!"
 ];
+
+// Persona-specific prompt suggestions
+const personaPromptSuggestions: Record<PersonaType, string[]> = {
+  "bold-risk-taker": [
+    "How can we make this campaign more provocative or unexpected?",
+    "Could you push the boundaries further with a more controversial approach?",
+    "What if we took a bigger creative risk with this campaign?",
+    "How might we create a more surprising twist that challenges conventions?",
+    "Let's make this more disruptive - what bold element could we add?"
+  ],
+  "safe-brand-builder": [
+    "How can we ensure this campaign maintains brand consistency?",
+    "Can you suggest a more proven approach that still feels fresh?",
+    "What elements would build long-term brand equity while still being effective?",
+    "How might we make this campaign more trustworthy and reliable?",
+    "Can you refine this to better emphasize the brand's core values?"
+  ],
+  "viral-trend-expert": [
+    "How could we incorporate a trending hashtag or challenge format?",
+    "What viral mechanic would make this more shareable across platforms?",
+    "Could you optimize this for TikTok's specific audience and algorithm?",
+    "What unexpected cultural crossover would make this more viral?",
+    "How can we create a stronger participation element for this campaign?"
+  ],
+  "storytelling-artist": [
+    "How could we develop a more emotionally rich narrative arc?",
+    "What character-driven approach would make this more compelling?",
+    "Can you add a more authentic emotional journey to this campaign?",
+    "How might we create a more immersive storytelling experience?",
+    "What unexpected twist would make this story more memorable?"
+  ],
+  "data-driven-strategist": [
+    "How could we optimize this campaign for better conversion metrics?",
+    "What specific audience segments should we target with variations?",
+    "How might we structure this for easier A/B testing of elements?",
+    "What measurable benchmarks would indicate success for this approach?",
+    "Can you suggest specific data collection points to improve performance?"
+  ]
+};
 
 const ChatInput: React.FC<ChatInputProps> = ({
   onSendMessage,
@@ -41,6 +82,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   isLoading,
   isRegenerating,
   showRegenerateButton,
+  persona
 }) => {
   const [inputValue, setInputValue] = useState("");
   const [targetSection, setTargetSection] = useState<string | undefined>(undefined);
@@ -121,7 +163,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
   const handlePromptClick = (prompt: string) => {
     // Extract the suggestion part after "Try asking for" or similar phrases
-    const suggestionMatch = prompt.match(/(?:try asking for|ask for|request)(.*?)(?:!|$)/i);
+    const suggestionMatch = prompt.match(/(?:try asking for|ask for|request|how can we|could you|what if|how might|let's|can you)(.*?)(?:!|\?|$)/i);
     const suggestion = suggestionMatch ? suggestionMatch[1].trim() : prompt;
     
     // Set a simplified version of the prompt as input
@@ -129,6 +171,11 @@ const ChatInput: React.FC<ChatInputProps> = ({
     setIsTyping(true);
     inputRef.current?.focus();
   };
+  
+  // Determine which prompt suggestions to use based on persona
+  const promptSuggestions = persona && personaPromptSuggestions[persona] 
+    ? personaPromptSuggestions[persona] 
+    : defaultPromptSuggestions;
 
   return (
     <div className="space-y-2">
