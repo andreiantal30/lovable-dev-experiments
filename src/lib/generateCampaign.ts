@@ -6,6 +6,7 @@ import { findSimilarCampaignsWithEmbeddings } from './embeddingsUtil';
 import { toast } from "sonner";
 import { PersonaType } from '@/types/persona';
 import { matchReferenceCampaigns } from '@/utils/matchReferenceCampaigns';
+import { formatCampaignForPrompt } from '@/utils/formatCampaignForPrompt';
 
 export interface CampaignInput {
   brand: string;
@@ -355,20 +356,7 @@ const findSimilarCampaigns = async (
 };
 
 const createCampaignPrompt = (input: CampaignInput, referenceCampaigns: Campaign[]): string => {
-  const referenceCampaignsText = referenceCampaigns.map(campaign => {
-    return `
-Campaign Name: ${campaign.name}
-Brand: ${campaign.brand}
-Industry: ${campaign.industry}
-Target Audience: ${campaign.targetAudience.join(', ')}
-Objectives: ${campaign.objectives.join(', ')}
-Key Message: ${campaign.keyMessage}
-Strategy: ${campaign.strategy}
-Emotional Appeal: ${campaign.emotionalAppeal.join(', ')}
-Creative Activation: ${campaign.creativeActivation || 'N/A'}
-Viral Element: ${campaign.viralElement || 'N/A'}
-`;
-  }).join('\n');
+  const referenceCampaignsText = referenceCampaigns.map(campaign => formatCampaignForPrompt(campaign)).join('\n');
 
   let campaignStyleDescription = input.campaignStyle || 'Any';
   const styleDescriptions: Record<string, string> = {
