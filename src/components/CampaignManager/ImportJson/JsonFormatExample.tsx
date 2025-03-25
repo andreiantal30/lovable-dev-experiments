@@ -25,11 +25,11 @@ const JsonFormatExample: React.FC = () => {
 ]`}
       </pre>
       <p className="mt-2 text-xs">
-        <span className="font-semibold">Required fields:</span> name, brand, industry
+        <span className="font-semibold">All fields are optional</span> - missing fields will be filled with defaults.
         <br />
         <span className="font-semibold">Arrays:</span> targetAudience, objectives, features, emotionalAppeal, outcomes
         <br />
-        <span className="font-semibold">Optional fields:</span> year, keyMessage, strategy, viralElement, creativeActivation
+        <span className="font-semibold">Common fields:</span> name, brand, industry, year, keyMessage, strategy, viralElement, creativeActivation
       </p>
     </div>
   );

@@ -7,10 +7,11 @@ export const validateCampaigns = (data: any): Campaign[] => {
     throw new Error('JSON file must contain an array of campaigns');
   }
   
-  return data.map((item: any) => {
-    if (!item.name || !item.brand || !item.industry) {
-      throw new Error('Each campaign must have name, brand, and industry fields');
-    }
+  return data.map((item: any, index: number) => {
+    // Generate default values for required fields if they're missing
+    const name = item.name || `Campaign ${index + 1}`;
+    const brand = item.brand || 'Unknown Brand';
+    const industry = item.industry || 'Other';
     
     const targetAudience = Array.isArray(item.targetAudience) ? item.targetAudience : [];
     const objectives = Array.isArray(item.objectives) ? item.objectives : [];
@@ -20,9 +21,9 @@ export const validateCampaigns = (data: any): Campaign[] => {
     
     return {
       id: item.id || uuidv4(),
-      name: item.name,
-      brand: item.brand,
-      industry: item.industry,
+      name,
+      brand,
+      industry,
       year: item.year || new Date().getFullYear(),
       keyMessage: item.keyMessage || '',
       strategy: item.strategy || '',
