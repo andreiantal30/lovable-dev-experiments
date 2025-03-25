@@ -46,6 +46,26 @@ export const campaigns: Campaign[] = [
     creativeActivation: "The Migraine Pose flipped a viral trend to spark empathy and discussion.",
     viralElement: "Meme trend → Awareness sparked → Real stories shared → Respect and empathy grow"
   }
+  {
+    id: uuidv4(),
+    name: "DoorDash - All The Ads",
+    brand: "DoorDash",
+    year: 2024,
+    industry: "Food Delivery",
+    targetAudience: ["Super Bowl viewers", "Online shoppers"],
+    objectives: ["Showcase delivery capabilities", "Tie into Super Bowl culture", "Drive mass participation"],
+    keyMessage: "You can get anything you see in a Super Bowl ad—delivered by DoorDash.",
+    strategy: "Hijack every Super Bowl ad by offering to deliver *anything* advertised during the big game.",
+    features: [
+      "Real-time product recognition system",
+      "Live Super Bowl ad database",
+      "Prize draw for everyone who entered a product"
+    ],
+    emotionalAppeal: ["Excitement", "Convenience", "FOMO"],
+    outcomes: ["11.9B impressions", "8M+ product entries", "Massive brand engagement"],
+    creativeActivation: "Live activation during the Super Bowl where DoorDash promised to deliver anything viewers saw advertised",
+    viralElement: "Gamified ad hijack during the most-watched TV event in the world"
+  }
   
   // Add your campaigns here in the same format
   // {
