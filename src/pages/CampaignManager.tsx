@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import ScrapeCampaignForm from '@/components/CampaignManager/ScrapeCampaignForm';
 import AddCampaignForm from '@/components/CampaignManager/AddCampaignForm';
+import ImportJsonForm from '@/components/CampaignManager/ImportJsonForm';
 import CampaignList from '@/components/CampaignManager/CampaignList';
 import { ArrowLeft, RotateCcw, Database } from 'lucide-react';
 
@@ -66,6 +67,21 @@ const CampaignManager: React.FC = () => {
     }
   };
 
+  const handleImportedCampaigns = (importedCampaigns: Campaign[]) => {
+    try {
+      const success = addCampaigns(importedCampaigns);
+      if (success) {
+        setCampaigns(getCampaigns());
+        toast.success(`${importedCampaigns.length} campaign(s) imported successfully`);
+      } else {
+        toast.info('No new campaigns were imported (duplicates may have been found)');
+      }
+    } catch (error) {
+      console.error('Error importing campaigns:', error);
+      toast.error('An error occurred while importing the campaigns');
+    }
+  };
+
   const handleResetData = () => {
     if (window.confirm('Are you sure you want to reset all campaign data to default? This cannot be undone.')) {
       try {
@@ -116,9 +132,10 @@ const CampaignManager: React.FC = () => {
           </p>
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full md:w-auto grid-cols-3 mb-6">
+            <TabsList className="grid w-full md:w-auto grid-cols-4 mb-6">
               <TabsTrigger value="browse">Browse Campaigns</TabsTrigger>
               <TabsTrigger value="scrape">Scrape Campaigns</TabsTrigger>
+              <TabsTrigger value="import">Import JSON</TabsTrigger>
               <TabsTrigger value="add">Add Manually</TabsTrigger>
             </TabsList>
 
@@ -128,6 +145,10 @@ const CampaignManager: React.FC = () => {
 
             <TabsContent value="scrape" className="pt-2">
               <ScrapeCampaignForm onCampaignsScraped={handleScrapedCampaigns} />
+            </TabsContent>
+            
+            <TabsContent value="import" className="pt-2">
+              <ImportJsonForm onImportSuccess={handleImportedCampaigns} />
             </TabsContent>
 
             <TabsContent value="add" className="pt-2">

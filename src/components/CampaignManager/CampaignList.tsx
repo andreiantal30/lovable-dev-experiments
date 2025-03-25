@@ -1,27 +1,25 @@
 
 import React, { useState } from 'react';
 import { Campaign } from '@/lib/campaignData';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { 
-  Pagination, 
-  PaginationContent, 
-  PaginationItem, 
-  PaginationLink, 
-  PaginationNext, 
-  PaginationPrevious 
-} from '@/components/ui/pagination';
-import { Trash2, Search, Filter } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle 
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Trash2, Search, SortAsc, SortDesc } from 'lucide-react';
+import ExportJsonButton from './ExportJsonButton';
 
 interface CampaignListProps {
   campaigns: Campaign[];
@@ -30,149 +28,148 @@ interface CampaignListProps {
 
 const CampaignList: React.FC<CampaignListProps> = ({ campaigns, onDeleteCampaign }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [industryFilter, setIndustryFilter] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
-
-  // Get unique industries for the filter
-  const uniqueIndustries = Array.from(new Set(campaigns.map(c => c.industry))).sort();
-
-  // Filter campaigns
-  const filteredCampaigns = campaigns.filter(campaign => {
-    const matchesSearch = searchTerm === '' || 
-      campaign.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      campaign.brand.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesIndustry = industryFilter === '' || campaign.industry === industryFilter;
-    
-    return matchesSearch && matchesIndustry;
-  });
-
-  // Calculate pagination
-  const totalPages = Math.max(1, Math.ceil(filteredCampaigns.length / itemsPerPage));
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedCampaigns = filteredCampaigns.slice(startIndex, startIndex + itemsPerPage);
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+  const [sortBy, setSortBy] = useState('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
   };
-
+  
+  const toggleSortOrder = () => {
+    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+  };
+  
+  const filteredCampaigns = campaigns.filter((campaign) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      campaign.name.toLowerCase().includes(searchLower) ||
+      campaign.brand.toLowerCase().includes(searchLower) ||
+      campaign.industry.toLowerCase().includes(searchLower) ||
+      campaign.targetAudience.some(audience => audience.toLowerCase().includes(searchLower)) ||
+      campaign.emotionalAppeal.some(appeal => appeal.toLowerCase().includes(searchLower))
+    );
+  });
+  
+  const sortedCampaigns = [...filteredCampaigns].sort((a, b) => {
+    let valueA: string | number = '';
+    let valueB: string | number = '';
+    
+    if (sortBy === 'name') {
+      valueA = a.name;
+      valueB = b.name;
+    } else if (sortBy === 'brand') {
+      valueA = a.brand;
+      valueB = b.brand;
+    } else if (sortBy === 'industry') {
+      valueA = a.industry;
+      valueB = b.industry;
+    } else if (sortBy === 'year') {
+      valueA = a.year || 0;
+      valueB = b.year || 0;
+    }
+    
+    if (typeof valueA === 'number' && typeof valueB === 'number') {
+      return sortOrder === 'asc' ? valueA - valueB : valueB - valueA;
+    }
+    
+    return sortOrder === 'asc'
+      ? String(valueA).localeCompare(String(valueB))
+      : String(valueB).localeCompare(String(valueA));
+  });
+  
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col sm:flex-row gap-4 items-end">
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
             placeholder="Search campaigns..."
-            className="pl-8"
+            className="pl-9"
             value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-            }}
+            onChange={handleSearchChange}
           />
         </div>
         
-        <div className="w-full sm:w-64">
-          <Select 
-            value={industryFilter} 
-            onValueChange={(value) => {
-              setIndustryFilter(value);
-              setCurrentPage(1);
-            }}
-          >
-            <SelectTrigger className="w-full">
-              <div className="flex items-center">
-                <Filter className="mr-2 h-4 w-4" />
-                <SelectValue placeholder="Filter by industry" />
-              </div>
+        <div className="flex items-center gap-2">
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-36">
+              <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Industries</SelectItem>
-              {uniqueIndustries.map(industry => (
-                <SelectItem key={industry} value={industry}>
-                  {industry}
-                </SelectItem>
-              ))}
+              <SelectItem value="name">Name</SelectItem>
+              <SelectItem value="brand">Brand</SelectItem>
+              <SelectItem value="industry">Industry</SelectItem>
+              <SelectItem value="year">Year</SelectItem>
             </SelectContent>
           </Select>
+          
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={toggleSortOrder}
+            title={sortOrder === 'asc' ? 'Sort ascending' : 'Sort descending'}
+          >
+            {sortOrder === 'asc' ? (
+              <SortAsc className="h-4 w-4" />
+            ) : (
+              <SortDesc className="h-4 w-4" />
+            )}
+          </Button>
+          
+          <ExportJsonButton campaigns={campaigns} />
         </div>
       </div>
-
-      {filteredCampaigns.length === 0 ? (
-        <div className="text-center py-12">
+      
+      {sortedCampaigns.length === 0 ? (
+        <div className="text-center py-8">
           <p className="text-muted-foreground">No campaigns found</p>
         </div>
       ) : (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {paginatedCampaigns.map((campaign) => (
-              <Card key={campaign.id} className="overflow-hidden transition-all hover:shadow-md">
-                <CardHeader className="p-4 pb-2">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-lg">{campaign.name}</CardTitle>
-                      <CardDescription>{campaign.brand} • {campaign.year}</CardDescription>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onDeleteCampaign(campaign.id)}
-                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+        <div className="grid grid-cols-1 gap-4">
+          {sortedCampaigns.map((campaign) => (
+            <Card key={campaign.id}>
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle>{campaign.name}</CardTitle>
+                    <CardDescription>
+                      {campaign.brand} - {campaign.industry} 
+                      {campaign.year && ` (${campaign.year})`}
+                    </CardDescription>
                   </div>
-                </CardHeader>
-                <CardContent className="p-4 pt-2">
-                  <p className="text-sm mb-3 line-clamp-2">{campaign.keyMessage}</p>
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    <Badge variant="outline" className="text-xs">{campaign.industry}</Badge>
-                    {campaign.targetAudience.slice(0, 2).map((audience, i) => (
-                      <Badge key={i} variant="secondary" className="text-xs">{audience}</Badge>
-                    ))}
-                    {campaign.targetAudience.length > 2 && (
-                      <Badge variant="secondary" className="text-xs">+{campaign.targetAudience.length - 2}</Badge>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {totalPages > 1 && (
-            <Pagination className="mt-6">
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious 
-                    onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                  />
-                </PaginationItem>
-                
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <PaginationItem key={page}>
-                    <PaginationLink
-                      onClick={() => handlePageChange(page)}
-                      isActive={page === currentPage}
-                      className="cursor-pointer"
-                    >
-                      {page}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
-                
-                <PaginationItem>
-                  <PaginationNext 
-                    onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
-                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          )}
-        </>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onDeleteCampaign(campaign.id)}
+                    className="text-muted-foreground hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-2">
+                {campaign.keyMessage && (
+                  <p className="text-sm mb-2">{campaign.keyMessage}</p>
+                )}
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {campaign.targetAudience.map((audience, i) => (
+                    <Badge key={i} variant="outline" className="bg-blue-50 dark:bg-blue-950">
+                      {audience}
+                    </Badge>
+                  ))}
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {campaign.emotionalAppeal.map((appeal, i) => (
+                    <Badge key={i} variant="secondary" className="bg-purple-50 dark:bg-purple-950">
+                      {appeal}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       )}
     </div>
   );
