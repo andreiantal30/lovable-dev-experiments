@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { campaigns } from '@/data/campaigns';
+import { getCampaigns } from '@/lib/campaignStorage';
 import { Campaign } from '@/types/Campaign';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -14,8 +14,8 @@ const CampaignManager: React.FC = () => {
   const [activeTab, setActiveTab] = useState('browse');
 
   useEffect(() => {
-    // Load campaigns directly from the static file
-    setCampaignList(campaigns);
+    // Load campaigns using the getCampaigns function from campaignStorage
+    setCampaignList(getCampaigns());
   }, []);
 
   return (

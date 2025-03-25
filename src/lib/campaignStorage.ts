@@ -1,6 +1,6 @@
 
 import { Campaign } from '@/types/Campaign';
-import { campaigns, getCampaignsWithIds } from '@/data/campaigns';
+import { campaigns } from '@/data/campaigns';
 import { GeneratedCampaign } from './generateCampaign';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -25,8 +25,14 @@ export const emitCampaignUpdate = () => {
 
 // Get campaigns - always use the static file data
 export const getCampaigns = (): Campaign[] => {
-  // Return the campaigns from the static file
-  return getCampaignsWithIds();
+  // Return the campaigns from the static file with IDs
+  return campaigns.map(campaign => {
+    // Ensure each campaign has an ID
+    if (!campaign.id) {
+      return { ...campaign, id: uuidv4() };
+    }
+    return campaign;
+  });
 };
 
 // Legacy functions maintained for compatibility
