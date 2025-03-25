@@ -1,3 +1,4 @@
+
 import { Campaign } from './campaignData';
 import { generateWithOpenAI, OpenAIConfig, defaultOpenAIConfig, evaluateCampaign } from './openai';
 import { getCampaigns } from './campaignStorage';
@@ -358,6 +359,13 @@ const findSimilarCampaigns = async (
 const createCampaignPrompt = (input: CampaignInput, referenceCampaigns: Campaign[]): string => {
   const referenceCampaignsText = referenceCampaigns.map(campaign => formatCampaignForPrompt(campaign)).join('\n');
 
+  // Create the reference prompt block
+  const referencePrompt = `
+Use the following real-world award-winning campaigns as inspiration. These examples align with the target audience, emotional appeal, or strategy you're being asked to create for. Do not copy them, but analyze what makes them powerful, then build something fresh.
+
+${referenceCampaignsText}
+`;
+
   let campaignStyleDescription = input.campaignStyle || 'Any';
   const styleDescriptions: Record<string, string> = {
     'digital': 'Digital-first approach with highly shareable, interactive content',
@@ -465,9 +473,7 @@ ${personaInstructions}
 
 Purpose: Match award-winning examples to your request.
 
-Based on your campaign brief, here are reference campaigns that align closely with your goals, tone, target audience, or strategic approach. Use them as creative inspiration and strategic guidance—not templates—to inform the new campaign idea.
-
-${referenceCampaignsText}
+${referencePrompt}
 
 Draw strategic parallels, learn from their emotional appeals, and innovate beyond their tactics.
 
