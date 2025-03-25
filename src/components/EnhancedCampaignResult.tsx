@@ -6,12 +6,22 @@ import { GeneratedCampaign } from "@/lib/generateCampaign";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Award, CheckCircle } from "lucide-react";
+import { CampaignFeedback } from "@/components/CampaignResult";
+import { Button } from "@/components/ui/button";
 
-interface EnhancedCampaignResultProps {
+export interface EnhancedCampaignResultProps {
   campaign: GeneratedCampaign;
+  onGenerateAnother?: () => void;
+  showFeedbackForm?: boolean;
+  onRefine?: (feedback: CampaignFeedback) => Promise<void>;
 }
 
-const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({ campaign }) => {
+const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({ 
+  campaign,
+  onGenerateAnother,
+  showFeedbackForm = false,
+  onRefine 
+}) => {
   return (
     <Card className="border shadow-md">
       <CardHeader className="pb-2">
@@ -118,6 +128,14 @@ const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({ campaig
               <p className="text-md whitespace-pre-line">{campaign.evaluation}</p>
             </div>
           </>
+        )}
+        
+        {onGenerateAnother && (
+          <div className="flex justify-center mt-4">
+            <Button onClick={onGenerateAnother} variant="outline">
+              Generate Another Campaign
+            </Button>
+          </div>
         )}
       </CardContent>
     </Card>
