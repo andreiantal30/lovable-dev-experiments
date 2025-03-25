@@ -311,7 +311,6 @@ export async function findSimilarCampaignsWithEmbeddings(
   } catch (error) {
     console.error('Error finding similar campaigns with embeddings:', error);
     // Fallback to traditional method if embedding fails
-    toast.error('Embeddings matching failed, falling back to standard matching');
     return null;
   }
 }

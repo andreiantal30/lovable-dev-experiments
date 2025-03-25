@@ -1,6 +1,35 @@
 
 import { Campaign } from "@/lib/campaignData";
 import { CampaignInput } from "@/lib/generateCampaign";
+import { findSimilarCampaignsWithEmbeddings } from "@/lib/embeddingsUtil";
+
+export async function matchReferenceCampaignsWithEmbeddings(
+  userInput: CampaignInput,
+  allCampaigns: Campaign[],
+  openAIConfig: any,
+  numberOfResults: number = 3
+): Promise<Campaign[]> {
+  try {
+    // Try to use embedding-based matching first
+    const embeddingMatches = await findSimilarCampaignsWithEmbeddings(
+      userInput,
+      allCampaigns,
+      openAIConfig,
+      numberOfResults
+    );
+    
+    if (embeddingMatches && embeddingMatches.length > 0) {
+      console.log("Using embedding-based campaign matches:", 
+        embeddingMatches.map(c => c.name));
+      return embeddingMatches;
+    }
+  } catch (error) {
+    console.error("Error with embedding matching:", error);
+  }
+  
+  // Fall back to traditional matching if embedding matching fails
+  return matchReferenceCampaigns(userInput, allCampaigns);
+}
 
 export function matchReferenceCampaigns(
   userInput: CampaignInput,
