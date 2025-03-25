@@ -468,6 +468,25 @@ ${referenceCampaignsText}
 
 Draw strategic parallels, learn from their emotional appeals, and innovate beyond their tactics.
 
+#### **Award-Winning Pattern Library**
+
+Purpose: Help internalize creative excellence patterns.
+
+As a world-class creative director, apply proven patterns that often appear in award-winning campaigns. These include:
+
+1. Flip a trending behavior to spark social change  
+2. Reclaim a misused symbol and restore its original meaning  
+3. Turn a brand truth into a cultural moment  
+4. Use technology to create new utilities from everyday frustrations  
+5. Transform media spaces or rituals into unexpected experiences  
+6. Hijack cultural events or formats to spark attention  
+7. Blur the line between product and platform  
+8. Turn passive moments into powerful brand storytelling  
+9. Celebrate hidden truths or communities  
+10. Build campaigns with real-world or social consequence  
+
+If relevant, use one or more of these patterns when shaping the campaign strategy or execution.
+
 ---
 
 #### **Campaign Output Requirements:**
