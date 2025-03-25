@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
 import { Button } from './ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Separator } from './ui/separator';
 import { ArrowUpRight, RefreshCw, Sparkles, ThumbsDown as ThumbsDownIcon, ThumbsUp as ThumbsUpIcon } from 'lucide-react';
 import { GeneratedCampaign } from '@/lib/generateCampaign';
 import FeedbackSystem, { CampaignFeedbackData } from './FeedbackSystem';
@@ -32,7 +32,6 @@ const CampaignResult: React.FC<CampaignResultProps> = ({
   showFeedbackForm = false, 
   onRefine 
 }: CampaignResultProps) => {
-  const [activeTab, setActiveTab] = useState("campaign");
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   
@@ -82,191 +81,145 @@ const CampaignResult: React.FC<CampaignResultProps> = ({
             {campaign.keyMessage}
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-6">
-          <Tabs defaultValue="campaign" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-6">
-              <TabsTrigger value="campaign">Campaign</TabsTrigger>
-              <TabsTrigger value="strategy">Strategy</TabsTrigger>
-              <TabsTrigger value="execution">Execution</TabsTrigger>
-              <TabsTrigger value="outcomes">Outcomes</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="campaign" className="space-y-6">
-              <div>
-                <h3 className="font-medium text-lg mb-2 flex items-center justify-between">
-                  Campaign Name
-                  {showFeedbackForm && !feedbackSubmitted && (
-                    <div className="flex gap-1">
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleElementRating("campaignName", -1)}
-                        className={elementRatings.campaignName === -1 ? "bg-red-100 dark:bg-red-900/20" : ""}
-                      >
-                        <ThumbsDownIcon className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleElementRating("campaignName", 1)}
-                        className={elementRatings.campaignName === 1 ? "bg-green-100 dark:bg-green-900/20" : ""}
-                      >
-                        <ThumbsUpIcon className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
-                </h3>
-                <p>{campaign.campaignName}</p>
-              </div>
-              
-              <div>
-                <h3 className="font-medium text-lg mb-2 flex items-center justify-between">
-                  Key Message
-                  {showFeedbackForm && !feedbackSubmitted && (
-                    <div className="flex gap-1">
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleElementRating("keyMessage", -1)}
-                        className={elementRatings.keyMessage === -1 ? "bg-red-100 dark:bg-red-900/20" : ""}
-                      >
-                        <ThumbsDownIcon className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleElementRating("keyMessage", 1)}
-                        className={elementRatings.keyMessage === 1 ? "bg-green-100 dark:bg-green-900/20" : ""}
-                      >
-                        <ThumbsUpIcon className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
-                </h3>
-                <p>{campaign.keyMessage}</p>
-              </div>
-              
-              <div>
-                <h3 className="font-medium text-lg mb-2">Viral Element</h3>
-                <p>{campaign.viralElement || campaign.viralHook || "Not specified"}</p>
-              </div>
-              
-              <div>
-                <h3 className="font-medium text-lg mb-2">Call to Action</h3>
-                <p>{campaign.callToAction || campaign.consumerInteraction || "Not specified"}</p>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="strategy" className="space-y-6">
-              <div>
-                <h3 className="font-medium text-lg mb-2 flex items-center justify-between">
-                  Creative Strategy
-                  {showFeedbackForm && !feedbackSubmitted && (
-                    <div className="flex gap-1">
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleElementRating("creativeStrategy", -1)}
-                        className={elementRatings.creativeStrategy === -1 ? "bg-red-100 dark:bg-red-900/20" : ""}
-                      >
-                        <ThumbsDownIcon className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleElementRating("creativeStrategy", 1)}
-                        className={elementRatings.creativeStrategy === 1 ? "bg-green-100 dark:bg-green-900/20" : ""}
-                      >
-                        <ThumbsUpIcon className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
-                </h3>
-                <ul className="list-disc list-inside space-y-2">
-                  {Array.isArray(campaign.creativeStrategy) ? 
-                    campaign.creativeStrategy.map((strategy, index) => (
-                      <li key={index}>{strategy}</li>
-                    )) : 
-                    <li>{campaign.creativeStrategy}</li>
-                  }
-                </ul>
-              </div>
-              
-              {campaign.emotionalAppeal && (
-                <div>
-                  <h3 className="font-medium text-lg mb-2">Emotional Appeal</h3>
-                  <ul className="list-disc list-inside space-y-2">
-                    {Array.isArray(campaign.emotionalAppeal) ? 
-                      campaign.emotionalAppeal.map((appeal, index) => (
-                        <li key={index}>{appeal}</li>
-                      )) : 
-                      <li>{campaign.emotionalAppeal}</li>
-                    }
-                  </ul>
+        <CardContent className="p-6 space-y-8">
+          {/* Campaign Name Section */}
+          <div>
+            <h3 className="font-medium text-lg mb-2 flex items-center justify-between">
+              Campaign Name
+              {showFeedbackForm && !feedbackSubmitted && (
+                <div className="flex gap-1">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => handleElementRating("campaignName", -1)}
+                    className={elementRatings.campaignName === -1 ? "bg-red-100 dark:bg-red-900/20" : ""}
+                  >
+                    <ThumbsDownIcon className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => handleElementRating("campaignName", 1)}
+                    className={elementRatings.campaignName === 1 ? "bg-green-100 dark:bg-green-900/20" : ""}
+                  >
+                    <ThumbsUpIcon className="h-4 w-4" />
+                  </Button>
                 </div>
               )}
-              
-              <div>
-                <h3 className="font-medium text-lg mb-2">Reference Campaigns</h3>
-                <ul className="list-disc list-inside space-y-2">
-                  {campaign.referenceCampaigns.map((refCampaign, index) => (
-                    <li key={index}>
-                      <a 
-                        href="#" 
-                        className="text-blue-600 dark:text-blue-400 hover:underline flex items-center"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setActiveTab("inspiration");
-                        }}
-                      >
-                        {refCampaign.name} by {refCampaign.brand}
-                        <ArrowUpRight className="h-3 w-3 ml-1" />
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="execution" className="space-y-6">
-              <div>
-                <h3 className="font-medium text-lg mb-2 flex items-center justify-between">
-                  Execution Plan
-                  {showFeedbackForm && !feedbackSubmitted && (
-                    <div className="flex gap-1">
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleElementRating("executionPlan", -1)}
-                        className={elementRatings.executionPlan === -1 ? "bg-red-100 dark:bg-red-900/20" : ""}
-                      >
-                        <ThumbsDownIcon className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleElementRating("executionPlan", 1)}
-                        className={elementRatings.executionPlan === 1 ? "bg-green-100 dark:bg-green-900/20" : ""}
-                      >
-                        <ThumbsUpIcon className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
-                </h3>
-                <ol className="list-decimal list-inside space-y-2">
-                  {Array.isArray(campaign.executionPlan) ? 
-                    campaign.executionPlan.map((execution, index) => (
-                      <li key={index} className="pl-1">
-                        <span className="ml-1">{execution}</span>
-                      </li>
-                    )) : 
-                    <li>{campaign.executionPlan}</li>
-                  }
-                </ol>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="outcomes" className="space-y-6">
+            </h3>
+            <p>{campaign.campaignName}</p>
+          </div>
+          
+          <Separator />
+          
+          {/* Key Message Section */}
+          <div>
+            <h3 className="font-medium text-lg mb-2 flex items-center justify-between">
+              Key Message
+              {showFeedbackForm && !feedbackSubmitted && (
+                <div className="flex gap-1">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => handleElementRating("keyMessage", -1)}
+                    className={elementRatings.keyMessage === -1 ? "bg-red-100 dark:bg-red-900/20" : ""}
+                  >
+                    <ThumbsDownIcon className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => handleElementRating("keyMessage", 1)}
+                    className={elementRatings.keyMessage === 1 ? "bg-green-100 dark:bg-green-900/20" : ""}
+                  >
+                    <ThumbsUpIcon className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </h3>
+            <p>{campaign.keyMessage}</p>
+          </div>
+          
+          <Separator />
+          
+          {/* Creative Strategy Section */}
+          <div>
+            <h3 className="font-medium text-lg mb-2 flex items-center justify-between">
+              Creative Strategy
+              {showFeedbackForm && !feedbackSubmitted && (
+                <div className="flex gap-1">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => handleElementRating("creativeStrategy", -1)}
+                    className={elementRatings.creativeStrategy === -1 ? "bg-red-100 dark:bg-red-900/20" : ""}
+                  >
+                    <ThumbsDownIcon className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => handleElementRating("creativeStrategy", 1)}
+                    className={elementRatings.creativeStrategy === 1 ? "bg-green-100 dark:bg-green-900/20" : ""}
+                  >
+                    <ThumbsUpIcon className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </h3>
+            <ul className="list-disc list-inside space-y-2">
+              {Array.isArray(campaign.creativeStrategy) ? 
+                campaign.creativeStrategy.map((strategy, index) => (
+                  <li key={index}>{strategy}</li>
+                )) : 
+                <li>{campaign.creativeStrategy}</li>
+              }
+            </ul>
+          </div>
+          
+          <Separator />
+          
+          {/* Execution Plan Section */}
+          <div>
+            <h3 className="font-medium text-lg mb-2 flex items-center justify-between">
+              Execution Plan
+              {showFeedbackForm && !feedbackSubmitted && (
+                <div className="flex gap-1">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => handleElementRating("executionPlan", -1)}
+                    className={elementRatings.executionPlan === -1 ? "bg-red-100 dark:bg-red-900/20" : ""}
+                  >
+                    <ThumbsDownIcon className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => handleElementRating("executionPlan", 1)}
+                    className={elementRatings.executionPlan === 1 ? "bg-green-100 dark:bg-green-900/20" : ""}
+                  >
+                    <ThumbsUpIcon className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </h3>
+            <ol className="list-decimal list-inside space-y-2">
+              {Array.isArray(campaign.executionPlan) ? 
+                campaign.executionPlan.map((execution, index) => (
+                  <li key={index} className="pl-1">
+                    <span className="ml-1">{execution}</span>
+                  </li>
+                )) : 
+                <li>{campaign.executionPlan}</li>
+              }
+            </ol>
+          </div>
+          
+          {/* Expected Outcomes Section */}
+          {campaign.expectedOutcomes && campaign.expectedOutcomes.length > 0 && (
+            <>
+              <Separator />
               <div>
                 <h3 className="font-medium text-lg mb-2">Expected Outcomes</h3>
                 <ol className="list-decimal list-inside space-y-2">
@@ -280,8 +233,71 @@ const CampaignResult: React.FC<CampaignResultProps> = ({
                   }
                 </ol>
               </div>
-            </TabsContent>
-          </Tabs>
+            </>
+          )}
+          
+          {/* Viral Element Section */}
+          {(campaign.viralElement || campaign.viralHook) && (
+            <>
+              <Separator />
+              <div>
+                <h3 className="font-medium text-lg mb-2">Viral Element</h3>
+                <p>{campaign.viralElement || campaign.viralHook}</p>
+              </div>
+            </>
+          )}
+          
+          {/* Call to Action Section */}
+          {(campaign.callToAction || campaign.consumerInteraction) && (
+            <>
+              <Separator />
+              <div>
+                <h3 className="font-medium text-lg mb-2">Call to Action</h3>
+                <p>{campaign.callToAction || campaign.consumerInteraction}</p>
+              </div>
+            </>
+          )}
+          
+          {/* Emotional Appeal Section */}
+          {campaign.emotionalAppeal && campaign.emotionalAppeal.length > 0 && (
+            <>
+              <Separator />
+              <div>
+                <h3 className="font-medium text-lg mb-2">Emotional Appeal</h3>
+                <ul className="list-disc list-inside space-y-2">
+                  {Array.isArray(campaign.emotionalAppeal) ? 
+                    campaign.emotionalAppeal.map((appeal, index) => (
+                      <li key={index}>{appeal}</li>
+                    )) : 
+                    <li>{campaign.emotionalAppeal}</li>
+                  }
+                </ul>
+              </div>
+            </>
+          )}
+          
+          {/* Reference Campaigns Section */}
+          {campaign.referenceCampaigns && campaign.referenceCampaigns.length > 0 && (
+            <>
+              <Separator />
+              <div>
+                <h3 className="font-medium text-lg mb-2">Reference Campaigns</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  {campaign.referenceCampaigns.map((refCampaign, index) => (
+                    <div key={index} className="bg-muted/40 p-4 rounded-lg">
+                      <h4 className="font-medium">{refCampaign.name}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        <span className="font-medium">{refCampaign.brand}</span>
+                        {refCampaign.industry && (
+                          <> · {refCampaign.industry}</>
+                        )}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
       

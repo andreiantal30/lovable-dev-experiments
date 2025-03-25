@@ -63,26 +63,6 @@ const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({
           </ul>
         </div>
         
-        {campaign.viralHook && (
-          <>
-            <Separator />
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold">Viral Hook</h3>
-              <p className="text-md">{campaign.viralHook}</p>
-            </div>
-          </>
-        )}
-        
-        {campaign.consumerInteraction && (
-          <>
-            <Separator />
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold">Consumer Interaction</h3>
-              <p className="text-md">{campaign.consumerInteraction}</p>
-            </div>
-          </>
-        )}
-        
         {campaign.expectedOutcomes && campaign.expectedOutcomes.length > 0 && (
           <>
             <Separator />
@@ -97,6 +77,16 @@ const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({
           </>
         )}
         
+        {campaign.viralHook && (
+          <>
+            <Separator />
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">Viral Hook</h3>
+              <p className="text-md">{campaign.viralHook}</p>
+            </div>
+          </>
+        )}
+        
         {campaign.viralElement && (
           <>
             <Separator />
@@ -107,12 +97,58 @@ const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({
           </>
         )}
         
+        {campaign.consumerInteraction && (
+          <>
+            <Separator />
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">Consumer Interaction</h3>
+              <p className="text-md">{campaign.consumerInteraction}</p>
+            </div>
+          </>
+        )}
+        
         {campaign.callToAction && (
           <>
             <Separator />
             <div className="space-y-2">
               <h3 className="text-lg font-semibold">Call to Action</h3>
               <p className="text-md">{campaign.callToAction}</p>
+            </div>
+          </>
+        )}
+        
+        {campaign.emotionalAppeal && campaign.emotionalAppeal.length > 0 && (
+          <>
+            <Separator />
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">Emotional Appeal</h3>
+              <ul className="list-disc pl-5 space-y-1">
+                {campaign.emotionalAppeal.map((appeal, index) => (
+                  <li key={index} className="text-md">{appeal}</li>
+                ))}
+              </ul>
+            </div>
+          </>
+        )}
+        
+        {campaign.referenceCampaigns && campaign.referenceCampaigns.length > 0 && (
+          <>
+            <Separator />
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">Reference Campaigns</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                {campaign.referenceCampaigns.map((refCampaign, index) => (
+                  <div key={index} className="bg-muted/40 p-4 rounded-lg">
+                    <h4 className="font-medium">{refCampaign.name}</h4>
+                    <p className="text-sm text-muted-foreground">
+                      <span className="font-medium">{refCampaign.brand}</span>
+                      {refCampaign.industry && (
+                        <> · {refCampaign.industry}</>
+                      )}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           </>
         )}
