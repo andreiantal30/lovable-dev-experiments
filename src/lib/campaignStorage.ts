@@ -1,4 +1,5 @@
-import { Campaign } from './campaignData';
+
+import { Campaign } from '@/types/Campaign';
 import { campaigns, getCampaignsWithIds } from '@/data/campaigns';
 import { GeneratedCampaign } from './generateCampaign';
 import { v4 as uuidv4 } from 'uuid';

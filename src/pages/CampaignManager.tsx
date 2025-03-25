@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { getCampaigns } from '@/lib/campaignStorage';
-import { Campaign } from '@/lib/campaignData';
+import { campaigns } from '@/data/campaigns';
+import { Campaign } from '@/types/Campaign';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -10,13 +10,12 @@ import CampaignList from '@/components/CampaignManager/CampaignList';
 import { ArrowLeft, Database } from 'lucide-react';
 
 const CampaignManager: React.FC = () => {
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [campaignList, setCampaignList] = useState<Campaign[]>([]);
   const [activeTab, setActiveTab] = useState('browse');
 
   useEffect(() => {
-    // Load campaigns from static file
-    const loadedCampaigns = getCampaigns();
-    setCampaigns(loadedCampaigns);
+    // Load campaigns directly from the static file
+    setCampaignList(campaigns);
   }, []);
 
   return (
@@ -46,7 +45,7 @@ const CampaignManager: React.FC = () => {
 
             <TabsContent value="browse" className="pt-2">
               <CampaignList 
-                campaigns={campaigns} 
+                campaigns={campaignList} 
                 onDeleteCampaign={() => {
                   toast.info("To remove campaigns, edit the src/data/campaigns.ts file directly.");
                 }} 
@@ -57,7 +56,7 @@ const CampaignManager: React.FC = () => {
 
         <div className="text-center">
           <p className="text-sm text-muted-foreground mb-2">
-            Total Campaigns in Database: <span className="font-medium">{campaigns.length}</span>
+            Total Campaigns in Database: <span className="font-medium">{campaignList.length}</span>
           </p>
           <p className="text-xs text-muted-foreground">
             Campaign data is loaded from <code>src/data/campaigns.ts</code>. 

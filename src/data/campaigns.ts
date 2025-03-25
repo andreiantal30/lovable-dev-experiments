@@ -65,6 +65,26 @@ export const campaigns: Campaign[] = [
     outcomes: ["11.9B impressions", "8M+ product entries", "Massive brand engagement"],
     creativeActivation: "Live activation during the Super Bowl where DoorDash promised to deliver anything viewers saw advertised",
     viralElement: "Gamified ad hijack during the most-watched TV event in the world"
+  },
+  {
+    id: uuidv4(),
+    name: "Napapitas (The Lucky Fry)",
+    brand: "McDonald's",
+    year: 2023,
+    industry: "Fast Food",
+    targetAudience: ["Puerto Rico Residents", "Fast Food Consumers"],
+    objectives: ["Product Launch", "Customer Engagement", "Sales Growth"],
+    keyMessage: "McDonald's is listening to its customers and is willing to make their dreams come true, even if they started as a joke",
+    strategy: "Redesigned the iconic packaging of McDonald's fries to resemble a potato wedge and launched the product on International French Fry Day",
+    features: [
+      "Packaging Redesign", 
+      "Social Media Campaign", 
+      "Limited Edition Product"
+    ],
+    emotionalAppeal: ["Humor", "Excitement", "Novelty"],
+    outcomes: ["25% Sales Increase", "50 Million Media Impressions", "Sold Out in 6 Hours"],
+    creativeActivation: "The Napapitas campaign turned a viral social media joke into a real product that sold out in hours.",
+    viralElement: "Social media joke → Real product → Limited release → Viral success"
   }
   // Add your campaigns here in the same format
   // {
