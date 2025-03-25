@@ -28,17 +28,25 @@ import { Campaign } from '@/lib/campaignData';
 export const campaigns: Campaign[] = [
   {
     id: uuidv4(),
-    name: "Example Campaign",
-    brand: "Example Brand",
+    name: "The Migraine Pose",
+    brand: "Excedrin",
     year: 2024,
-    industry: "Technology",
-    targetAudience: ["Young Adults", "Professionals"],
-    objectives: ["Brand Awareness", "Product Launch"],
-    keyMessage: "Transforming the way you work",
-    strategy: "Showcase product benefits through authentic user stories",
-    features: ["Digital Campaign", "Social Media", "Influencer Partnerships"],
-    emotionalAppeal: ["Empowerment", "Accomplishment"],
-    outcomes: ["Increased Market Share", "Brand Recognition"]
+    industry: "Pharmaceutical",
+    targetAudience: ["Migraine sufferers", "Social media users", "Healthcare advocates"],
+    objectives: ["Raise awareness about migraines", "Correct misconceptions from viral trends"],
+    keyMessage: "What’s a cute pose for one person could be a cry for help for another.",
+    strategy: "Reclaim a misused pose to raise awareness about real pain.",
+    features: [
+      "Partnered with influencers to tell real migraine stories",
+      "Launched filters that faded visuals like migraine aura",
+      "Created contrast videos showing fake vs. real pain"
+    ],
+    emotionalAppeal: ["Empathy", "Awareness", "Advocacy"],
+    outcomes: ["490M+ impressions", "Sharp rise in awareness and shares", "$11M+ in earned media", "Increased trust in Excedrin"],
+    creativeActivation: "The Migraine Pose flipped a viral trend to spark empathy and discussion.",
+    viralElement: "Meme trend → Awareness sparked → Real stories shared → Respect and empathy grow"
+  }
+  
   },
   // Add your campaigns here in the same format
   // {
