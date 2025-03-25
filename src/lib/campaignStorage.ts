@@ -1,5 +1,5 @@
-
-import { Campaign, campaignData } from './campaignData';
+import { Campaign, campaignData as defaultCampaignData } from './campaignData';
+import { getCampaignsWithIds } from '@/data/campaigns';
 import { GeneratedCampaign } from './generateCampaign';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -22,17 +22,18 @@ export const emitCampaignUpdate = () => {
   window.dispatchEvent(new Event('campaign-updated'));
 };
 
-// Get campaigns from local storage or use default data
+// Get campaigns from local storage or use hardcoded data
 export const getCampaigns = (): Campaign[] => {
   try {
     const storedCampaigns = localStorage.getItem(CAMPAIGN_STORAGE_KEY);
     if (storedCampaigns) {
       return JSON.parse(storedCampaigns);
     }
-    return campaignData;
+    // Use the campaigns from our static data file instead of the default data
+    return getCampaignsWithIds();
   } catch (error) {
     console.error('Error retrieving campaigns from storage:', error);
-    return campaignData;
+    return defaultCampaignData;
   }
 };
 

@@ -95,7 +95,7 @@ const CampaignManager: React.FC = () => {
             <h1 className="text-2xl font-semibold">Campaign Database Manager</h1>
           </div>
           <p className="text-muted-foreground mb-6">
-            Keep your campaign database fresh by adding campaigns manually.
+            Browse and manage your hardcoded campaign database or add new campaigns manually.
             The AI will use this data to generate more relevant and up-to-date campaign ideas.
           </p>
 
@@ -120,7 +120,7 @@ const CampaignManager: React.FC = () => {
             Total Campaigns in Database: <span className="font-medium">{campaigns.length}</span>
           </p>
           <p className="text-xs text-muted-foreground">
-            Campaign data is stored locally in your browser's storage.
+            Campaign data is stored locally in your browser's storage. Changes made here won't affect the hardcoded data.
           </p>
         </div>
       </div>
