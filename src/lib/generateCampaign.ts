@@ -117,8 +117,77 @@ The best insights will reveal something that feels true but hasn't been overly e
   }
 }
 
+interface EnhancedSimilarityScore {
+  campaign: Campaign;
+  totalScore: number;
+  dimensionScores: {
+    industry: number;
+    audience: number;
+    objectives: number;
+    emotion: number;
+    style: number;
+    sentiment: number;
+    tone: number;
+  };
+}
+
 type SentimentCategory = 'positive' | 'neutral' | 'negative';
 type ToneCategory = 'formal' | 'casual' | 'humorous' | 'serious' | 'inspirational';
+
+function determineSentiment(emotionalAppeal: string[]): SentimentCategory {
+  const positiveEmotions = ['joy', 'happiness', 'excitement', 'love', 'pride', 'hope', 'inspiration', 'happiness', 'optimism'];
+  const negativeEmotions = ['fear', 'anger', 'sadness', 'guilt', 'shame', 'disgust', 'anxiety', 'frustration', 'disappointment'];
+  
+  let positiveCount = 0;
+  let negativeCount = 0;
+  
+  emotionalAppeal.forEach(emotion => {
+    const lowerEmotion = emotion.toLowerCase();
+    if (positiveEmotions.some(e => lowerEmotion.includes(e))) {
+      positiveCount++;
+    }
+    if (negativeEmotions.some(e => lowerEmotion.includes(e))) {
+      negativeCount++;
+    }
+  });
+  
+  if (positiveCount > negativeCount) {
+    return 'positive';
+  } else if (negativeCount > positiveCount) {
+    return 'negative';
+  }
+  return 'neutral';
+}
+
+function determineTone(objectives: string[], emotionalAppeal: string[]): ToneCategory {
+  const formalKeywords = ['professional', 'authority', 'expertise', 'corporate', 'prestige', 'luxury'];
+  const casualKeywords = ['friendly', 'approachable', 'conversational', 'relatable', 'everyday'];
+  const humorousKeywords = ['funny', 'humor', 'wit', 'playful', 'quirky', 'entertainment'];
+  const seriousKeywords = ['important', 'critical', 'urgent', 'meaningful', 'impactful', 'awareness'];
+  const inspirationalKeywords = ['inspire', 'motivation', 'aspiration', 'empowerment', 'dreams', 'future'];
+  
+  const allText = [...objectives, ...emotionalAppeal].join(' ').toLowerCase();
+  
+  const counts = {
+    formal: formalKeywords.filter(word => allText.includes(word)).length,
+    casual: casualKeywords.filter(word => allText.includes(word)).length,
+    humorous: humorousKeywords.filter(word => allText.includes(word)).length,
+    serious: seriousKeywords.filter(word => allText.includes(word)).length,
+    inspirational: inspirationalKeywords.filter(word => allText.includes(word)).length
+  };
+  
+  let maxCount = 0;
+  let dominantTone: ToneCategory = 'formal';
+  
+  for (const [tone, count] of Object.entries(counts) as [ToneCategory, number][]) {
+    if (count > maxCount) {
+      maxCount = count;
+      dominantTone = tone;
+    }
+  }
+  
+  return dominantTone;
+}
 
 const findSimilarCampaigns = async (
   input: CampaignInput, 
