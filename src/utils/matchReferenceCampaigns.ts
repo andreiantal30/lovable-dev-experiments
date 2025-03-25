@@ -1,7 +1,9 @@
+
 import { Campaign } from "@/lib/campaignData";
 import { CampaignInput } from "@/lib/generateCampaign";
 import { findSimilarCampaignsWithEmbeddings } from "@/lib/embeddingsUtil";
 import { creativePatternPrompt } from "./awardPatterns";
+import { campaigns } from "@/data/campaigns";
 
 /**
  * Primary function for matching reference campaigns using embeddings when available,
@@ -9,7 +11,6 @@ import { creativePatternPrompt } from "./awardPatterns";
  */
 export async function matchReferenceCampaignsWithEmbeddings(
   userInput: CampaignInput,
-  allCampaigns: Campaign[],
   openAIConfig: any,
   numberOfResults: number = 3
 ): Promise<Campaign[]> {
@@ -18,7 +19,7 @@ export async function matchReferenceCampaignsWithEmbeddings(
     console.log("Attempting semantic matching with embeddings...");
     const embeddingMatches = await findSimilarCampaignsWithEmbeddings(
       userInput,
-      allCampaigns,
+      campaigns,
       openAIConfig,
       numberOfResults
     );
@@ -34,7 +35,7 @@ export async function matchReferenceCampaignsWithEmbeddings(
   
   console.log("Falling back to traditional keyword matching");
   // Fall back to traditional matching if embedding matching fails
-  return matchReferenceCampaigns(userInput, allCampaigns);
+  return matchReferenceCampaigns(userInput);
 }
 
 /**
@@ -48,10 +49,9 @@ export function getCreativePatternGuidance(): string {
  * Traditional matching function based on keywords and basic scoring
  */
 export function matchReferenceCampaigns(
-  userInput: CampaignInput,
-  allCampaigns: Campaign[]
+  userInput: CampaignInput
 ): Campaign[] {
-  return allCampaigns
+  return campaigns
     .map((campaign) => {
       let score = 0;
 

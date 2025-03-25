@@ -25,7 +25,7 @@ import { Campaign } from '@/lib/campaignData';
  */
 
 // Sample campaign data structure - replace with your actual campaigns
-export const campaignData: Campaign[] = [
+export const campaigns: Campaign[] = [
   {
     id: uuidv4(),
     name: "Example Campaign",
@@ -49,12 +49,15 @@ export const campaignData: Campaign[] = [
   // }
 ];
 
+// Maintain backwards compatibility with campaignData export
+export const campaignData = campaigns;
+
 /**
  * Helper function to get all campaigns with generated IDs
  * This ensures all campaigns have unique IDs even if added manually
  */
 export const getCampaignsWithIds = (): Campaign[] => {
-  return campaignData.map(campaign => {
+  return campaigns.map(campaign => {
     // If campaign already has an id, use it, otherwise generate a new one
     return campaign.id ? campaign : { ...campaign, id: uuidv4() };
   });

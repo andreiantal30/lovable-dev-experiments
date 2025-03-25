@@ -1,5 +1,5 @@
-import { Campaign, campaignData as defaultCampaignData } from './campaignData';
-import { getCampaignsWithIds } from '@/data/campaigns';
+import { Campaign } from './campaignData';
+import { campaigns, getCampaignsWithIds } from '@/data/campaigns';
 import { GeneratedCampaign } from './generateCampaign';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -29,11 +29,11 @@ export const getCampaigns = (): Campaign[] => {
     if (storedCampaigns) {
       return JSON.parse(storedCampaigns);
     }
-    // Use the campaigns from our static data file instead of the default data
+    // Use the campaigns from our static data file
     return getCampaignsWithIds();
   } catch (error) {
     console.error('Error retrieving campaigns from storage:', error);
-    return defaultCampaignData;
+    return campaigns;
   }
 };
 
