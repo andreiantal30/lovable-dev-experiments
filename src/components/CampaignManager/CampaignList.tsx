@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Trash2, Search, SortAsc, SortDesc } from 'lucide-react';
+import { Trash2, Search, SortAsc, SortDesc, ListOrdered } from 'lucide-react';
 import ExportJsonButton from './ExportJsonButton';
 
 interface CampaignListProps {
@@ -127,16 +127,21 @@ const CampaignList: React.FC<CampaignListProps> = ({ campaigns, onDeleteCampaign
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4">
-          {sortedCampaigns.map((campaign) => (
+          {sortedCampaigns.map((campaign, index) => (
             <Card key={campaign.id}>
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle>{campaign.name}</CardTitle>
-                    <CardDescription>
-                      {campaign.brand} - {campaign.industry} 
-                      {campaign.year && ` (${campaign.year})`}
-                    </CardDescription>
+                  <div className="flex items-start">
+                    <div className="flex items-center justify-center bg-primary/10 text-primary rounded-full w-6 h-6 mr-3 font-medium text-sm">
+                      {index + 1}
+                    </div>
+                    <div>
+                      <CardTitle>{campaign.name}</CardTitle>
+                      <CardDescription>
+                        {campaign.brand} - {campaign.industry} 
+                        {campaign.year && ` (${campaign.year})`}
+                      </CardDescription>
+                    </div>
                   </div>
                   <Button
                     variant="ghost"
