@@ -31,6 +31,7 @@ interface ChatWindowProps {
   chatMemory?: {
     pastInteractions: Message[];
     userPreferences: Record<string, any>;
+    referenceCampaigns?: any[];
   };
 }
 
@@ -54,10 +55,11 @@ const ChatWindow = ({
     }
   }, [messages, isLoading]);
 
-  // Check if we have saved preferences
+  // Check if we have saved preferences or reference campaigns
   const hasMemory = chatMemory && (
     Object.keys(chatMemory.userPreferences).length > 0 || 
-    chatMemory.pastInteractions.length > 0
+    chatMemory.pastInteractions.length > 0 ||
+    (chatMemory.referenceCampaigns && chatMemory.referenceCampaigns.length > 0)
   );
 
   return (
@@ -80,6 +82,9 @@ const ChatWindow = ({
                   )}
                   {chatMemory?.userPreferences.lastLikedCampaignType && (
                     <p className="text-xs">Liked campaign type: {chatMemory.userPreferences.lastLikedCampaignType}</p>
+                  )}
+                  {chatMemory?.referenceCampaigns && chatMemory.referenceCampaigns.length > 0 && (
+                    <p className="text-xs">Using {chatMemory.referenceCampaigns.length} reference campaigns</p>
                   )}
                   <p className="text-xs opacity-80">The AI remembers your preferences and past interactions</p>
                 </div>

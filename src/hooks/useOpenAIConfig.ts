@@ -49,7 +49,9 @@ export function useOpenAIConfig() {
     chatMemory, 
     addInteraction, 
     updatePreferences,
-    trackLikedCampaign 
+    trackLikedCampaign,
+    updateReferenceCampaigns,
+    getFormattedReferenceCampaigns
   } = useChatMemory();
 
   const handleApiKeySubmit = (e: React.FormEvent) => {
@@ -67,6 +69,12 @@ export function useOpenAIConfig() {
     const { userPreferences } = chatMemory;
     
     let dynamicPrompt = basePrompt;
+    
+    // Add reference campaigns section if available
+    const referenceCampaignsSection = getFormattedReferenceCampaigns();
+    if (referenceCampaignsSection) {
+      dynamicPrompt += `\n\n${referenceCampaignsSection}`;
+    }
     
     // Add personalization based on user preferences
     if (userPreferences.preferredTone) {
@@ -139,6 +147,11 @@ export function useOpenAIConfig() {
         } else if (lowerContent.includes('video') || lowerContent.includes('film')) {
           trackLikedCampaign('video and film content');
         }
+      }
+      
+      // Update reference campaigns based on the conversation
+      if (lastInput && lastInput.industry) {
+        updateReferenceCampaigns(lastInput.industry, chatMemory.userPreferences.lastLikedCampaignType);
       }
       
       let context = '';

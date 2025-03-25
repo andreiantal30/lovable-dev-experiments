@@ -458,8 +458,15 @@ ${personaInstructions}
 - **Campaign Style:** ${campaignStyleDescription}
 - **Additional Constraints:** ${input.additionalConstraints || 'None'}
 
-#### **Reference Campaigns for Inspiration**
+#### **Strategic Reference Campaign Injection**
+
+Purpose: Match award-winning examples to your request.
+
+Based on your campaign brief, here are reference campaigns that align closely with your goals, tone, target audience, or strategic approach. Use them as creative inspiration and strategic guidance—not templates—to inform the new campaign idea.
+
 ${referenceCampaignsText}
+
+Draw strategic parallels, learn from their emotional appeals, and innovate beyond their tactics.
 
 ---
 
