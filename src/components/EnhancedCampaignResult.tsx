@@ -6,21 +6,12 @@ import { GeneratedCampaign } from "@/lib/generateCampaign";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Award, CheckCircle } from "lucide-react";
-import { CampaignFeedback } from "@/components/CampaignResult";
 
 interface EnhancedCampaignResultProps {
   campaign: GeneratedCampaign;
-  onGenerateAnother?: () => void;
-  showFeedbackForm?: boolean;
-  onRefine?: (feedback: CampaignFeedback) => Promise<void>;
 }
 
-const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({ 
-  campaign,
-  onGenerateAnother,
-  showFeedbackForm,
-  onRefine
-}) => {
+const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({ campaign }) => {
   return (
     <Card className="border shadow-md">
       <CardHeader className="pb-2">
