@@ -1,10 +1,11 @@
+
 import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { ArrowUpRight, RefreshCw, Sparkles, ThumbsDown as ThumbsDownIcon, ThumbsUp as ThumbsUpIcon } from 'lucide-react';
 import { GeneratedCampaign } from '@/lib/generateCampaign';
-import FeedbackSystem from './FeedbackSystem';
+import FeedbackSystem, { CampaignFeedbackData } from './FeedbackSystem';
 
 export interface CampaignFeedback {
   overallRating: number;
@@ -49,20 +50,21 @@ const CampaignResult: React.FC<CampaignResultProps> = ({
     }));
   };
   
-  const handleSubmitFeedback = async (rating: number, comments: string) => {
+  const handleSubmitFeedback = async (feedback: CampaignFeedbackData) => {
     if (!onRefine) return;
     
     setIsSubmittingFeedback(true);
     
-    const feedback: CampaignFeedback = {
-      overallRating: rating,
-      comments,
-      elementRatings,
-      timestamp: new Date().toISOString()
-    };
-    
     try {
-      await onRefine(feedback);
+      // Convert the FeedbackSystem's data format to our component's format
+      const campaignFeedback: CampaignFeedback = {
+        overallRating: feedback.overallRating,
+        comments: feedback.comments,
+        elementRatings: feedback.elementRatings,
+        timestamp: feedback.timestamp
+      };
+      
+      await onRefine(campaignFeedback);
       setFeedbackSubmitted(true);
     } catch (error) {
       console.error("Error submitting feedback:", error);
