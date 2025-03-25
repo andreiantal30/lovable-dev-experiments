@@ -142,6 +142,9 @@ const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({
                     <h4 className="font-medium">{refCampaign.name}</h4>
                     <p className="text-sm text-muted-foreground">
                       <span className="font-medium">{refCampaign.brand}</span>
+                      {refCampaign.year && (
+                        <> · {refCampaign.year}</>
+                      )}
                       {refCampaign.industry && (
                         <> · {refCampaign.industry}</>
                       )}
