@@ -1,4 +1,3 @@
-
 import { Campaign } from "@/lib/campaignData";
 import { CampaignInput } from "@/lib/generateCampaign";
 import { findSimilarCampaignsWithEmbeddings } from "@/lib/embeddingsUtil";
