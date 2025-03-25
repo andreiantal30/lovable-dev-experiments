@@ -6,9 +6,7 @@ import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import ScrapeCampaignForm from '@/components/CampaignManager/ScrapeCampaignForm';
 import AddCampaignForm from '@/components/CampaignManager/AddCampaignForm';
-import ImportJsonForm from '@/components/CampaignManager/ImportJsonForm';
 import CampaignList from '@/components/CampaignManager/CampaignList';
 import { ArrowLeft, RotateCcw, Database } from 'lucide-react';
 
@@ -49,36 +47,6 @@ const CampaignManager: React.FC = () => {
     } catch (error) {
       console.error('Error deleting campaign:', error);
       toast.error('An error occurred while deleting the campaign');
-    }
-  };
-
-  const handleScrapedCampaigns = (newCampaigns: Campaign[]) => {
-    try {
-      const success = addCampaigns(newCampaigns);
-      if (success) {
-        setCampaigns(getCampaigns());
-        toast.success(`${newCampaigns.length} campaign(s) added successfully`);
-      } else {
-        toast.info('No new campaigns were added (duplicates may have been found)');
-      }
-    } catch (error) {
-      console.error('Error adding scraped campaigns:', error);
-      toast.error('An error occurred while adding the campaigns');
-    }
-  };
-
-  const handleImportedCampaigns = (importedCampaigns: Campaign[]) => {
-    try {
-      const success = addCampaigns(importedCampaigns);
-      if (success) {
-        setCampaigns(getCampaigns());
-        toast.success(`${importedCampaigns.length} campaign(s) imported successfully`);
-      } else {
-        toast.info('No new campaigns were imported (duplicates may have been found)');
-      }
-    } catch (error) {
-      console.error('Error importing campaigns:', error);
-      toast.error('An error occurred while importing the campaigns');
     }
   };
 
@@ -127,28 +95,18 @@ const CampaignManager: React.FC = () => {
             <h1 className="text-2xl font-semibold">Campaign Database Manager</h1>
           </div>
           <p className="text-muted-foreground mb-6">
-            Keep your campaign database fresh by scraping new award-winning campaigns or adding them manually.
+            Keep your campaign database fresh by adding campaigns manually.
             The AI will use this data to generate more relevant and up-to-date campaign ideas.
           </p>
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full md:w-auto grid-cols-4 mb-6">
+            <TabsList className="grid w-full md:w-auto grid-cols-2 mb-6">
               <TabsTrigger value="browse">Browse Campaigns</TabsTrigger>
-              <TabsTrigger value="scrape">Scrape Campaigns</TabsTrigger>
-              <TabsTrigger value="import">Import JSON</TabsTrigger>
               <TabsTrigger value="add">Add Manually</TabsTrigger>
             </TabsList>
 
             <TabsContent value="browse" className="pt-2">
               <CampaignList campaigns={campaigns} onDeleteCampaign={handleDeleteCampaign} />
-            </TabsContent>
-
-            <TabsContent value="scrape" className="pt-2">
-              <ScrapeCampaignForm onCampaignsScraped={handleScrapedCampaigns} />
-            </TabsContent>
-            
-            <TabsContent value="import" className="pt-2">
-              <ImportJsonForm onImportSuccess={handleImportedCampaigns} />
             </TabsContent>
 
             <TabsContent value="add" className="pt-2">
