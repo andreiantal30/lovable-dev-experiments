@@ -3,6 +3,10 @@ import { Campaign } from "@/lib/campaignData";
 import { CampaignInput } from "@/lib/generateCampaign";
 import { findSimilarCampaignsWithEmbeddings } from "@/lib/embeddingsUtil";
 
+/**
+ * Primary function for matching reference campaigns using embeddings when available,
+ * with fallback to traditional matching
+ */
 export async function matchReferenceCampaignsWithEmbeddings(
   userInput: CampaignInput,
   allCampaigns: Campaign[],
@@ -11,6 +15,7 @@ export async function matchReferenceCampaignsWithEmbeddings(
 ): Promise<Campaign[]> {
   try {
     // Try to use embedding-based matching first
+    console.log("Attempting semantic matching with embeddings...");
     const embeddingMatches = await findSimilarCampaignsWithEmbeddings(
       userInput,
       allCampaigns,
@@ -27,10 +32,14 @@ export async function matchReferenceCampaignsWithEmbeddings(
     console.error("Error with embedding matching:", error);
   }
   
+  console.log("Falling back to traditional keyword matching");
   // Fall back to traditional matching if embedding matching fails
   return matchReferenceCampaigns(userInput, allCampaigns);
 }
 
+/**
+ * Traditional matching function based on keywords and basic scoring
+ */
 export function matchReferenceCampaigns(
   userInput: CampaignInput,
   allCampaigns: Campaign[]
