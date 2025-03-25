@@ -5,7 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { GeneratedCampaign } from "@/lib/generateCampaign";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Award, CheckCircle } from "lucide-react";
+import { Award, CheckCircle, Lightbulb } from "lucide-react";
 import { CampaignFeedback } from "@/components/CampaignResult";
 import { Button } from "@/components/ui/button";
 
@@ -40,6 +40,24 @@ const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({
           <h3 className="text-lg font-semibold">Key Message</h3>
           <p className="text-md">{campaign.keyMessage}</p>
         </div>
+        
+        {/* Display Creative Insights if available */}
+        {campaign.creativeInsights && campaign.creativeInsights.length > 0 && (
+          <>
+            <Separator />
+            <div className="space-y-2 bg-amber-50 dark:bg-amber-950/20 p-4 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Lightbulb className="h-5 w-5 text-amber-500" />
+                <h3 className="text-lg font-semibold">Creative Insights</h3>
+              </div>
+              <ul className="list-disc pl-5 space-y-1">
+                {campaign.creativeInsights.map((insight, index) => (
+                  <li key={index} className="text-md italic">{insight}</li>
+                ))}
+              </ul>
+            </div>
+          </>
+        )}
         
         <Separator />
         

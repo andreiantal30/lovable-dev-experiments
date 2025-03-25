@@ -58,81 +58,67 @@ export interface GeneratedCampaign {
   callToAction?: string;
   emotionalAppeal?: string[];
   evaluation?: string;
+  creativeInsights?: string[];
+}
+
+async function generateCreativeInsights(
+  input: CampaignInput,
+  config: OpenAIConfig = defaultOpenAIConfig
+): Promise<string[]> {
+  try {
+    const currentYear = new Date().getFullYear();
+    const audienceString = input.targetAudience.join(', ');
+    const objectivesString = input.objectives.join(', ');
+    
+    const prompt = `
+### Creative Insight Builder
+
+Generate 3 powerful insights about the target audience that will unlock creative potential for this campaign. 
+These should be tensions, truths, or emotional realities that the target audience experiences in ${currentYear}.
+
+**Target Audience:** ${audienceString}
+**Brand:** ${input.brand}
+**Industry:** ${input.industry}
+**Campaign Objectives:** ${objectivesString}
+**Emotional Appeal to Tap Into:** ${input.emotionalAppeal.join(', ')}
+
+For each insight:
+1. Focus on a specific tension or truth that the audience feels
+2. Make it specific, not generic
+3. Connect it to the brand's ability to solve or provoke this tension
+4. Phrase it as a simple, powerful statement that could inspire creative work
+
+Format your response as a JSON array of exactly 3 insights:
+\`\`\`json
+["Insight statement 1", "Insight statement 2", "Insight statement 3"]
+\`\`\`
+
+The best insights will reveal something that feels true but hasn't been overly exploited in marketing.
+`;
+
+    const response = await generateWithOpenAI(prompt, config);
+    const cleanedResponse = extractJsonFromResponse(response);
+    
+    try {
+      const insights = JSON.parse(cleanedResponse);
+      if (Array.isArray(insights) && insights.length > 0) {
+        return insights.slice(0, 3);
+      }
+    } catch (error) {
+      console.error("Error parsing creative insights:", error);
+    }
+    
+    return ["The audience seeks authentic connections in an increasingly digital world.",
+            "They value brands that understand their specific needs rather than generic solutions.",
+            "They want to feel seen and validated through their brand choices."];
+  } catch (error) {
+    console.error("Error generating creative insights:", error);
+    return [];
+  }
 }
 
 type SentimentCategory = 'positive' | 'neutral' | 'negative';
 type ToneCategory = 'formal' | 'casual' | 'humorous' | 'serious' | 'inspirational';
-
-interface EnhancedSimilarityScore {
-  campaign: Campaign;
-  totalScore: number;
-  dimensionScores: {
-    industry: number;
-    audience: number;
-    objectives: number;
-    emotion: number;
-    style: number;
-    sentiment: number;
-    tone: number;
-  };
-}
-
-const determineSentiment = (emotionalAppeal: string[]): SentimentCategory => {
-  const positiveEmotions = ['joy', 'happiness', 'excitement', 'optimism', 'inspiration', 'pride', 'comfort'];
-  const negativeEmotions = ['fear', 'anxiety', 'sadness', 'anger', 'guilt', 'shame'];
-  
-  let positiveCount = 0;
-  let negativeCount = 0;
-  
-  emotionalAppeal.forEach(emotion => {
-    const lowerEmotion = emotion.toLowerCase();
-    if (positiveEmotions.some(e => lowerEmotion.includes(e))) {
-      positiveCount++;
-    } else if (negativeEmotions.some(e => lowerEmotion.includes(e))) {
-      negativeCount++;
-    }
-  });
-  
-  if (positiveCount > negativeCount) return 'positive';
-  if (negativeCount > positiveCount) return 'negative';
-  return 'neutral';
-};
-
-const determineTone = (objectives: string[], emotionalAppeal: string[]): ToneCategory => {
-  if (
-    objectives.some(obj => obj.toLowerCase().includes('professional') || 
-                           obj.toLowerCase().includes('authority') ||
-                           obj.toLowerCase().includes('credibility'))
-  ) {
-    return 'formal';
-  }
-  
-  if (
-    emotionalAppeal.some(emo => emo.toLowerCase().includes('fun') || 
-                               emo.toLowerCase().includes('humor') ||
-                               emo.toLowerCase().includes('playful'))
-  ) {
-    return 'humorous';
-  }
-  
-  if (
-    emotionalAppeal.some(emo => emo.toLowerCase().includes('inspir') || 
-                               emo.toLowerCase().includes('motivat') ||
-                               emo.toLowerCase().includes('empower'))
-  ) {
-    return 'inspirational';
-  }
-  
-  if (
-    objectives.some(obj => obj.toLowerCase().includes('awareness') || 
-                           obj.toLowerCase().includes('education') ||
-                           obj.toLowerCase().includes('social change'))
-  ) {
-    return 'serious';
-  }
-  
-  return 'casual';
-};
 
 const findSimilarCampaigns = async (
   input: CampaignInput, 
@@ -353,25 +339,34 @@ const findSimilarCampaigns = async (
   return selected.map(s => s.campaign);
 };
 
-const createCampaignPrompt = (input: CampaignInput, referenceCampaigns: Campaign[]): string => {
+const createCampaignPrompt = (
+  input: CampaignInput, 
+  referenceCampaigns: Campaign[],
+  creativeInsights: string[] = []
+): string => {
   const referenceCampaignsText = referenceCampaigns.map(campaign => formatCampaignForPrompt(campaign)).join('\n');
 
-  // Create the reference prompt block
+  const insightsBlock = creativeInsights.length > 0 ? `
+#### **Creative Insights**
+The following audience insights have been identified as key tensions or truths that can drive powerful creative:
+
+${creativeInsights.map((insight, index) => `${index + 1}. "${insight}"`).join('\n')}
+
+Use at least one of these insights as a foundation for your campaign strategy.
+` : '';
+
   const referencePrompt = `
 Use the following real-world award-winning campaigns as inspiration. These examples align with the target audience, emotional appeal, or strategy you're being asked to create for. Do not copy them, but analyze what makes them powerful, then build something fresh.
 
 ${referenceCampaignsText}
 `;
 
-  // Log the reference prompt to verify contents
   console.log("Reference Prompt Block:");
   console.log(referencePrompt);
   console.log("Reference Campaigns Count:", referenceCampaigns.length);
   
-  // Get the creative pattern guidance
   const awardPatterns = getCreativePatternGuidance();
   
-  // Create the campaign style description
   let campaignStyleDescription = input.campaignStyle || 'Any';
   const styleDescriptions: Record<string, string> = {
     'digital': 'Digital-first approach with highly shareable, interactive content',
@@ -470,6 +465,8 @@ ${personaInstructions}
 - **Current Market Trends / Cultural Insights to Consider:** ${input.culturalInsights || 'N/A'}
 - **Emotional Appeal to Tap Into:** ${input.emotionalAppeal.join(', ')}
 
+${insightsBlock}
+
 #### **Campaign Details**
 - **Primary Objective:** ${input.objectives.join(', ')}
 - **Campaign Style:** ${campaignStyleDescription}
@@ -518,7 +515,8 @@ Provide your response in **JSON format** with the following structure:
   "consumerInteraction": "How the audience actively participates",
   "expectedOutcomes": ["Outcome 1", "Outcome 2", "Outcome 3", "Outcome 4"],
   "viralElement": "Viral element description",
-  "callToAction": "Call to action description"
+  "callToAction": "Call to action description",
+  "creativeInsights": ["Creative insight used 1", "Creative insight used 2", "Creative insight used 3"]
 }
 \`\`\`
 
@@ -528,6 +526,7 @@ Provide your response in **JSON format** with the following structure:
 - **Make it groundbreaking:** Think beyond traditional ads—consider experiential, tech-driven, or culture-hacking approaches.  
 - **Make it insightful:** Tie the campaign to a real-world trend, behavior, or cultural moment.  
 - **Make it entertaining:** Infuse humor, surprise, or an emotional twist to make the campaign unforgettable.  
+- **Leverage the creative insights:** Use at least one of the provided audience insights to create a more relevant and impactful campaign.
 
 ---
 
@@ -551,9 +550,11 @@ export const generateCampaign = async (
   openAIConfig: OpenAIConfig = defaultOpenAIConfig
 ): Promise<GeneratedCampaign> => {
   try {
+    const creativeInsights = await generateCreativeInsights(input, openAIConfig);
+    console.log("Generated Creative Insights:", creativeInsights);
+    
     const referenceCampaigns = await findSimilarCampaigns(input, openAIConfig);
     
-    // Log the matched reference campaigns
     console.log("Matched Reference Campaigns:", 
       referenceCampaigns.map(c => ({
         name: c.name,
@@ -562,9 +563,8 @@ export const generateCampaign = async (
       }))
     );
     
-    const prompt = createCampaignPrompt(input, referenceCampaigns);
+    const prompt = createCampaignPrompt(input, referenceCampaigns, creativeInsights);
     
-    // Log the first 200 characters of the prompt to verify structure
     console.log("Prompt Preview (first 200 chars):", prompt.substring(0, 200));
     
     const response = await generateWithOpenAI(prompt, openAIConfig);
@@ -575,7 +575,8 @@ export const generateCampaign = async (
     
     const campaign: GeneratedCampaign = {
       ...generatedContent,
-      referenceCampaigns
+      referenceCampaigns,
+      creativeInsights
     };
     
     try {
@@ -608,4 +609,3 @@ export const generateCampaign = async (
     throw error;
   }
 };
-
