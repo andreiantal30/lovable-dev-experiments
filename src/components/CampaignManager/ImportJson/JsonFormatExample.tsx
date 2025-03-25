@@ -12,11 +12,25 @@ const JsonFormatExample: React.FC = () => {
     "brand": "Brand Name",
     "industry": "Industry",
     "targetAudience": ["Audience 1", "Audience 2"],
-    "objectives": ["Objective 1"],
-    "emotionalAppeal": ["Emotional Appeal 1"]
+    "objectives": ["Objective 1", "Objective 2"],
+    "emotionalAppeal": ["Emotional Appeal 1", "Emotional Appeal 2"],
+    "year": 2023,
+    "keyMessage": "Your key message here",
+    "features": ["Feature 1", "Feature 2"],
+    "outcomes": ["Outcome 1", "Outcome 2"],
+    "strategy": "Your strategy description",
+    "viralElement": "Viral element description",
+    "creativeActivation": "Creative activation description"
   }
 ]`}
       </pre>
+      <p className="mt-2 text-xs">
+        <span className="font-semibold">Required fields:</span> name, brand, industry
+        <br />
+        <span className="font-semibold">Arrays:</span> targetAudience, objectives, features, emotionalAppeal, outcomes
+        <br />
+        <span className="font-semibold">Optional fields:</span> year, keyMessage, strategy, viralElement, creativeActivation
+      </p>
     </div>
   );
 };
