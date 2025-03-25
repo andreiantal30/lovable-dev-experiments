@@ -1,10 +1,9 @@
-
 import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Campaign } from '@/lib/campaignData';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowUpTrayIcon, AlertCircle } from 'lucide-react';
+import { Upload, AlertCircle } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 
 interface ImportJsonFormProps {
@@ -18,25 +17,21 @@ const ImportJsonForm: React.FC<ImportJsonFormProps> = ({ onImportSuccess }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateCampaigns = (data: any): Campaign[] => {
-    // Validate if data is an array
     if (!Array.isArray(data)) {
       throw new Error('JSON file must contain an array of campaigns');
     }
     
     return data.map((item: any) => {
-      // Ensure each item has the required fields
       if (!item.name || !item.brand || !item.industry) {
         throw new Error('Each campaign must have name, brand, and industry fields');
       }
       
-      // Ensure arrays exist
       const targetAudience = Array.isArray(item.targetAudience) ? item.targetAudience : [];
       const objectives = Array.isArray(item.objectives) ? item.objectives : [];
       const features = Array.isArray(item.features) ? item.features : [];
       const emotionalAppeal = Array.isArray(item.emotionalAppeal) ? item.emotionalAppeal : [];
       const outcomes = Array.isArray(item.outcomes) ? item.outcomes : [];
       
-      // Create a valid campaign object
       return {
         id: item.id || uuidv4(),
         name: item.name,
@@ -76,7 +71,6 @@ const ImportJsonForm: React.FC<ImportJsonFormProps> = ({ onImportSuccess }) => {
           onImportSuccess(validatedCampaigns);
           setIsProcessing(false);
           
-          // Reset file input
           if (fileInputRef.current) {
             fileInputRef.current.value = '';
           }
@@ -148,7 +142,7 @@ const ImportJsonForm: React.FC<ImportJsonFormProps> = ({ onImportSuccess }) => {
         />
         
         <div className="flex flex-col items-center justify-center gap-2">
-          <ArrowUpTrayIcon className="w-8 h-8 text-muted-foreground" />
+          <Upload className="w-8 h-8 text-muted-foreground" />
           <div className="text-lg font-medium">
             {isProcessing ? 'Processing...' : 'Drag & drop a JSON file here'}
           </div>
