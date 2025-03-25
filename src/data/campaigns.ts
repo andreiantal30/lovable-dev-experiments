@@ -34,7 +34,7 @@ export const campaigns: Campaign[] = [
     industry: "Pharmaceutical",
     targetAudience: ["Migraine sufferers", "Social media users", "Healthcare advocates"],
     objectives: ["Raise awareness about migraines", "Correct misconceptions from viral trends"],
-    keyMessage: "What’s a cute pose for one person could be a cry for help for another.",
+    keyMessage: "What's a cute pose for one person could be a cry for help for another.",
     strategy: "Reclaim a misused pose to raise awareness about real pain.",
     features: [
       "Partnered with influencers to tell real migraine stories",
@@ -47,7 +47,6 @@ export const campaigns: Campaign[] = [
     viralElement: "Meme trend → Awareness sparked → Real stories shared → Respect and empathy grow"
   }
   
-  },
   // Add your campaigns here in the same format
   // {
   //   id: uuidv4(),
