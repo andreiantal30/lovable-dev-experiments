@@ -1,6 +1,5 @@
-
 import { useState } from 'react';
-import { OpenAIConfig, defaultOpenAIConfig, generateWithOpenAI } from "@/lib/openai";
+import { OpenAIConfig, defaultOpenAIConfig, generateWithOpenAI, evaluateCampaign } from "@/lib/openai";
 import { Message } from "@/components/ChatWindow";
 import { v4 as uuidv4 } from "uuid";
 import { useChatMemory } from './useChatMemory';
@@ -172,6 +171,10 @@ export function useOpenAIConfig() {
       
       let context = '';
       if (generatedCampaign && lastInput) {
+        // Include evaluation in the context if available
+        const evaluationContext = generatedCampaign.evaluation ? 
+          `\n\n--- CAMPAIGN EVALUATION ---\n${generatedCampaign.evaluation}` : '';
+          
         context = `
         You are an advanced marketing strategist and creative consultant. Your role is to refine, adapt, and enhance the generated campaign based on user feedback.
 
@@ -191,6 +194,7 @@ export function useOpenAIConfig() {
         Emotional Appeal: ${Array.isArray(lastInput.emotionalAppeal) ? lastInput.emotionalAppeal.join(', ') : lastInput.emotionalAppeal}
         ${lastInput.campaignStyle ? `Campaign Style: ${lastInput.campaignStyle}` : ''}
         ${lastInput.additionalConstraints ? `Additional Notes: ${lastInput.additionalConstraints}` : ''}
+        ${evaluationContext}
 
         --- CONVERSATION HISTORY ---
         ${chatMemory.pastInteractions.slice(-5).map(msg => 

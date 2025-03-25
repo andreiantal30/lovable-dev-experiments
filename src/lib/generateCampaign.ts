@@ -1,5 +1,5 @@
 import { Campaign } from './campaignData';
-import { generateWithOpenAI, OpenAIConfig, defaultOpenAIConfig } from './openai';
+import { generateWithOpenAI, OpenAIConfig, defaultOpenAIConfig, evaluateCampaign } from './openai';
 import { getCampaigns } from './campaignStorage';
 import { generateStorytellingNarrative, StorytellingOutput } from './storytellingGenerator';
 import { findSimilarCampaignsWithEmbeddings } from './embeddingsUtil';
@@ -55,6 +55,7 @@ export interface GeneratedCampaign {
   viralElement?: string;
   callToAction?: string;
   emotionalAppeal?: string[];
+  evaluation?: string;
 }
 
 type SentimentCategory = 'positive' | 'neutral' | 'negative';
@@ -579,6 +580,13 @@ export const generateCampaign = async (
     } catch (error) {
       console.error("Error generating storytelling content:", error);
       toast.error("Error generating storytelling content");
+    }
+    
+    try {
+      const evaluation = await evaluateCampaign(campaign, openAIConfig);
+      campaign.evaluation = evaluation;
+    } catch (error) {
+      console.error("Error evaluating campaign:", error);
     }
     
     return campaign;

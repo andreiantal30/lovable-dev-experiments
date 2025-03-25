@@ -1,143 +1,126 @@
 
-import React, { useState, useEffect } from 'react';
-import CampaignResult, { CampaignFeedback, CampaignResultProps } from '@/components/CampaignResult';
-import StorytellingNarrative from './StorytellingNarrative';
-import { GeneratedCampaign } from '@/lib/generateCampaign';
-import { Button } from './ui/button';
-import { Bookmark, BookmarkCheck, Check, Loader2 } from 'lucide-react';
-import { 
-  saveCampaignToLibrary, 
-  isCampaignSaved 
-} from '@/lib/campaignStorage';
-import { toast } from 'sonner';
-import { Link } from 'react-router-dom';
-import { Card } from './ui/card';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { GeneratedCampaign } from "@/lib/generateCampaign";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import { Award, CheckCircle } from "lucide-react";
 
-interface EnhancedCampaignResultProps extends Omit<CampaignResultProps, 'campaign'> {
+interface EnhancedCampaignResultProps {
   campaign: GeneratedCampaign;
-  brandName?: string;
-  industryName?: string;
-  isLoading?: boolean;
 }
 
-const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({ 
-  campaign, 
-  onGenerateAnother, 
-  showFeedbackForm, 
-  onRefine,
-  brandName,
-  industryName,
-  isLoading = false
-}) => {
-  const [isSaved, setIsSaved] = useState(false);
-  const [isJustSaved, setIsJustSaved] = useState(false);
-  const [savedId, setSavedId] = useState<string | null>(null);
-  
-  useEffect(() => {
-    // Check if campaign is already saved
-    if (campaign?.campaignName && brandName) {
-      const saved = isCampaignSaved(campaign.campaignName, brandName);
-      setIsSaved(saved);
-    }
-  }, [campaign, brandName]);
-  
-  const handleSaveCampaign = () => {
-    if (!campaign || !brandName || !industryName) {
-      toast.error('Missing information needed to save campaign');
-      return;
-    }
-    
-    if (isSaved) {
-      // Already saved, show a message or navigate to library
-      toast.info('This campaign is already saved');
-      return;
-    }
-    
-    const savedCampaign = saveCampaignToLibrary(campaign, brandName, industryName);
-    
-    if (savedCampaign) {
-      setIsSaved(true);
-      setIsJustSaved(true);
-      setSavedId(savedCampaign.id);
-      toast.success('Campaign saved to your library');
-      
-      // Reset the "just saved" state after 3 seconds
-      setTimeout(() => {
-        setIsJustSaved(false);
-      }, 3000);
-    } else {
-      toast.error('Failed to save campaign');
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <Card className="p-8 flex flex-col items-center justify-center space-y-4 min-h-[400px]">
-        <Loader2 className="h-12 w-12 text-primary animate-spin" />
-        <h3 className="text-xl font-medium">Updating campaign...</h3>
-        <p className="text-muted-foreground text-center max-w-md">
-          We're regenerating your campaign based on your feedback. This will only take a moment.
-        </p>
-      </Card>
-    );
-  }
-  
+const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({ campaign }) => {
   return (
-    <div className="space-y-8">
-      {(brandName && industryName) && (
-        <div className="flex justify-end mb-4">
-          {!isSaved ? (
-            <Button
-              variant="outline"
-              onClick={handleSaveCampaign}
-              className="flex items-center"
-            >
-              <Bookmark className="mr-2 h-4 w-4" />
-              Save to Library
-            </Button>
-          ) : isJustSaved ? (
-            <Button
-              variant="outline"
-              className="flex items-center text-green-600 border-green-600"
-              disabled
-            >
-              <Check className="mr-2 h-4 w-4" />
-              Saved Successfully
-            </Button>
-          ) : (
-            <div className="flex space-x-2">
-              <Button
-                variant="outline"
-                disabled
-                className="flex items-center"
-              >
-                <BookmarkCheck className="mr-2 h-4 w-4" />
-                Saved to Library
-              </Button>
-              
-              {savedId && (
-                <Link to={`/campaign/${savedId}`}>
-                  <Button variant="secondary" size="sm">
-                    View in Library
-                  </Button>
-                </Link>
-              )}
-            </div>
-          )}
+    <Card className="border shadow-md">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-xl font-bold">Campaign Details</CardTitle>
+      </CardHeader>
+      
+      <CardContent className="space-y-6">
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold">Campaign Name</h3>
+          <p className="text-md">{campaign.campaignName}</p>
         </div>
-      )}
-      
-      <CampaignResult
-        campaign={campaign}
-        onGenerateAnother={onGenerateAnother}
-        showFeedbackForm={showFeedbackForm}
-        onRefine={onRefine}
-      />
-      
-      {campaign.storytelling && (
-        <StorytellingNarrative storytelling={campaign.storytelling} />
-      )}
-    </div>
+        
+        <Separator />
+        
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold">Key Message</h3>
+          <p className="text-md">{campaign.keyMessage}</p>
+        </div>
+        
+        <Separator />
+        
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold">Creative Strategy</h3>
+          <ul className="list-disc pl-5 space-y-1">
+            {campaign.creativeStrategy.map((strategy, index) => (
+              <li key={index} className="text-md">{strategy}</li>
+            ))}
+          </ul>
+        </div>
+        
+        <Separator />
+        
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold">Execution Plan</h3>
+          <ul className="list-disc pl-5 space-y-1">
+            {campaign.executionPlan.map((execution, index) => (
+              <li key={index} className="text-md">{execution}</li>
+            ))}
+          </ul>
+        </div>
+        
+        {campaign.viralHook && (
+          <>
+            <Separator />
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">Viral Hook</h3>
+              <p className="text-md">{campaign.viralHook}</p>
+            </div>
+          </>
+        )}
+        
+        {campaign.consumerInteraction && (
+          <>
+            <Separator />
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">Consumer Interaction</h3>
+              <p className="text-md">{campaign.consumerInteraction}</p>
+            </div>
+          </>
+        )}
+        
+        {campaign.expectedOutcomes && campaign.expectedOutcomes.length > 0 && (
+          <>
+            <Separator />
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">Expected Outcomes</h3>
+              <ul className="list-disc pl-5 space-y-1">
+                {campaign.expectedOutcomes.map((outcome, index) => (
+                  <li key={index} className="text-md">{outcome}</li>
+                ))}
+              </ul>
+            </div>
+          </>
+        )}
+        
+        {campaign.viralElement && (
+          <>
+            <Separator />
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">Viral Element</h3>
+              <p className="text-md">{campaign.viralElement}</p>
+            </div>
+          </>
+        )}
+        
+        {campaign.callToAction && (
+          <>
+            <Separator />
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">Call to Action</h3>
+              <p className="text-md">{campaign.callToAction}</p>
+            </div>
+          </>
+        )}
+        
+        {campaign.evaluation && (
+          <>
+            <Separator />
+            <div className="space-y-2 bg-muted/50 p-4 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Award className="h-5 w-5 text-amber-500" />
+                <h3 className="text-lg font-semibold">Expert Evaluation</h3>
+              </div>
+              <p className="text-md whitespace-pre-line">{campaign.evaluation}</p>
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 
