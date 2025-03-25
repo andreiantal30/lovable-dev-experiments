@@ -1,12 +1,12 @@
 import { Campaign } from './campaignData';
 import { generateWithOpenAI, OpenAIConfig, defaultOpenAIConfig, evaluateCampaign } from './openai';
-import { getCampaigns } from './campaignStorage';
 import { generateStorytellingNarrative, StorytellingOutput } from './storytellingGenerator';
 import { findSimilarCampaignsWithEmbeddings } from './embeddingsUtil';
 import { toast } from "sonner";
 import { PersonaType } from '@/types/persona';
 import { matchReferenceCampaigns, getCreativePatternGuidance } from '@/utils/matchReferenceCampaigns';
 import { formatCampaignForPrompt } from '@/utils/formatCampaignForPrompt';
+import { campaigns } from '@/data/campaigns';
 
 export interface CampaignInput {
   brand: string;
@@ -138,11 +138,9 @@ const findSimilarCampaigns = async (
   input: CampaignInput, 
   openAIConfig: OpenAIConfig = defaultOpenAIConfig
 ): Promise<Campaign[]> => {
-  const allCampaigns = getCampaigns();
-  
   try {
     console.log('Using new reference campaign matcher');
-    const matchedCampaigns = matchReferenceCampaigns(input, allCampaigns);
+    const matchedCampaigns = matchReferenceCampaigns(input);
     
     if (matchedCampaigns && matchedCampaigns.length > 0) {
       console.log('Found matches using new reference campaign matcher:', 
@@ -157,7 +155,7 @@ const findSimilarCampaigns = async (
     try {
       const embeddingResults = await findSimilarCampaignsWithEmbeddings(
         input, 
-        allCampaigns,
+        campaigns,
         openAIConfig
       );
       
@@ -175,7 +173,7 @@ const findSimilarCampaigns = async (
   const inputSentiment = determineSentiment(input.emotionalAppeal);
   const inputTone = determineTone(input.objectives, input.emotionalAppeal);
   
-  const scoredCampaigns: EnhancedSimilarityScore[] = allCampaigns.map(campaign => {
+  const scoredCampaigns: EnhancedSimilarityScore[] = campaigns.map(campaign => {
     const dimensionScores = {
       industry: 0,
       audience: 0,
@@ -610,3 +608,4 @@ export const generateCampaign = async (
     throw error;
   }
 };
+

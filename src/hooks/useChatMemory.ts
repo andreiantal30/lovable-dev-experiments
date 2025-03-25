@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { Message } from '@/components/ChatWindow';
 import { Campaign } from '@/lib/campaignData';
-import { getCampaigns } from '@/lib/campaignStorage';
+import { campaigns } from '@/data/campaigns';
 
 interface ChatMemory {
   pastInteractions: Message[];
@@ -83,10 +82,8 @@ export function useChatMemory() {
   
   // Update reference campaigns based on user preferences
   const updateReferenceCampaigns = (industry?: string, campaignType?: string) => {
-    const allCampaigns = getCampaigns();
-    
-    // Filter relevant campaigns based on industry and/or campaign type
-    let filteredCampaigns = allCampaigns;
+    // Use the static campaigns data directly
+    let filteredCampaigns = campaigns;
     
     if (industry) {
       filteredCampaigns = filteredCampaigns.filter(campaign => 
