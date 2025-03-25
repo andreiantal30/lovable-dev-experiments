@@ -13,7 +13,7 @@ import EnhancedCampaignResult from '@/components/EnhancedCampaignResult';
 import CampaignHeader from './CampaignHeader';
 import CampaignActions from './CampaignActions';
 import CampaignMeta from './CampaignMeta';
-import { CampaignFeedback } from '@/components/CampaignResult';
+import { CampaignFeedbackData } from '@/components/FeedbackSystem';
 
 interface CampaignDetailViewProps {
   id: string;
@@ -32,7 +32,7 @@ const CampaignDetailView: React.FC<CampaignDetailViewProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  const handleRefine = async (feedback: CampaignFeedback): Promise<void> => {
+  const handleRefine = async (feedback: CampaignFeedbackData): Promise<void> => {
     return Promise.resolve();
   };
 

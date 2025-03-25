@@ -3,7 +3,9 @@ import { toast } from "sonner";
 import { CampaignInput, GeneratedCampaign, generateCampaign } from "@/lib/generateCampaign";
 import { OpenAIConfig } from "@/lib/openai";
 import { saveCampaignToLibrary } from "@/lib/campaignStorage";
-import { CampaignFeedback } from "@/components/CampaignResult";
+import { CampaignFeedbackData } from "@/components/FeedbackSystem";
+import { formatFeedbackForPrompt } from "@/utils/formatCampaignForPrompt";
+import { saveFeedbackData } from "@/lib/feedbackStorage";
 
 export function useCampaignRefinement(
   openAIConfig: OpenAIConfig,
@@ -13,13 +15,7 @@ export function useCampaignRefinement(
   setIsRefining: React.Dispatch<React.SetStateAction<boolean>>,
   scrollToCampaign: () => void
 ) {
-  const getFeedbackText = (rating: number): string => {
-    if (rating === 1) return "Positive";
-    if (rating === -1) return "Negative";
-    return "Neutral";
-  };
-
-  const handleRefineCampaign = async (feedback: CampaignFeedback) => {
+  const handleRefineCampaign = async (feedback: CampaignFeedbackData) => {
     if (!lastInput) {
       toast.error("Cannot refine without original input");
       return;
@@ -28,16 +24,23 @@ export function useCampaignRefinement(
     setIsRefining(true);
     
     try {
+      // Save feedback for future fine-tuning
+      if (generatedCampaign) {
+        await saveFeedbackData({
+          campaignId: generatedCampaign.campaignName,
+          feedback,
+          input: lastInput
+        });
+      }
+      
+      // Format feedback for prompt enhancement
+      const formattedFeedback = formatFeedbackForPrompt(feedback);
+      
       const enhancedInput: CampaignInput = {
         ...lastInput,
         additionalConstraints: `
           Refine based on user feedback:
-          Overall rating: ${feedback.overallRating}/5
-          Campaign Name rating: ${getFeedbackText(feedback.elementRatings.campaignName)}
-          Key Message rating: ${getFeedbackText(feedback.elementRatings.keyMessage)}
-          Creative Strategy rating: ${getFeedbackText(feedback.elementRatings.creativeStrategy)}
-          Execution Plan rating: ${getFeedbackText(feedback.elementRatings.executionPlan)}
-          User comments: ${feedback.comments || "No specific comments"}
+          ${formattedFeedback}
 
           Previous campaign name: ${generatedCampaign?.campaignName}
           Previous key message: ${generatedCampaign?.keyMessage}
@@ -72,7 +75,6 @@ export function useCampaignRefinement(
   };
 
   return {
-    handleRefineCampaign,
-    getFeedbackText
+    handleRefineCampaign
   };
 }

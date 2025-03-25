@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
@@ -9,13 +8,14 @@ import FeedbackSystem from './FeedbackSystem';
 
 export interface CampaignFeedback {
   overallRating: number;
-  comments: string;
   elementRatings: {
-    campaignName: number; // 1 for positive, 0 for neutral, -1 for negative
+    campaignName: number;
     keyMessage: number;
     creativeStrategy: number;
     executionPlan: number;
   };
+  comments: string;
+  timestamp: string;
 }
 
 export interface CampaignResultProps {
@@ -57,7 +57,8 @@ const CampaignResult: React.FC<CampaignResultProps> = ({
     const feedback: CampaignFeedback = {
       overallRating: rating,
       comments,
-      elementRatings
+      elementRatings,
+      timestamp: new Date().toISOString()
     };
     
     try {
@@ -311,7 +312,8 @@ const CampaignResult: React.FC<CampaignResultProps> = ({
               const defaultFeedback: CampaignFeedback = {
                 overallRating: 4,
                 comments: "Please refine this campaign",
-                elementRatings
+                elementRatings,
+                timestamp: new Date().toISOString()
               };
               onRefine(defaultFeedback);
               setFeedbackSubmitted(true);
