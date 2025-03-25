@@ -1,6 +1,6 @@
 
 import { v4 as uuidv4 } from 'uuid';
-import { Campaign } from '@/lib/campaignData';
+import { Campaign } from '@/types/Campaign';
 
 /**
  * Campaigns.ts
