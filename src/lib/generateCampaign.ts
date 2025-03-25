@@ -1,4 +1,3 @@
-
 import { Campaign } from './campaignData';
 import { generateWithOpenAI, OpenAIConfig, defaultOpenAIConfig, evaluateCampaign } from './openai';
 import { getCampaigns } from './campaignStorage';
@@ -366,6 +365,11 @@ Use the following real-world award-winning campaigns as inspiration. These examp
 ${referenceCampaignsText}
 `;
 
+  // Log the reference prompt to verify contents
+  console.log("Reference Prompt Block:");
+  console.log(referencePrompt);
+  console.log("Reference Campaigns Count:", referenceCampaigns.length);
+  
   let campaignStyleDescription = input.campaignStyle || 'Any';
   const styleDescriptions: Record<string, string> = {
     'digital': 'Digital-first approach with highly shareable, interactive content',
@@ -560,7 +564,19 @@ export const generateCampaign = async (
   try {
     const referenceCampaigns = await findSimilarCampaigns(input, openAIConfig);
     
+    // Log the matched reference campaigns
+    console.log("Matched Reference Campaigns:", 
+      referenceCampaigns.map(c => ({
+        name: c.name,
+        brand: c.brand,
+        industry: c.industry
+      }))
+    );
+    
     const prompt = createCampaignPrompt(input, referenceCampaigns);
+    
+    // Log the first 200 characters of the prompt to verify structure
+    console.log("Prompt Preview (first 200 chars):", prompt.substring(0, 200));
     
     const response = await generateWithOpenAI(prompt, openAIConfig);
     
