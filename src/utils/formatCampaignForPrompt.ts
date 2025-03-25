@@ -1,8 +1,13 @@
-
 import { Campaign } from "@/lib/campaignData";
 import { CampaignFeedbackData } from "@/components/FeedbackSystem";
+import { getPatternDetail } from "./awardPatterns";
 
 export function formatCampaignForPrompt(campaign: Campaign): string {
+  // Determine which pattern might be most relevant to this campaign
+  // Simple heuristic: pick a pattern number based on the campaign ID
+  const patternNumber = (parseInt(campaign.id.replace(/\D/g, '')) % 10) + 1;
+  const patternGuidance = getPatternDetail(patternNumber);
+
   return `
 🟣 Campaign: ${campaign.name} (${campaign.brand}, ${campaign.year || 'N/A'})
 🎯 Core Idea: ${campaign.keyMessage || 'N/A'}
@@ -12,6 +17,9 @@ export function formatCampaignForPrompt(campaign: Campaign): string {
 📊 Outcome: ${campaign.outcomes.join(', ') || 'N/A'}
 ${campaign.creativeActivation ? `📱 Activation: ${campaign.creativeActivation}` : ''}
 ${campaign.viralElement ? `🔥 Viral Element: ${campaign.viralElement}` : ''}
+
+✨ Relevant Creative Pattern:
+${patternGuidance}
 `;
 }
 

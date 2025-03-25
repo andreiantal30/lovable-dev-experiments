@@ -2,6 +2,7 @@
 import { Campaign } from "@/lib/campaignData";
 import { CampaignInput } from "@/lib/generateCampaign";
 import { findSimilarCampaignsWithEmbeddings } from "@/lib/embeddingsUtil";
+import { creativePatternPrompt } from "./awardPatterns";
 
 /**
  * Primary function for matching reference campaigns using embeddings when available,
@@ -35,6 +36,13 @@ export async function matchReferenceCampaignsWithEmbeddings(
   console.log("Falling back to traditional keyword matching");
   // Fall back to traditional matching if embedding matching fails
   return matchReferenceCampaigns(userInput, allCampaigns);
+}
+
+/**
+ * Get creative pattern guidance for prompting
+ */
+export function getCreativePatternGuidance(): string {
+  return creativePatternPrompt;
 }
 
 /**
