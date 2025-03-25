@@ -5,6 +5,7 @@ import { generateStorytellingNarrative, StorytellingOutput } from './storytellin
 import { findSimilarCampaignsWithEmbeddings } from './embeddingsUtil';
 import { toast } from "sonner";
 import { PersonaType } from '@/types/persona';
+import { matchReferenceCampaigns } from '@/utils/matchReferenceCampaigns';
 
 export interface CampaignInput {
   brand: string;
@@ -137,6 +138,19 @@ const findSimilarCampaigns = async (
   openAIConfig: OpenAIConfig = defaultOpenAIConfig
 ): Promise<Campaign[]> => {
   const allCampaigns = getCampaigns();
+  
+  try {
+    console.log('Using new reference campaign matcher');
+    const matchedCampaigns = matchReferenceCampaigns(input, allCampaigns);
+    
+    if (matchedCampaigns && matchedCampaigns.length > 0) {
+      console.log('Found matches using new reference campaign matcher:', 
+        matchedCampaigns.map(c => c.name));
+      return matchedCampaigns;
+    }
+  } catch (error) {
+    console.error('Error with new reference campaign matcher:', error);
+  }
   
   if (openAIConfig.apiKey) {
     try {
