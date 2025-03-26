@@ -106,3 +106,13 @@ jsonResponse = jsonResponse.map((trend: any) => {
     return [];
   }
 }
+// Simple in-memory storage of trends (used by InsightsDashboard)
+let allCulturalTrends: CulturalTrend[] = [];
+
+export function saveCulturalTrends(trends: CulturalTrend[]) {
+  allCulturalTrends = trends;
+}
+
+export function getCulturalTrends(): CulturalTrend[] {
+  return allCulturalTrends;
+}
