@@ -3,21 +3,10 @@ import React from 'react';
 import { ChevronDown, Award } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Separator } from '@/components/ui/separator';
-
-interface FeedbackCriterion {
-  name: string;
-  score: number;
-  comment: string;
-}
+import { CampaignEvaluation, FeedbackCriterion } from '@/lib/campaign/types';
 
 interface CreativeDirectorFeedbackProps {
-  feedback: {
-    insightSharpness: FeedbackCriterion;
-    ideaOriginality: FeedbackCriterion;
-    executionPotential: FeedbackCriterion;
-    awardPotential: FeedbackCriterion;
-    finalVerdict: string;
-  } | null;
+  feedback: CampaignEvaluation;
   isLoading?: boolean;
 }
 

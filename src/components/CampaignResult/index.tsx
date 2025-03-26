@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { GeneratedCampaign } from '@/lib/generateCampaign';
+import { GeneratedCampaign, CampaignEvaluation } from '@/lib/campaign/types';
 import FeedbackSystem, { CampaignFeedbackData } from '../FeedbackSystem';
 import CampaignLeftColumn from './CampaignLeftColumn';
 import CampaignRightColumn from './CampaignRightColumn';
@@ -106,7 +106,7 @@ const CampaignResult: React.FC<CampaignResultProps> = ({
       
       {/* Creative Director Feedback Section */}
       {campaign.evaluation && (
-        <CreativeDirectorFeedback feedback={campaign.evaluation} />
+        <CreativeDirectorFeedback feedback={campaign.evaluation as CampaignEvaluation} />
       )}
       
       {showFeedbackForm && !feedbackSubmitted && onRefine && (

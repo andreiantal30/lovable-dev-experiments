@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { Campaign } from './campaignData';
 import { generateWithOpenAI, OpenAIConfig, defaultOpenAIConfig, evaluateCampaign } from './openai';
 import { generateStorytellingNarrative } from './storytellingGenerator';
-import { CampaignInput, GeneratedCampaign } from './campaign/types';
+import { CampaignInput, GeneratedCampaign, CampaignEvaluation } from './campaign/types';
 import { findSimilarCampaigns } from './campaign/campaignMatcher';
 import { generateCreativeInsights } from './campaign/creativeInsightGenerator';
 import { createCampaignPrompt } from './campaign/campaignPromptBuilder';
@@ -70,7 +70,7 @@ export const generateCampaign = async (
     
     // Generate campaign evaluation
     try {
-      const evaluation = await evaluateCampaign(campaign, openAIConfig);
+      const evaluation: CampaignEvaluation = await evaluateCampaign(campaign, openAIConfig);
       campaign.evaluation = evaluation;
     } catch (error) {
       console.error("Error evaluating campaign:", error);

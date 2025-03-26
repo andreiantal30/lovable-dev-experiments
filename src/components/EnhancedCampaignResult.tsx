@@ -2,7 +2,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { GeneratedCampaign } from "@/lib/generateCampaign";
+import { GeneratedCampaign, CampaignEvaluation } from "@/lib/campaign/types";
 import { Badge } from "@/components/ui/badge";
 import { Award, Lightbulb } from "lucide-react";
 import { CampaignFeedback } from "@/components/CampaignResult";
@@ -165,7 +165,7 @@ const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({
         {/* Creative Director Feedback Section */}
         {campaign.evaluation && (
           <div className="mt-6">
-            <CreativeDirectorFeedback feedback={campaign.evaluation} />
+            <CreativeDirectorFeedback feedback={campaign.evaluation as CampaignEvaluation} />
           </div>
         )}
         

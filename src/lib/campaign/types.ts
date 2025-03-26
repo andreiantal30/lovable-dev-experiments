@@ -41,6 +41,19 @@ export interface CampaignInput {
   creativeLens?: CreativeLens;
 }
 
+export interface FeedbackCriterion {
+  score: number;
+  comment: string;
+}
+
+export interface CampaignEvaluation {
+  insightSharpness: FeedbackCriterion;
+  ideaOriginality: FeedbackCriterion;
+  executionPotential: FeedbackCriterion;
+  awardPotential: FeedbackCriterion;
+  finalVerdict: string;
+}
+
 export interface GeneratedCampaign {
   campaignName: string;
   keyMessage: string;
@@ -54,6 +67,6 @@ export interface GeneratedCampaign {
   viralElement?: string;
   callToAction?: string;
   emotionalAppeal?: string[];
-  evaluation?: string;
+  evaluation?: CampaignEvaluation;
   creativeInsights?: string[];
 }
