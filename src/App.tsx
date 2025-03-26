@@ -8,10 +8,26 @@ import CampaignManager from "./pages/CampaignManager";
 import CampaignLibrary from "./pages/CampaignLibrary";
 import CampaignDetail from "./pages/CampaignDetail";
 import { CampaignSidebarProvider } from "./components/CampaignSidebarProvider";
+import { useEffect } from "react";
 
 function App() {
-  // Confirm that Index component is being properly imported
+  // Add more detailed logging
+  console.log("App component rendering");
   console.log("Index component:", Index);
+  
+  useEffect(() => {
+    console.log("App component mounted");
+    console.log("Environment:", {
+      NODE_ENV: import.meta.env.MODE,
+      BASE_URL: import.meta.env.BASE_URL,
+      DEV: import.meta.env.DEV,
+      PROD: import.meta.env.PROD
+    });
+    
+    return () => {
+      console.log("App component unmounted");
+    };
+  }, []);
   
   return (
     <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">

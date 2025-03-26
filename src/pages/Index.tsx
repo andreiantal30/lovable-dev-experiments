@@ -10,8 +10,19 @@ import CampaignSection from "@/components/IndexPage/CampaignSection";
 import { useCampaignGeneration } from "@/hooks/useCampaignGeneration";
 import { useOpenAIConfig } from "@/hooks/useOpenAIConfig";
 import ApiKeyForm from "@/components/IndexPage/ApiKeyForm";
+import { useEffect } from "react";
 
 const Index = () => {
+  console.log("Index component is rendering");
+  
+  useEffect(() => {
+    console.log("Index component mounted");
+    
+    return () => {
+      console.log("Index component unmounted");
+    };
+  }, []);
+
   const {
     openAIConfig,
     setOpenAIConfig,
@@ -21,6 +32,8 @@ const Index = () => {
     handleSendMessage: processMessage,
     chatMemory
   } = useOpenAIConfig();
+
+  console.log("OpenAI config loaded:", { hasApiKey: !!openAIConfig.apiKey, model: openAIConfig.model });
 
   const {
     isGenerating,
@@ -42,17 +55,22 @@ const Index = () => {
     campaignResultRef
   } = useCampaignGeneration(openAIConfig);
 
+  console.log("Campaign generation hook initialized", { isGenerating, hasGeneratedCampaign: !!generatedCampaign });
+
   const onApiKeySubmit = (e: React.FormEvent) => {
+    console.log("API key form submitted");
     if (handleApiKeySubmit(e)) {
       toast.success("API key saved successfully");
     }
   };
 
   const onGenerateCampaign = async (input: any) => {
+    console.log("Generate campaign triggered with input:", input);
     await handleGenerateCampaign(input);
   };
 
   const handleSendMessage = async (content: string) => {
+    console.log("Message being sent:", content);
     await processMessage(
       content, 
       setMessages, 
@@ -64,6 +82,7 @@ const Index = () => {
   };
 
   const handleCampaignSelect = (id: string) => {
+    console.log("Campaign selected:", id);
     window.location.href = `/campaign/${id}`;
   };
 
