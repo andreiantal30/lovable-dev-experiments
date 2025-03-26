@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { OpenAIConfig, defaultOpenAIConfig, generateWithOpenAI, evaluateCampaign } from "@/lib/openai";
+
+import { useState, useEffect } from 'react';
+import { OpenAIConfig, defaultOpenAIConfig, generateWithOpenAI, evaluateCampaign, saveApiKeyToStorage, getApiKeyFromStorage } from "@/lib/openai";
 import { Message } from "@/components/ChatWindow";
 import { v4 as uuidv4 } from "uuid";
 import { useChatMemory } from './useChatMemory';
@@ -53,11 +54,14 @@ Use concise language with minimal jargon. Be specific about execution details. B
 `;
 
 export function useOpenAIConfig() {
-  // Always use the default config with the embedded API key
-  const [openAIConfig, setOpenAIConfig] = useState<OpenAIConfig>(defaultOpenAIConfig);
+  // Initialize openAIConfig with the API key from localStorage if available
+  const [openAIConfig, setOpenAIConfig] = useState<OpenAIConfig>(() => ({
+    ...defaultOpenAIConfig,
+    apiKey: getApiKeyFromStorage() || defaultOpenAIConfig.apiKey
+  }));
   
-  // We don't need to show the API key input form anymore
-  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  // Show API key input if no API key is found in localStorage
+  const [showApiKeyInput, setShowApiKeyInput] = useState<boolean>(!openAIConfig.apiKey);
   
   // Use our chat memory hook
   const { 
@@ -69,14 +73,23 @@ export function useOpenAIConfig() {
     getFormattedReferenceCampaigns
   } = useChatMemory();
 
+  // Effect to sync openAIConfig with localStorage
+  useEffect(() => {
+    if (openAIConfig.apiKey) {
+      saveApiKeyToStorage(openAIConfig.apiKey);
+    }
+  }, [openAIConfig.apiKey]);
+
   const handleApiKeySubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    return true;
-  };
-
-  const handleChangeApiKey = () => {
-    // This function is kept for compatibility but doesn't need to do anything
-    console.log("API key change requested but disabled");
+    
+    if (openAIConfig.apiKey) {
+      saveApiKeyToStorage(openAIConfig.apiKey);
+      setShowApiKeyInput(false);
+      return true;
+    }
+    
+    return false;
   };
 
   // Function to construct a dynamic system prompt that evolves based on user preferences
@@ -272,7 +285,6 @@ export function useOpenAIConfig() {
     showApiKeyInput,
     setShowApiKeyInput,
     handleApiKeySubmit,
-    handleChangeApiKey,
     handleSendMessage,
     chatMemory
   };

@@ -2,6 +2,8 @@
 import React from "react";
 import TransitionElement from "@/components/TransitionElement";
 import { OpenAIConfig } from "@/lib/openai";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { InfoIcon } from "lucide-react";
 
 interface ApiKeyFormProps {
   openAIConfig: OpenAIConfig;
@@ -22,6 +24,16 @@ const ApiKeyForm = ({
     <TransitionElement animation="fade">
       <div className="max-w-md mx-auto mb-10 bg-white/70 dark:bg-gray-800/40 backdrop-blur-lg rounded-xl p-6 shadow-subtle">
         <h2 className="text-lg font-medium mb-3">Enter your OpenAI API Key</h2>
+        
+        <Alert className="mb-4 bg-amber-50/50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800">
+          <InfoIcon className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+          <AlertTitle>Secure API Key Storage</AlertTitle>
+          <AlertDescription className="text-sm">
+            Your API key will be stored securely in your browser's localStorage and never sent to our servers.
+            It will only be used for direct API calls from your browser to OpenAI.
+          </AlertDescription>
+        </Alert>
+        
         <form onSubmit={onSubmit}>
           <div className="space-y-1.5 mb-4">
             <label htmlFor="apiKey" className="text-sm font-medium">
@@ -37,7 +49,7 @@ const ApiKeyForm = ({
               required
             />
             <p className="text-xs text-muted-foreground">
-              Your API key is stored locally and never sent to our servers.
+              Your API key is stored locally in your browser and never sent to our servers.
             </p>
           </div>
 

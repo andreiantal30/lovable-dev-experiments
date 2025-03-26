@@ -83,8 +83,7 @@ const Index = () => {
             onChangeApiKey={() => setShowApiKeyInput(true)} 
           />
           
-          {showApiKeyInput && false && (
-            // ApiKeyForm is now hidden by forcing the condition to be false
+          {showApiKeyInput && (
             <ApiKeyForm
               openAIConfig={openAIConfig}
               setOpenAIConfig={setOpenAIConfig}
