@@ -36,6 +36,8 @@ const CampaignActions: React.FC<CampaignActionsProps> = ({
         </div>
       )}
       
+      <h3 className="text-center text-lg font-medium text-muted-foreground mb-4">Actions</h3>
+      
       <div className="flex flex-wrap justify-center gap-4 mt-8">
         <Button onClick={handleReturnHome} variant="outline" className="flex items-center">
           <Home className="h-4 w-4 mr-2" />
