@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Star, Clipboard, Trash2 } from 'lucide-react';
+import { Star, Clipboard } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface CampaignActionsProps {
@@ -55,15 +55,6 @@ Expected Outcomes: ${campaign.campaign.expectedOutcomes.join('\n- ')}
       >
         <Clipboard className="mr-2 h-4 w-4" />
         Copy
-      </Button>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={onDelete}
-        className="flex items-center text-destructive hover:text-destructive"
-      >
-        <Trash2 className="mr-2 h-4 w-4" />
-        Delete
       </Button>
     </div>
   );

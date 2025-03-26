@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Trash2, Search, SortAsc, SortDesc, ListOrdered } from 'lucide-react';
+import { Search, SortAsc, SortDesc, ListOrdered } from 'lucide-react';
 import ExportJsonButton from './ExportJsonButton';
 
 interface CampaignListProps {
@@ -143,14 +143,7 @@ const CampaignList: React.FC<CampaignListProps> = ({ campaigns, onDeleteCampaign
                       </CardDescription>
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onDeleteCampaign(campaign.id)}
-                    className="text-muted-foreground hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  {/* Delete button removed */}
                 </div>
               </CardHeader>
               <CardContent className="pt-2">

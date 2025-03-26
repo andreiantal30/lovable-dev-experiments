@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import CampaignList from '@/components/CampaignManager/CampaignList';
-import { ArrowLeft, Database } from 'lucide-react';
+import { ArrowLeft, Database, Info } from 'lucide-react';
 
 const CampaignManager: React.FC = () => {
   const [campaignList, setCampaignList] = useState<Campaign[]>([]);
@@ -33,10 +33,16 @@ const CampaignManager: React.FC = () => {
             <Database className="h-6 w-6 text-primary" />
             <h1 className="text-2xl font-semibold">Campaign Database Browser</h1>
           </div>
-          <p className="text-muted-foreground mb-6">
-            Browse the campaign database. All campaigns are loaded from the static file in <code>src/data/campaigns.ts</code>.
-            To add or modify campaigns, edit this file directly.
-          </p>
+          
+          <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-4 mb-6 flex items-start gap-3">
+            <Info className="h-5 w-5 text-blue-500 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-sm text-blue-800 dark:text-blue-300">
+                <strong>Read-only access:</strong> This database can only be modified by the administrator. 
+                The campaign collection is loaded from <code className="bg-blue-100 dark:bg-blue-900/50 px-1.5 py-0.5 rounded text-xs">src/data/campaigns.ts</code>.
+              </p>
+            </div>
+          </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full md:w-auto grid-cols-1 mb-6">
@@ -47,7 +53,7 @@ const CampaignManager: React.FC = () => {
               <CampaignList 
                 campaigns={campaignList} 
                 onDeleteCampaign={() => {
-                  toast.info("To remove campaigns, edit the src/data/campaigns.ts file directly.");
+                  toast.info("Campaigns can only be modified by the administrator.");
                 }} 
               />
             </TabsContent>
@@ -60,7 +66,7 @@ const CampaignManager: React.FC = () => {
           </p>
           <p className="text-xs text-muted-foreground">
             Campaign data is loaded from <code>src/data/campaigns.ts</code>. 
-            To modify the campaign database, edit this file directly.
+            This is a read-only database that can only be modified by the administrator.
           </p>
         </div>
       </div>
