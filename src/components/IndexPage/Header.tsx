@@ -29,19 +29,6 @@ const Header = ({ apiKey, onChangeApiKey }: HeaderProps) => {
           Leverage OpenAI's GPT to craft innovative campaigns, inspired by the best-performing, award-winning advertising concepts from Cannes Lions and beyond.
         </p>
       </TransitionElement>
-
-      {apiKey && (
-        <TransitionElement animation="slide-down" delay={300}>
-          <div className="mt-2 flex justify-center">
-            <button
-              onClick={onChangeApiKey}
-              className="text-sm text-primary hover:text-primary/80 underline underline-offset-2"
-            >
-              Change OpenAI API key
-            </button>
-          </div>
-        </TransitionElement>
-      )}
     </header>
   );
 };

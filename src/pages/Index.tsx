@@ -18,7 +18,6 @@ const Index = () => {
     showApiKeyInput,
     setShowApiKeyInput,
     handleApiKeySubmit,
-    handleChangeApiKey,
     handleSendMessage: processMessage,
     chatMemory
   } = useOpenAIConfig();
@@ -84,7 +83,7 @@ const Index = () => {
           <div className="mb-8">
             <Header 
               apiKey={openAIConfig.apiKey} 
-              onChangeApiKey={handleChangeApiKey} 
+              onChangeApiKey={() => {}} 
             />
           </div>
           
