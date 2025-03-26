@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Sparkles } from 'lucide-react';
+import { RefreshCw, Sparkles, Home } from 'lucide-react';
 import { CampaignFeedback } from '@/components/CampaignResult';
 
 interface CampaignActionsProps {
@@ -21,6 +21,10 @@ const CampaignActions: React.FC<CampaignActionsProps> = ({
 }) => {
   if (!onGenerateAnother) return null;
   
+  const handleReturnHome = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  
   return (
     <div>
       {feedbackSubmitted && (
@@ -32,8 +36,13 @@ const CampaignActions: React.FC<CampaignActionsProps> = ({
         </div>
       )}
       
-      <div className="flex justify-center mt-8">
-        <Button onClick={onGenerateAnother} variant="outline" className="mr-4">
+      <div className="flex flex-wrap justify-center gap-4 mt-8">
+        <Button onClick={handleReturnHome} variant="outline" className="flex items-center">
+          <Home className="h-4 w-4 mr-2" />
+          Return to Home
+        </Button>
+        
+        <Button onClick={onGenerateAnother} variant="outline">
           Generate Another Campaign
         </Button>
         
@@ -42,7 +51,12 @@ const CampaignActions: React.FC<CampaignActionsProps> = ({
             const defaultFeedback: CampaignFeedback = {
               overallRating: 4,
               comments: "Please refine this campaign",
-              elementRatings,
+              elementRatings: {
+                campaignName: elementRatings.campaignName || 0,
+                keyMessage: elementRatings.keyMessage || 0,
+                creativeStrategy: elementRatings.creativeStrategy || 0,
+                executionPlan: elementRatings.executionPlan || 0
+              },
               timestamp: new Date().toISOString()
             };
             onRefine(defaultFeedback);
