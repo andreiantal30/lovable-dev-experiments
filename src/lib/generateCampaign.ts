@@ -8,6 +8,7 @@ import { findSimilarCampaigns } from './campaign/campaignMatcher';
 import { generateCreativeInsights } from './campaign/creativeInsightGenerator';
 import { createCampaignPrompt } from './campaign/campaignPromptBuilder';
 import { extractJsonFromResponse } from './campaign/utils';
+import { getCreativeDevicesForStyle } from '@/data/creativeDevices';
 
 /**
  * Main function to generate a campaign using AI
@@ -31,9 +32,13 @@ export const generateCampaign = async (
         industry: c.industry
       }))
     );
+
+    // Select creative devices based on campaign style
+    const creativeDevices = getCreativeDevicesForStyle(input.campaignStyle, 2);
+    console.log("Selected Creative Devices:", creativeDevices.map(d => d.name));
     
     // Create the campaign generation prompt
-    const prompt = createCampaignPrompt(input, referenceCampaigns, creativeInsights);
+    const prompt = createCampaignPrompt(input, referenceCampaigns, creativeInsights, creativeDevices);
     
     console.log("Prompt Preview (first 200 chars):", prompt.substring(0, 200));
     

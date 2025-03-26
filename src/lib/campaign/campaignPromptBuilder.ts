@@ -1,9 +1,9 @@
-
 import { CampaignInput } from './types';
 import { Campaign } from '../campaignData';
 import { formatCampaignForPrompt } from '@/utils/formatCampaignForPrompt';
 import { getCreativePatternGuidance } from '@/utils/matchReferenceCampaigns';
 import { getCreativeLensById } from '@/utils/creativeLenses';
+import { CreativeDevice, formatCreativeDevicesForPrompt } from '@/data/creativeDevices';
 
 /**
  * Build the prompt for campaign generation
@@ -11,7 +11,8 @@ import { getCreativeLensById } from '@/utils/creativeLenses';
 export const createCampaignPrompt = (
   input: CampaignInput, 
   referenceCampaigns: Campaign[],
-  creativeInsights: string[] = []
+  creativeInsights: string[] = [],
+  creativeDevices: CreativeDevice[] = []
 ): string => {
   const referenceCampaignsText = referenceCampaigns.map(campaign => formatCampaignForPrompt(campaign)).join('\n');
 
@@ -136,6 +137,9 @@ When creating this campaign, ensure that you incorporate this creative perspecti
     }
   }
 
+  // Format creative devices for the prompt
+  const creativeDevicesBlock = formatCreativeDevicesForPrompt(creativeDevices);
+
   return `### Generate a groundbreaking marketing campaign with the following key elements:
 
 ${personaInstructions}
@@ -152,6 +156,8 @@ ${creativeLensInstructions}
 - **Emotional Appeal to Tap Into:** ${input.emotionalAppeal.join(', ')}
 
 ${insightsBlock}
+
+${creativeDevicesBlock}
 
 #### **Campaign Details**
 - **Primary Objective:** ${input.objectives.join(', ')}
