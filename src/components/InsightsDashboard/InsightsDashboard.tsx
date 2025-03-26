@@ -7,7 +7,7 @@ import InsightCategoryCard from './InsightCategoryCard';
 import CulturalTrendsView from './CulturalTrendsView';
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Lightbulb, ChevronDown, RefreshCw, TrendingUp, Globe, Reddit } from "lucide-react";
+import { Lightbulb, ChevronDown, RefreshCw, TrendingUp, Globe, MessageCircle } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import { fetchNewsTrends } from '@/lib/fetchNewsTrends';
 import { fetchAndGenerateRedditTrends } from '@/lib/fetchRedditTrends';
@@ -143,8 +143,8 @@ const InsightsDashboard: React.FC = () => {
                 onClick={handleUpdateRedditTrends} 
                 disabled={isUpdatingRedditTrends}
               >
-                <BrandReddit className={`h-4 w-4 ${isUpdatingRedditTrends ? 'animate-spin' : ''}`} />
-                Update Trends from Reddit
+<MessageCircle className={`h-4 w-4 ${isUpdatingRedditTrends ? 'animate-spin' : ''}`} />
+Update Trends from Reddit
               </Button>
               
               <DropdownMenu>
