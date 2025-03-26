@@ -10,18 +10,28 @@ import CampaignSection from "@/components/IndexPage/CampaignSection";
 import { useCampaignGeneration } from "@/hooks/useCampaignGeneration";
 import { useOpenAIConfig } from "@/hooks/useOpenAIConfig";
 import ApiKeyForm from "@/components/IndexPage/ApiKeyForm";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 
 const Index = () => {
   console.log("Index component is rendering");
+  const location = useLocation();
+  const [insightPrompt, setInsightPrompt] = useState<string | null>(null);
   
   useEffect(() => {
     console.log("Index component mounted");
     
+    // Check for insight prompt in location state
+    if (location.state?.insightPrompt) {
+      setInsightPrompt(location.state.insightPrompt);
+      // Clear location state to prevent reapplying on refresh
+      window.history.replaceState({}, document.title);
+    }
+    
     return () => {
       console.log("Index component unmounted");
     };
-  }, []);
+  }, [location]);
 
   const {
     openAIConfig,
@@ -66,6 +76,14 @@ const Index = () => {
 
   const onGenerateCampaign = async (input: any) => {
     console.log("Generate campaign triggered with input:", input);
+    
+    // If we have an insight prompt, pass it as additionalConstraints
+    if (insightPrompt && !input.additionalConstraints) {
+      input.additionalConstraints = insightPrompt;
+      // Clear the insight prompt after using it
+      setInsightPrompt(null);
+    }
+    
     await handleGenerateCampaign(input);
   };
 
@@ -130,6 +148,7 @@ const Index = () => {
             lastInput={lastInput}
             campaignResultRef={campaignResultRef}
             chatMemory={chatMemory}
+            insightPrompt={insightPrompt}
           />
           
           <Footer />

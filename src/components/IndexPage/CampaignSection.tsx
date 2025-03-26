@@ -9,7 +9,8 @@ import { OpenAIConfig } from "@/lib/openai";
 import HowItWorks from "@/components/HowItWorks";
 import Plans from "@/components/Plans";
 import { Link } from "react-router-dom";
-import { ChevronDown, Library } from "lucide-react";
+import { ChevronDown, Library, Lightbulb } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface CampaignSectionProps {
   generatedCampaign: GeneratedCampaign | null;
@@ -32,6 +33,7 @@ interface CampaignSectionProps {
     pastInteractions: Message[];
     userPreferences: Record<string, any>;
   };
+  insightPrompt?: string | null;
 }
 
 const CampaignSection = ({
@@ -51,7 +53,8 @@ const CampaignSection = ({
   isRefining,
   lastInput,
   campaignResultRef,
-  chatMemory
+  chatMemory,
+  insightPrompt
 }: CampaignSectionProps) => {
   const scrollArrowRef = React.useRef<HTMLDivElement>(null);
   const mainScrollArrowRef = React.useRef<HTMLDivElement>(null);
@@ -102,6 +105,17 @@ const CampaignSection = ({
     <>
       {!generatedCampaign ? (
         <div className="flex flex-col w-full">
+          {insightPrompt && (
+            <TransitionElement animation="fade" className="mb-6">
+              <Alert className="bg-primary/10 border-primary/20">
+                <Lightbulb className="h-5 w-5 text-primary" />
+                <AlertDescription className="flex items-center">
+                  {insightPrompt}
+                </AlertDescription>
+              </Alert>
+            </TransitionElement>
+          )}
+          
           <div className="flex justify-center w-full">
             <CampaignForm onSubmit={onGenerateCampaign} isGenerating={isGenerating} />
           </div>
