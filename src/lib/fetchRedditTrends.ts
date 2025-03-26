@@ -1,6 +1,6 @@
 
 import { generateCulturalTrends } from "./generateCulturalTrends";
-import { Headline } from "./fetchNewsTrends";
+import { Headline } from "./fetchNewsTrends.client.ts";
 
 // We'll use the public Reddit JSON API instead of snoowrap
 const subreddits = ["GenZ", "trend", "OutOfTheLoop", "advertising", "marketing"];

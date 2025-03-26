@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import { Headline } from "./fetchNewsTrends";
+import { Headline } from "./fetchNewsTrends.client.ts";
 import { generateWithOpenAI, defaultOpenAIConfig } from "./openai";
 import { toast } from "sonner";
 

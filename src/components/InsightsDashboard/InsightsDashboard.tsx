@@ -9,13 +9,13 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Lightbulb, ChevronDown, RefreshCw, TrendingUp, Globe, MessageCircle } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
-import { fetchNewsTrends } from '@/lib/fetchNewsTrends';
+import { fetchNewsTrends } from '@/lib/fetchNewsTrends.client.ts';
 import { fetchAndGenerateRedditTrends } from '@/lib/fetchRedditTrends';
 import { generateCulturalTrends, saveCulturalTrends } from '@/lib/generateCulturalTrends';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { saveNewsApiKey, getNewsApiKey } from '@/lib/fetchNewsTrends';
+import { saveNewsApiKey, getNewsApiKey } from '@/lib/fetchNewsTrends.client.ts';
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
