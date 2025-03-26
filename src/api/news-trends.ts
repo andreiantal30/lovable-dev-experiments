@@ -5,6 +5,7 @@ export async function GET() {
   try {
     const headlines = await fetchNewsFromServer();
     const trends = await generateCulturalTrends(headlines);
+    
     return new Response(JSON.stringify(trends), {
       headers: { "Content-Type": "application/json" },
       status: 200,
@@ -15,3 +16,4 @@ export async function GET() {
       { status: 500 }
     );
   }
+}
