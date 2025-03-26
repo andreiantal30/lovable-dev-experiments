@@ -1,28 +1,37 @@
-import snoowrap from 'snoowrap';
-import { generateCulturalTrends, CulturalTrend } from './generateCulturalTrends';
-import { saveCulturalTrends } from './generateCulturalTrends';
+import snoowrap from "snoowrap";
+import { generateCulturalTrends } from "./generateCulturalTrends";
+import { Headline } from "./fetchNewsTrends";
 
 const reddit = new snoowrap({
-  userAgent: 'writeaway2-agent',
+  userAgent: "WriteawayTrendsBot/1.0 by Andrei",
   clientId: import.meta.env.VITE_REDDIT_CLIENT_ID,
   clientSecret: import.meta.env.VITE_REDDIT_CLIENT_SECRET,
   refreshToken: import.meta.env.VITE_REDDIT_REFRESH_TOKEN,
 });
 
-// List of subreddits to monitor
-const SUBREDDITS = ['GenZ', 'trend', 'OutOfTheLoop', 'marketing', 'advertising'];
+const subreddits = ["GenZ", "trend", "OutOfTheLoop", "advertising", "marketing"];
 
-export async function fetchAndGenerateRedditTrends(): Promise<CulturalTrend[]> {
-  const allHeadlines: { title: string; source: string }[] = [];
+export async function fetchAndGenerateRedditTrends() {
+  try {
+    const allHeadlines: Headline[] = [];
 
-  for (const sub of SUBREDDITS) {
-    const posts = await reddit.getSubreddit(sub).getHot({ limit: 5 });
-    posts.forEach(post => {
-      allHeadlines.push({ title: post.title, source: `r/${sub}` });
-    });
+    for (const sub of subreddits) {
+      const posts = await reddit.getSubreddit(sub).getHot({ limit: 10 });
+    
+      posts.forEach((post) => {
+        allHeadlines.push({
+          title: post.title,
+          source: `r/${sub}`
+        });
+      });
+    }
+    
+    console.log("🧵 Pulled Reddit headlines:", allHeadlines.length);
+
+    const culturalTrends = await generateCulturalTrends(allHeadlines);
+    return culturalTrends;
+  } catch (error) {
+    console.error("🚨 Error fetching Reddit trends:", error);
+    throw error;
   }
-
-  const trends = await generateCulturalTrends(allHeadlines);
-  saveCulturalTrends(trends); // optional, can also do this from UI
-  return trends;
 }
