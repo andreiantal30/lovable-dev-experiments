@@ -50,6 +50,10 @@ const AutoSuggestInput = ({
 
   const handleInputFocus = () => {
     setIsFocused(true);
+    // Show suggestions immediately on focus
+    if (!value && !showAllSuggestions) {
+      setShowAllSuggestions(true);
+    }
   };
 
   const handleInputBlur = (e: React.FocusEvent) => {
@@ -69,7 +73,9 @@ const AutoSuggestInput = ({
     inputRef.current?.focus();
   };
 
-  const handleShowAllSuggestions = () => {
+  const handleShowAllSuggestions = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent default to maintain focus
+    e.stopPropagation(); // Stop propagation to prevent immediate blur
     setShowAllSuggestions(true);
     setIsFocused(true);
     inputRef.current?.focus();
@@ -84,9 +90,15 @@ const AutoSuggestInput = ({
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       setHighlightedIndex(prev => prev > 0 ? prev - 1 : 0);
-    } else if (e.key === 'Enter' && highlightedIndex >= 0) {
+    } else if (e.key === 'Enter') {
       e.preventDefault();
-      onSelect(filteredSuggestions[highlightedIndex]);
+      if (highlightedIndex >= 0) {
+        // If an item is highlighted, select it
+        onSelect(filteredSuggestions[highlightedIndex]);
+      } else if (value.trim()) {
+        // If nothing is highlighted but there's text, use the input value
+        onSelect(value.trim());
+      }
       setIsFocused(false);
       setShowAllSuggestions(false);
     } else if (e.key === 'Escape') {
