@@ -3,9 +3,8 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { GeneratedCampaign } from "@/lib/generateCampaign";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Award, CheckCircle, Lightbulb } from "lucide-react";
+import { Award, Lightbulb } from "lucide-react";
 import { CampaignFeedback } from "@/components/CampaignResult";
 import { Button } from "@/components/ui/button";
 
@@ -23,172 +22,161 @@ const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({
   onRefine 
 }) => {
   return (
-    <Card className="border shadow-md">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-xl font-bold">Campaign Details</CardTitle>
+    <Card className="border shadow-md overflow-hidden">
+      <CardHeader className="bg-gradient-to-r from-amber-50 to-amber-100/50 dark:from-amber-950/30 dark:to-amber-900/20 border-b">
+        <CardTitle className="text-xl font-bold text-center">{campaign.campaignName}</CardTitle>
       </CardHeader>
       
-      <CardContent className="space-y-6">
-        <div className="space-y-2">
-          <h3 className="text-lg font-semibold">Campaign Name</h3>
-          <p className="text-md">{campaign.campaignName}</p>
-        </div>
-        
-        <Separator />
-        
-        <div className="space-y-2">
-          <h3 className="text-lg font-semibold">Key Message</h3>
-          <p className="text-md">{campaign.keyMessage}</p>
-        </div>
-        
-        {/* Display Creative Insights if available */}
-        {campaign.creativeInsights && campaign.creativeInsights.length > 0 && (
-          <>
-            <Separator />
-            <div className="space-y-2 bg-amber-50 dark:bg-amber-950/20 p-4 rounded-lg">
-              <div className="flex items-center gap-2">
-                <Lightbulb className="h-5 w-5 text-amber-500" />
-                <h3 className="text-lg font-semibold">Creative Insights</h3>
-              </div>
-              <ul className="list-disc pl-5 space-y-1">
-                {campaign.creativeInsights.map((insight, index) => (
-                  <li key={index} className="text-md italic">{insight}</li>
-                ))}
-              </ul>
-            </div>
-          </>
-        )}
-        
-        <Separator />
-        
-        <div className="space-y-2">
-          <h3 className="text-lg font-semibold">Creative Strategy</h3>
-          <ul className="list-disc pl-5 space-y-1">
-            {campaign.creativeStrategy.map((strategy, index) => (
-              <li key={index} className="text-md">{strategy}</li>
-            ))}
-          </ul>
-        </div>
-        
-        <Separator />
-        
-        <div className="space-y-2">
-          <h3 className="text-lg font-semibold">Execution Plan</h3>
-          <ul className="list-disc pl-5 space-y-1">
-            {campaign.executionPlan.map((execution, index) => (
-              <li key={index} className="text-md">{execution}</li>
-            ))}
-          </ul>
-        </div>
-        
-        {campaign.expectedOutcomes && campaign.expectedOutcomes.length > 0 && (
-          <>
-            <Separator />
+      <CardContent className="p-6">
+        {/* Two-column Cannes Lions style layout */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+          {/* Left Column (40% width) */}
+          <div className="md:col-span-5 space-y-6 border-r-0 md:border-r border-dashed border-gray-200 dark:border-gray-700 pr-0 md:pr-6">
+            {/* The Insight / Key Message */}
             <div className="space-y-2">
-              <h3 className="text-lg font-semibold">Expected Outcomes</h3>
-              <ul className="list-disc pl-5 space-y-1">
-                {campaign.expectedOutcomes.map((outcome, index) => (
-                  <li key={index} className="text-md">{outcome}</li>
-                ))}
-              </ul>
+              <h3 className="text-lg font-semibold text-primary">The Insight</h3>
+              <p className="text-md">{campaign.keyMessage}</p>
             </div>
-          </>
-        )}
-        
-        {campaign.viralHook && (
-          <>
-            <Separator />
+            
+            <Separator className="my-4" />
+            
+            {/* The Idea / Campaign Name */}
             <div className="space-y-2">
-              <h3 className="text-lg font-semibold">Viral Hook</h3>
-              <p className="text-md">{campaign.viralHook}</p>
+              <h3 className="text-lg font-semibold text-primary">The Idea</h3>
+              <p className="text-md font-medium">{campaign.campaignName}</p>
             </div>
-          </>
-        )}
-        
-        {campaign.viralElement && (
-          <>
-            <Separator />
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold">Viral Element</h3>
-              <p className="text-md">{campaign.viralElement}</p>
-            </div>
-          </>
-        )}
-        
-        {campaign.consumerInteraction && (
-          <>
-            <Separator />
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold">Consumer Interaction</h3>
-              <p className="text-md">{campaign.consumerInteraction}</p>
-            </div>
-          </>
-        )}
-        
-        {campaign.callToAction && (
-          <>
-            <Separator />
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold">Call to Action</h3>
-              <p className="text-md">{campaign.callToAction}</p>
-            </div>
-          </>
-        )}
-        
-        {campaign.emotionalAppeal && campaign.emotionalAppeal.length > 0 && (
-          <>
-            <Separator />
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold">Emotional Appeal</h3>
-              <ul className="list-disc pl-5 space-y-1">
-                {campaign.emotionalAppeal.map((appeal, index) => (
-                  <li key={index} className="text-md">{appeal}</li>
-                ))}
-              </ul>
-            </div>
-          </>
-        )}
-        
-        {campaign.referenceCampaigns && campaign.referenceCampaigns.length > 0 && (
-          <>
-            <Separator />
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold">Reference Campaigns</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                {campaign.referenceCampaigns.map((refCampaign, index) => (
-                  <div key={index} className="bg-muted/40 p-4 rounded-lg">
-                    <h4 className="font-medium">{refCampaign.name}</h4>
-                    <p className="text-sm text-muted-foreground">
-                      <span className="font-medium">{refCampaign.brand}</span>
-                      {refCampaign.year && (
-                        <> · {refCampaign.year}</>
-                      )}
-                      {refCampaign.industry && (
-                        <> · {refCampaign.industry}</>
-                      )}
-                    </p>
+            
+            {/* Display Creative Insights if available */}
+            {campaign.creativeInsights && campaign.creativeInsights.length > 0 && (
+              <>
+                <Separator className="my-4" />
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Lightbulb className="h-5 w-5 text-amber-500" />
+                    <h3 className="text-lg font-semibold text-primary">Creative Insights</h3>
                   </div>
+                  <ul className="list-disc pl-5 space-y-1">
+                    {campaign.creativeInsights.map((insight, index) => (
+                      <li key={index} className="text-md italic">{insight}</li>
+                    ))}
+                  </ul>
+                </div>
+              </>
+            )}
+            
+            {/* Emotional Appeal / Strategic Hooks */}
+            {campaign.emotionalAppeal && campaign.emotionalAppeal.length > 0 && (
+              <>
+                <Separator className="my-4" />
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold text-primary">Emotional & Strategic Hooks</h3>
+                  <ul className="list-disc pl-5 space-y-1">
+                    {campaign.emotionalAppeal.map((appeal, index) => (
+                      <li key={index} className="text-md">{appeal}</li>
+                    ))}
+                  </ul>
+                </div>
+              </>
+            )}
+            
+            {/* Call to Action */}
+            {(campaign.callToAction || campaign.consumerInteraction) && (
+              <>
+                <Separator className="my-4" />
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold text-primary">Call to Action</h3>
+                  <p className="text-md">{campaign.callToAction || campaign.consumerInteraction}</p>
+                </div>
+              </>
+            )}
+          </div>
+          
+          {/* Right Column (60% width) */}
+          <div className="md:col-span-7 space-y-6 pl-0 md:pl-6">
+            {/* The How / Creative Strategy */}
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-primary">The How</h3>
+              <div className="space-y-4">
+                <p className="text-md">Implementation strategy to bring the idea to life:</p>
+                <ul className="list-decimal pl-5 space-y-2">
+                  {campaign.creativeStrategy.map((strategy, index) => (
+                    <li key={index} className="text-md">{strategy}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            
+            <Separator className="my-4" />
+            
+            {/* Execution Plan */}
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-primary">Execution Plan</h3>
+              <ol className="list-decimal pl-5 space-y-2">
+                {campaign.executionPlan.map((execution, index) => (
+                  <li key={index} className="text-md">{execution}</li>
                 ))}
-              </div>
+              </ol>
             </div>
-          </>
-        )}
-        
-        {campaign.evaluation && (
-          <>
-            <Separator />
-            <div className="space-y-2 bg-muted/50 p-4 rounded-lg">
-              <div className="flex items-center gap-2">
-                <Award className="h-5 w-5 text-amber-500" />
-                <h3 className="text-lg font-semibold">Expert Evaluation</h3>
-              </div>
-              <p className="text-md whitespace-pre-line">{campaign.evaluation}</p>
-            </div>
-          </>
-        )}
+            
+            {/* Expected Outcomes */}
+            {campaign.expectedOutcomes && campaign.expectedOutcomes.length > 0 && (
+              <>
+                <Separator className="my-4" />
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold text-primary">Expected Outcomes</h3>
+                  <ul className="list-disc pl-5 space-y-2">
+                    {campaign.expectedOutcomes.map((outcome, index) => (
+                      <li key={index} className="text-md">{outcome}</li>
+                    ))}
+                  </ul>
+                </div>
+              </>
+            )}
+            
+            {/* Reference Campaigns */}
+            {campaign.referenceCampaigns && campaign.referenceCampaigns.length > 0 && (
+              <>
+                <Separator className="my-4" />
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold text-primary">Reference Campaigns</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                    {campaign.referenceCampaigns.map((refCampaign, index) => (
+                      <div key={index} className="bg-muted/40 p-3 rounded-lg border border-muted">
+                        <h4 className="font-medium text-sm">{refCampaign.name}</h4>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          <span className="font-medium">{refCampaign.brand}</span>
+                          {refCampaign.year && (
+                            <> · {refCampaign.year}</>
+                          )}
+                          {refCampaign.industry && (
+                            <> · {refCampaign.industry}</>
+                          )}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+            
+            {/* Expert Evaluation */}
+            {campaign.evaluation && (
+              <>
+                <Separator className="my-4" />
+                <div className="space-y-2 bg-muted/50 p-4 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Award className="h-5 w-5 text-amber-500" />
+                    <h3 className="text-lg font-semibold text-primary">Expert Evaluation</h3>
+                  </div>
+                  <p className="text-md whitespace-pre-line">{campaign.evaluation}</p>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
         
         {onGenerateAnother && (
-          <div className="flex justify-center mt-4">
+          <div className="flex justify-center mt-8">
             <Button onClick={onGenerateAnother} variant="outline">
               Generate Another Campaign
             </Button>
