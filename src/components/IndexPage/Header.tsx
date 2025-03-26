@@ -9,7 +9,7 @@ interface HeaderProps {
 
 const Header = ({ apiKey, onChangeApiKey }: HeaderProps) => {
   return (
-    <header className="text-center mb-12 md:mb-16 relative py-20 px-8 md:px-16 lg:px-24 bg-gradient-to-b from-[#0d0d15] to-[#111827] rounded-xl">
+    <header className="text-center mb-12 md:mb-16 relative py-20">
       <div className="max-w-5xl mx-auto">
         <TransitionElement animation="slide-down">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs uppercase font-semibold bg-blue-900/70 text-blue-300 mb-4">

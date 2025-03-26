@@ -70,11 +70,11 @@ const Index = () => {
   return (
     <>
       <CampaignSidebar onCampaignSelect={handleCampaignSelect} />
-      <SidebarInset className="bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-950 overflow-hidden relative">
+      <SidebarInset className="bg-gradient-to-b from-[#0d0d15] to-[#111827] overflow-hidden relative">
         <SidebarToggle />
         <ThemeToggle />
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-          {/* Remove background elements for cleaner look with new header */}
+          {/* Background removed for seamless look */}
         </div>
         
         <div className="container mx-auto px-4 py-12 max-w-7xl relative z-10">
