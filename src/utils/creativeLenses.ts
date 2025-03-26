@@ -58,3 +58,9 @@ export const getCreativeLensById = (id: CreativeLens | undefined): LensDetails |
   if (!id) return undefined;
   return creativeLenses.find(lens => lens.id === id);
 };
+
+// Add a function to get a random creative lens
+export const getRandomCreativeLens = (): LensDetails => {
+  const randomIndex = Math.floor(Math.random() * creativeLenses.length);
+  return creativeLenses[randomIndex];
+};
