@@ -7,6 +7,7 @@ import { PersonaType } from '@/types/persona';
 import { matchReferenceCampaigns, getCreativePatternGuidance } from '@/utils/matchReferenceCampaigns';
 import { formatCampaignForPrompt } from '@/utils/formatCampaignForPrompt';
 import { campaigns } from '@/data/campaigns';
+import { CreativeLens, getCreativeLensById } from '@/utils/creativeLenses';
 
 export interface CampaignInput {
   brand: string;
@@ -42,6 +43,7 @@ export interface CampaignInput {
     | "stunt"
     | "UGC";
   persona?: PersonaType;
+  creativeLens?: CreativeLens;
 }
 
 export interface GeneratedCampaign {
@@ -521,9 +523,26 @@ As a Data-Driven Strategist, create a campaign that:
     }
   }
 
+  let creativeLensInstructions = '';
+  if (input.creativeLens) {
+    const lens = getCreativeLensById(input.creativeLens);
+    if (lens) {
+      creativeLensInstructions = `
+### **Creative Lens: ${lens.name}**
+**Choose this creative lens and apply it to this brief before writing the idea.**
+
+${lens.description} - ${lens.promptGuidance}
+
+When creating this campaign, ensure that you incorporate this creative perspective throughout your thinking.
+`;
+    }
+  }
+
   return `### Generate a groundbreaking marketing campaign with the following key elements:
 
 ${personaInstructions}
+
+${creativeLensInstructions}
 
 #### **Brand & Strategic Positioning**
 - **Brand Name:** ${input.brand}

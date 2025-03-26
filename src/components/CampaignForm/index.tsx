@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { CampaignInput } from "@/lib/generateCampaign";
 import TransitionElement from "@/components/TransitionElement";
@@ -11,7 +12,9 @@ import TagManager from "./TagManager";
 import BrandInput from "./BrandInput";
 import StyleSelection from "./StyleSelection";
 import PersonaSelector from "./PersonaSelector";
+import CreativeLensSelector from "./CreativeLensSelector";
 import { PersonaType } from "@/types/persona";
+import { CreativeLens } from "@/utils/creativeLenses";
 
 interface CampaignFormProps {
   onSubmit: (input: CampaignInput) => void;
@@ -28,7 +31,8 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
     emotionalAppeal: [],
     additionalConstraints: "",
     campaignStyle: undefined,
-    persona: undefined
+    persona: undefined,
+    creativeLens: undefined
   });
 
   const [errors, setErrors] = useState<{
@@ -131,6 +135,13 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
     }));
   };
 
+  const handleCreativeLensChange = (lensId: CreativeLens) => {
+    setFormData(prev => ({
+      ...prev,
+      creativeLens: lensId
+    }));
+  };
+
   return (
     <TransitionElement animation="slide-up" className="w-full max-w-4xl mx-auto">
       <form 
@@ -146,6 +157,13 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
           <PersonaSelector 
             selectedPersona={formData.persona} 
             onChange={handlePersonaChange} 
+          />
+        </div>
+        
+        <div className="my-8">
+          <CreativeLensSelector
+            selectedLens={formData.creativeLens}
+            onChange={handleCreativeLensChange}
           />
         </div>
         
