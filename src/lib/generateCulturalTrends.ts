@@ -37,7 +37,7 @@ For each trend, give:
 Headlines:
 ${formattedHeadlines}
 
-Please respond in a parseable JSON format only, with no explanation or additional text:
+Respond ONLY with a valid JSON array (no intro, explanation, markdown, or text outside the array). Format exactly like this:
 [
   {
     "title": "Trend title",
@@ -49,18 +49,22 @@ Please respond in a parseable JSON format only, with no explanation or additiona
 ]
 `;
 
-    console.log("Sending prompt to OpenAI:", prompt.substring(0, 200) + "...");
+console.log("GPT Response:", response);
     
     // Send to OpenAI
     const response = await generateWithOpenAI(prompt, defaultOpenAIConfig);
     
     // Parse the response
     try {
-      const jsonResponse = JSON.parse(response);
-      
-      if (!Array.isArray(jsonResponse)) {
-        throw new Error("Response is not an array");
-      }
+      let jsonResponse;
+try {
+  jsonResponse = JSON.parse(response);
+  if (!Array.isArray(jsonResponse)) throw new Error();
+} catch (err) {
+  console.error("GPT response parsing failed:", response);
+  return []; // Or return a default list of trends
+}
+
       
       // Transform to our format with IDs and dates
       return jsonResponse.map(trend => ({
