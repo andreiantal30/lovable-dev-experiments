@@ -25,6 +25,10 @@ const NotFound = () => {
             Attempted path: <code className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{location.pathname}</code>
           </span>
         </p>
+        <div className="mb-6 text-gray-500 dark:text-gray-400 text-sm border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+          <p className="font-semibold">Debug information:</p>
+          <p>Current location: {JSON.stringify(location)}</p>
+        </div>
         <Link to="/" className="text-blue-500 hover:text-blue-700 underline font-medium">
           Return to Home
         </Link>

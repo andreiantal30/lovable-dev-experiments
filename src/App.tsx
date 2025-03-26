@@ -10,6 +10,9 @@ import CampaignDetail from "./pages/CampaignDetail";
 import { CampaignSidebarProvider } from "./components/CampaignSidebarProvider";
 
 function App() {
+  // Confirm that Index component is being properly imported
+  console.log("Index component:", Index);
+  
   return (
     <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
       <CampaignSidebarProvider>
