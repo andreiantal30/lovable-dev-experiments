@@ -9,6 +9,7 @@ import { generateCreativeInsights } from './campaign/creativeInsightGenerator';
 import { createCampaignPrompt } from './campaign/campaignPromptBuilder';
 import { extractJsonFromResponse } from './campaign/utils';
 import { getCreativeDevicesForStyle } from '@/data/creativeDevices';
+import { getCachedCulturalTrends } from '@/data/culturalTrends';
 
 /**
  * Main function to generate a campaign using AI
@@ -37,8 +38,24 @@ export const generateCampaign = async (
     const creativeDevices = getCreativeDevicesForStyle(input.campaignStyle, 2);
     console.log("Selected Creative Devices:", creativeDevices.map(d => d.name));
     
+    // Get relevant cultural trends
+    const culturalTrends = getCachedCulturalTrends();
+    const relevantTrends = culturalTrends.slice(0, 2); // Just take top 2 for now
+    
+    if (relevantTrends.length > 0) {
+      console.log("Incorporating Cultural Trends:", 
+        relevantTrends.map(t => t.title)
+      );
+    }
+    
     // Create the campaign generation prompt
-    const prompt = createCampaignPrompt(input, referenceCampaigns, creativeInsights, creativeDevices);
+    const prompt = createCampaignPrompt(
+      input, 
+      referenceCampaigns, 
+      creativeInsights, 
+      creativeDevices,
+      relevantTrends // This parameter would need to be added to the createCampaignPrompt function
+    );
     
     console.log("Prompt Preview (first 200 chars):", prompt.substring(0, 200));
     
