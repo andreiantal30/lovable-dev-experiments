@@ -1,16 +1,18 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getCachedCulturalTrends, CulturalTrend } from '@/data/culturalTrends';
 import { Button } from '@/components/ui/button';
-import { Clock, ArrowRight } from 'lucide-react';
+import { Clock, ArrowRight, Filter } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const CulturalTrendsView: React.FC = () => {
   const trends = getCachedCulturalTrends();
   const navigate = useNavigate();
+  const [sourceFilter, setSourceFilter] = useState<string | null>(null);
   
   const handleCreateCampaign = (trend: CulturalTrend) => {
     navigate('/', { 
@@ -20,21 +22,52 @@ const CulturalTrendsView: React.FC = () => {
     });
   };
   
+  const filteredTrends = sourceFilter 
+    ? trends.filter(trend => trend.source === sourceFilter)
+    : trends;
+  
   if (trends.length === 0) {
     return (
       <Card className="w-full bg-muted/50">
         <CardContent className="flex flex-col items-center justify-center py-10">
           <p className="text-center text-muted-foreground mb-4">
-            No cultural trends available yet. Click "Update Trends from NewsAPI" to fetch the latest trends.
+            No cultural trends available yet. Click "Update Trends from NewsAPI" or "Update Trends from Reddit" to fetch the latest trends.
           </p>
         </CardContent>
       </Card>
     );
   }
   
+  // Get unique sources for filtering
+  const sources = [...new Set(trends.map(trend => trend.source))];
+  
   return (
     <div className="space-y-4">
-      {trends.map((trend) => (
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-medium">
+          {sourceFilter ? `${sourceFilter} Trends` : 'All Trends'}
+        </h3>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-2">
+              <Filter className="h-4 w-4" />
+              Filter by Source
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setSourceFilter(null)}>
+              All Sources
+            </DropdownMenuItem>
+            {sources.map(source => (
+              <DropdownMenuItem key={source} onClick={() => setSourceFilter(source)}>
+                {source}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+      
+      {filteredTrends.map((trend) => (
         <Card key={trend.id} className="w-full overflow-hidden group">
           <CardHeader className="pb-2">
             <div className="flex justify-between items-start">
@@ -49,7 +82,7 @@ const CulturalTrendsView: React.FC = () => {
                   <span>{trend.category}</span>
                 </div>
               </div>
-              <Badge variant="outline" className="bg-primary/10">
+              <Badge variant={trend.source === "Reddit" ? "secondary" : "outline"} className={trend.source === "Reddit" ? "bg-orange-500/10 text-orange-500" : "bg-primary/10"}>
                 {trend.source}
               </Badge>
             </div>

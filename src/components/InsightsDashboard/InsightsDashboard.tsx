@@ -7,9 +7,10 @@ import InsightCategoryCard from './InsightCategoryCard';
 import CulturalTrendsView from './CulturalTrendsView';
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Lightbulb, ChevronDown, RefreshCw, TrendingUp } from "lucide-react";
+import { Lightbulb, ChevronDown, RefreshCw, TrendingUp, Globe, BrandReddit } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import { fetchNewsTrends } from '@/lib/fetchNewsTrends';
+import { fetchAndGenerateRedditTrends } from '@/lib/fetchRedditTrends';
 import { generateCulturalTrends, saveCulturalTrends } from '@/lib/generateCulturalTrends';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 const InsightsDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [isUpdatingTrends, setIsUpdatingTrends] = useState(false);
+  const [isUpdatingRedditTrends, setIsUpdatingRedditTrends] = useState(false);
   const [apiKeyInput, setApiKeyInput] = useState(getNewsApiKey());
   const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("human-insights");
@@ -88,6 +90,28 @@ const InsightsDashboard: React.FC = () => {
     }
   };
 
+  const handleUpdateRedditTrends = async () => {
+    setIsUpdatingRedditTrends(true);
+    try {
+      // Fetch and generate Reddit trends in one step
+      const trends = await fetchAndGenerateRedditTrends();
+      console.log("Generated Reddit trends:", trends);
+      
+      // Save trends
+      saveCulturalTrends(trends);
+      
+      // Switch to cultural trends tab
+      setActiveTab("cultural-trends");
+      
+      toast.success("Reddit trends updated successfully");
+    } catch (error) {
+      console.error("Error updating Reddit trends:", error);
+      toast.error("Failed to update Reddit trends");
+    } finally {
+      setIsUpdatingRedditTrends(false);
+    }
+  };
+
   return (
     <div className="flex justify-center w-full">
       <div className="w-full max-w-5xl px-4 space-y-6">
@@ -109,8 +133,18 @@ const InsightsDashboard: React.FC = () => {
                 onClick={handleUpdateTrends} 
                 disabled={isUpdatingTrends}
               >
-                <RefreshCw className={`h-4 w-4 ${isUpdatingTrends ? 'animate-spin' : ''}`} />
+                <Globe className={`h-4 w-4 ${isUpdatingTrends ? 'animate-spin' : ''}`} />
                 Update Trends from NewsAPI
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="gap-2" 
+                onClick={handleUpdateRedditTrends} 
+                disabled={isUpdatingRedditTrends}
+              >
+                <BrandReddit className={`h-4 w-4 ${isUpdatingRedditTrends ? 'animate-spin' : ''}`} />
+                Update Trends from Reddit
               </Button>
               
               <DropdownMenu>
