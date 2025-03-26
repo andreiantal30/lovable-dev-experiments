@@ -1,5 +1,5 @@
 
-import { Campaign } from "@/lib/campaignData";
+import { Campaign } from "@/types/Campaign";
 import { CampaignInput } from "@/lib/generateCampaign";
 import { findSimilarCampaignsWithEmbeddings } from "@/lib/embeddingsUtil";
 import { creativePatternPrompt } from "./awardPatterns";
@@ -19,7 +19,7 @@ export async function matchReferenceCampaignsWithEmbeddings(
     console.log("Attempting semantic matching with embeddings...");
     const embeddingMatches = await findSimilarCampaignsWithEmbeddings(
       userInput,
-      campaigns,
+      campaigns as Campaign[],
       openAIConfig,
       numberOfResults
     );
@@ -51,7 +51,7 @@ export function getCreativePatternGuidance(): string {
 export function matchReferenceCampaigns(
   userInput: CampaignInput
 ): Campaign[] {
-  return campaigns
+  return (campaigns as Campaign[])
     .map((campaign) => {
       let score = 0;
 

@@ -31,7 +31,7 @@ export const findSimilarCampaigns = async (
     try {
       const embeddingResults = await findSimilarCampaignsWithEmbeddings(
         input, 
-        campaigns,
+        campaigns as Campaign[],
         openAIConfig
       );
       
@@ -56,7 +56,7 @@ export function findSimilarCampaignsTraditional(input: CampaignInput): Campaign[
   const inputSentiment = determineSentiment(input.emotionalAppeal);
   const inputTone = determineTone(input.objectives, input.emotionalAppeal);
   
-  const scoredCampaigns: EnhancedSimilarityScore[] = campaigns.map(campaign => {
+  const scoredCampaigns: EnhancedSimilarityScore[] = (campaigns as Campaign[]).map(campaign => {
     const dimensionScores = {
       industry: 0,
       audience: 0,

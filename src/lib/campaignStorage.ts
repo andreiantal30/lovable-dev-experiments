@@ -26,13 +26,7 @@ export const emitCampaignUpdate = () => {
 // Get campaigns - always use the static file data
 export const getCampaigns = (): Campaign[] => {
   // Return the campaigns from the static file with IDs
-  return campaigns.map(campaign => {
-    // Ensure each campaign has an ID
-    if (!campaign.id) {
-      return { ...campaign, id: uuidv4() };
-    }
-    return campaign;
-  });
+  return campaigns as Campaign[];
 };
 
 // Legacy functions maintained for compatibility
