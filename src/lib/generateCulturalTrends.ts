@@ -67,6 +67,26 @@ Format strictly like this:
       toast.error("Failed to parse Reddit trends from AI");
       return [];
     }
+// 🔁 Optional: Map vague or duplicate categories to cleaner tags
+const categoryRemap: { [key: string]: string } = {
+  "Identity": "Belonging & Identity",
+  "Belonging": "Belonging & Identity",
+  "Youth Culture": "Gen Z & Youth",
+  "Online Behavior": "Digital Life",
+  "Technology": "Innovation & Tech",
+  "AI": "Innovation & Tech",
+  "Uncategorized": "Other",
+};
+
+jsonResponse = jsonResponse.map((trend: any) => {
+  const rawCat = trend.category || "Uncategorized";
+  const mappedCat = categoryRemap[rawCat] || rawCat;
+  return {
+    ...trend,
+    category: mappedCat,
+  };
+});
+
 
     // ✅ Format for display
     const culturalTrends: CulturalTrend[] = jsonResponse.map((trend: any) => ({

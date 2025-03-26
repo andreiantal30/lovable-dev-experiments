@@ -31,12 +31,15 @@ const InsightsDashboard: React.FC = () => {
   const insightPatterns = useMemo(() => analyzeInsightPatterns(), []);
   
   // Prepare data for bar chart
-  const chartData = useMemo(() => 
-    insightPatterns.map(pattern => ({
-      name: pattern.name,
-      count: pattern.count
-    }))
+  const chartData = useMemo(() =>
+    insightPatterns
+      .filter(pattern => pattern.count > 2) // Only include patterns used in >2 campaigns
+      .map(pattern => ({
+        name: pattern.name,
+        count: pattern.count
+      }))
   , [insightPatterns]);
+  
 
   const handleInsightCampaignCreate = (insightName: string) => {
     // Navigate to homepage with query parameter for the insight
