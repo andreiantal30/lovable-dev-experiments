@@ -6,6 +6,7 @@ import FeedbackSystem, { CampaignFeedbackData } from '../FeedbackSystem';
 import CampaignLeftColumn from './CampaignLeftColumn';
 import CampaignRightColumn from './CampaignRightColumn';
 import CampaignActions from './CampaignActions';
+import CreativeDirectorFeedback from './CreativeDirectorFeedback';
 
 export interface CampaignFeedback {
   overallRating: number;
@@ -102,6 +103,11 @@ const CampaignResult: React.FC<CampaignResultProps> = ({
           </div>
         </CardContent>
       </Card>
+      
+      {/* Creative Director Feedback Section */}
+      {campaign.evaluation && (
+        <CreativeDirectorFeedback feedback={campaign.evaluation} />
+      )}
       
       {showFeedbackForm && !feedbackSubmitted && onRefine && (
         <div className="mt-6">

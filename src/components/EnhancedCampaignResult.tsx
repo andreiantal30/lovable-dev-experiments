@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Award, Lightbulb } from "lucide-react";
 import { CampaignFeedback } from "@/components/CampaignResult";
 import { Button } from "@/components/ui/button";
+import CreativeDirectorFeedback from "./CampaignResult/CreativeDirectorFeedback";
 
 export interface EnhancedCampaignResultProps {
   campaign: GeneratedCampaign;
@@ -158,22 +159,15 @@ const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({
                 </div>
               </>
             )}
-            
-            {/* Expert Evaluation */}
-            {campaign.evaluation && (
-              <>
-                <Separator className="my-4" />
-                <div className="space-y-2 bg-muted/50 p-4 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Award className="h-5 w-5 text-amber-500" />
-                    <h3 className="text-lg font-semibold text-primary">Expert Evaluation</h3>
-                  </div>
-                  <p className="text-md whitespace-pre-line">{campaign.evaluation}</p>
-                </div>
-              </>
-            )}
           </div>
         </div>
+        
+        {/* Creative Director Feedback Section */}
+        {campaign.evaluation && (
+          <div className="mt-6">
+            <CreativeDirectorFeedback feedback={campaign.evaluation} />
+          </div>
+        )}
         
         {onGenerateAnother && (
           <div className="flex justify-center mt-8">
