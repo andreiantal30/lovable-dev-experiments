@@ -18,8 +18,8 @@ const InsightsDashboard: React.FC = () => {
   , [insightPatterns]);
 
   return (
-    <div className="space-y-6">
-      <Card>
+    <div className="w-full max-w-6xl mx-auto px-4 space-y-6">
+      <Card className="w-full">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-xl font-bold">
             <span role="img" aria-label="brain">🧠</span> Human Insight Patterns
@@ -40,7 +40,7 @@ const InsightsDashboard: React.FC = () => {
             </ResponsiveContainer>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
             {insightPatterns.slice(0, 4).map((pattern) => (
               <InsightCategoryCard key={pattern.name} pattern={pattern} />
             ))}
