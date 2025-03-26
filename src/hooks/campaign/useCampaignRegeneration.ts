@@ -1,7 +1,6 @@
-
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
-import { CampaignInput, GeneratedCampaign } from "@/lib/generateCampaign";
+import { CampaignInput, GeneratedCampaign } from "@/lib/campaign/types";
 import { OpenAIConfig } from "@/lib/openai";
 import { Message } from "@/components/ChatWindow";
 import { saveCampaignToLibrary } from "@/lib/campaignStorage";
@@ -166,6 +165,7 @@ export function useCampaignRegeneration(
           }
         }
         
+        updatedCampaign.versionTag = `${targetSection}-refined`;
         setGeneratedCampaign(updatedCampaign);
       } else {
         const enhancedInput: CampaignInput = {

@@ -62,7 +62,10 @@ const Index = () => {
     handleRegenerateCampaign,
     applyChangesAndRegenerateCampaign,
     setMessages,
-    campaignResultRef
+    campaignResultRef,
+    campaignVersions,
+    saveCampaignVersion,
+    loadCampaignVersion
   } = useCampaignGeneration(openAIConfig);
 
   console.log("Campaign generation hook initialized", { isGenerating, hasGeneratedCampaign: !!generatedCampaign });
@@ -149,6 +152,9 @@ const Index = () => {
             campaignResultRef={campaignResultRef}
             chatMemory={chatMemory}
             insightPrompt={insightPrompt}
+            campaignVersions={campaignVersions}
+            onSaveCampaignVersion={saveCampaignVersion}
+            onLoadCampaignVersion={loadCampaignVersion}
           />
           
           <Footer />

@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import CampaignForm from "@/components/CampaignForm";
 import CampaignResult, { CampaignFeedback } from "@/components/CampaignResult";
 import ChatWindow, { Message } from "@/components/ChatWindow";
-import { CampaignInput, GeneratedCampaign } from "@/lib/generateCampaign";
+import { CampaignInput, GeneratedCampaign, CampaignVersion } from "@/lib/generateCampaign";
 import TransitionElement from "@/components/TransitionElement";
 import { OpenAIConfig } from "@/lib/openai";
 import HowItWorks from "@/components/HowItWorks";
@@ -11,6 +11,7 @@ import Plans from "@/components/Plans";
 import { Link } from "react-router-dom";
 import { ChevronDown, Library, Lightbulb } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import CampaignVersions from "@/components/CampaignVersions";
 
 interface CampaignSectionProps {
   generatedCampaign: GeneratedCampaign | null;
@@ -34,6 +35,9 @@ interface CampaignSectionProps {
     userPreferences: Record<string, any>;
   };
   insightPrompt?: string | null;
+  campaignVersions?: CampaignVersion[];
+  onSaveCampaignVersion?: (tag: string) => void;
+  onLoadCampaignVersion?: (version: CampaignVersion) => void;
 }
 
 const CampaignSection = ({
@@ -54,7 +58,10 @@ const CampaignSection = ({
   lastInput,
   campaignResultRef,
   chatMemory,
-  insightPrompt
+  insightPrompt,
+  campaignVersions = [],
+  onSaveCampaignVersion,
+  onLoadCampaignVersion
 }: CampaignSectionProps) => {
   const scrollArrowRef = React.useRef<HTMLDivElement>(null);
   const mainScrollArrowRef = React.useRef<HTMLDivElement>(null);
@@ -133,6 +140,20 @@ const CampaignSection = ({
         </div>
       ) : (
         <div className="space-y-12" ref={campaignResultRef} id="generated-campaign">
+          {/* Version Management */}
+          {onSaveCampaignVersion && onLoadCampaignVersion && (
+            <div className="flex justify-end">
+              <div className="flex gap-2">
+                <CampaignVersions
+                  currentCampaign={generatedCampaign}
+                  versions={campaignVersions}
+                  onSaveVersion={onSaveCampaignVersion}
+                  onLoadVersion={onLoadCampaignVersion}
+                />
+              </div>
+            </div>
+          )}
+          
           <div className={isRefining || isRegenerating ? "opacity-50 pointer-events-none" : ""}>
             <CampaignResult 
               campaign={generatedCampaign} 

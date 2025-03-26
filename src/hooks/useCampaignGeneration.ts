@@ -1,6 +1,6 @@
 
 import { useState, useRef } from "react";
-import { CampaignInput, GeneratedCampaign, generateCampaign } from "@/lib/generateCampaign";
+import { CampaignInput, GeneratedCampaign, generateCampaign, CampaignVersion } from "@/lib/generateCampaign";
 import { OpenAIConfig } from "@/lib/openai";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
@@ -19,6 +19,7 @@ export function useCampaignGeneration(openAIConfig: OpenAIConfig) {
   const [generatedCampaign, setGeneratedCampaign] = useState<GeneratedCampaign | null>(null);
   const [lastInput, setLastInput] = useState<CampaignInput | null>(null);
   const campaignResultRef = useRef<HTMLDivElement | null>(null);
+  const [campaignVersions, setCampaignVersions] = useState<CampaignVersion[]>([]);
 
   // Import functionality from the separated hooks
   const { 
@@ -82,6 +83,25 @@ export function useCampaignGeneration(openAIConfig: OpenAIConfig) {
     scrollToCampaign
   );
 
+  // Save a version of the current campaign
+  const saveCampaignVersion = (tag: string) => {
+    if (!generatedCampaign) return;
+
+    const newVersion: CampaignVersion = {
+      id: uuidv4(),
+      versionTag: tag,
+      timestamp: Date.now(),
+      campaign: { ...generatedCampaign }
+    };
+
+    setCampaignVersions(prev => [...prev, newVersion]);
+  };
+
+  // Load a saved campaign version
+  const loadCampaignVersion = (version: CampaignVersion) => {
+    setGeneratedCampaign({ ...version.campaign });
+  };
+
   const handleGenerateCampaign = async (input: CampaignInput) => {
     if (!openAIConfig.apiKey) {
       toast.error("Please enter your OpenAI API key first");
@@ -93,6 +113,18 @@ export function useCampaignGeneration(openAIConfig: OpenAIConfig) {
     
     try {
       const campaign = await generateCampaign(input, openAIConfig);
+      
+      // Save the initial campaign as a version
+      if (campaign) {
+        // Clear previous versions when generating a completely new campaign
+        setCampaignVersions([{
+          id: uuidv4(),
+          versionTag: "original",
+          timestamp: Date.now(),
+          campaign: { ...campaign }
+        }]);
+      }
+      
       setGeneratedCampaign(campaign);
       
       if (campaign && input.brand && input.industry) {
@@ -118,6 +150,7 @@ export function useCampaignGeneration(openAIConfig: OpenAIConfig) {
     setGeneratedCampaign(null);
     setIsChatActive(false);
     setMessages([]);
+    setCampaignVersions([]);
   };
 
   return {
@@ -137,6 +170,9 @@ export function useCampaignGeneration(openAIConfig: OpenAIConfig) {
     handleRegenerateCampaign,
     applyChangesAndRegenerateCampaign,
     setMessages,
-    campaignResultRef
+    campaignResultRef,
+    campaignVersions,
+    saveCampaignVersion,
+    loadCampaignVersion
   };
 }

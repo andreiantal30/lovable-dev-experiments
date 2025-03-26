@@ -54,6 +54,13 @@ export interface CampaignEvaluation {
   finalVerdict: string;
 }
 
+export interface CampaignVersion {
+  id: string;
+  versionTag: string;
+  timestamp: number;
+  campaign: GeneratedCampaign;
+}
+
 export interface GeneratedCampaign {
   campaignName: string;
   keyMessage: string;
@@ -69,4 +76,5 @@ export interface GeneratedCampaign {
   emotionalAppeal?: string[];
   evaluation?: CampaignEvaluation;
   creativeInsights?: string[];
+  versionTag?: string; // Added for version tracking
 }
