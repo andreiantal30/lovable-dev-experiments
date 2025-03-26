@@ -49,12 +49,12 @@ export const generateCampaign = async (
     }
     
     // Create the campaign generation prompt
+    // The createCampaignPrompt function needs to be updated to accept relevantTrends
     const prompt = createCampaignPrompt(
       input, 
       referenceCampaigns, 
       creativeInsights, 
-      creativeDevices,
-      relevantTrends // This parameter would need to be added to the createCampaignPrompt function
+      creativeDevices
     );
     
     console.log("Prompt Preview (first 200 chars):", prompt.substring(0, 200));

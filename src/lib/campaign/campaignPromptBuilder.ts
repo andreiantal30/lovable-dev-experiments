@@ -1,9 +1,11 @@
+
 import { CampaignInput } from './types';
 import { Campaign } from '../campaignData';
 import { formatCampaignForPrompt } from '@/utils/formatCampaignForPrompt';
 import { getCreativePatternGuidance } from '@/utils/matchReferenceCampaigns';
 import { getCreativeLensById } from '@/utils/creativeLenses';
 import { CreativeDevice, formatCreativeDevicesForPrompt } from '@/data/creativeDevices';
+import { CulturalTrend } from '@/data/culturalTrends';
 
 /**
  * Build the prompt for campaign generation
@@ -12,7 +14,8 @@ export const createCampaignPrompt = (
   input: CampaignInput, 
   referenceCampaigns: Campaign[],
   creativeInsights: string[] = [],
-  creativeDevices: CreativeDevice[] = []
+  creativeDevices: CreativeDevice[] = [],
+  culturalTrends: CulturalTrend[] = []
 ): string => {
   const referenceCampaignsText = referenceCampaigns.map(campaign => formatCampaignForPrompt(campaign)).join('\n');
 
@@ -23,6 +26,16 @@ The following audience insights have been identified as key tensions or truths t
 ${creativeInsights.map((insight, index) => `${index + 1}. "${insight}"`).join('\n')}
 
 Use at least one of these insights as a foundation for your campaign strategy.
+` : '';
+
+  // Format cultural trends for the prompt
+  const culturalTrendsBlock = culturalTrends.length > 0 ? `
+#### **Cultural Trends**
+The following cultural trends should be considered for your campaign:
+
+${culturalTrends.map((trend, index) => `${index + 1}. "${trend.title}": ${trend.description}`).join('\n')}
+
+Try to leverage one of these cultural trends to make your campaign more relevant and timely.
 ` : '';
 
   const referencePrompt = `
@@ -156,6 +169,8 @@ ${creativeLensInstructions}
 - **Emotional Appeal to Tap Into:** ${input.emotionalAppeal.join(', ')}
 
 ${insightsBlock}
+
+${culturalTrendsBlock}
 
 ${creativeDevicesBlock}
 
