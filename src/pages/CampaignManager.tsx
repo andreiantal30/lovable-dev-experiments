@@ -7,7 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import CampaignList from '@/components/CampaignManager/CampaignList';
-import { ArrowLeft, Database, Info } from 'lucide-react';
+import InsightsDashboard from '@/components/InsightsDashboard';
+import { ArrowLeft, Database, LayoutDashboard, Info } from 'lucide-react';
 
 const CampaignManager: React.FC = () => {
   const [campaignList, setCampaignList] = useState<Campaign[]>([]);
@@ -45,8 +46,12 @@ const CampaignManager: React.FC = () => {
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full md:w-auto grid-cols-1 mb-6">
+            <TabsList className="grid w-full md:w-auto grid-cols-2 mb-6">
               <TabsTrigger value="browse">Browse Campaigns</TabsTrigger>
+              <TabsTrigger value="insights" className="flex items-center gap-1">
+                <LayoutDashboard className="h-4 w-4" />
+                Insights Dashboard
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="browse" className="pt-2">
@@ -56,6 +61,10 @@ const CampaignManager: React.FC = () => {
                   toast.info("Campaigns can only be modified by the administrator.");
                 }} 
               />
+            </TabsContent>
+            
+            <TabsContent value="insights" className="pt-2">
+              <InsightsDashboard />
             </TabsContent>
           </Tabs>
         </div>
