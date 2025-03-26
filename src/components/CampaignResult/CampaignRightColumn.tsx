@@ -63,6 +63,14 @@ const CampaignRightColumn: React.FC<CampaignRightColumnProps> = ({
             <li>{campaign.executionPlan}</li>
           }
         </ol>
+        
+        {/* Viral Element Section integrated with execution plan */}
+        {(campaign.viralElement || campaign.viralHook) && (
+          <div className="mt-4 bg-primary/5 p-3 rounded-md">
+            <h4 className="font-medium text-primary mb-2">The transformation goes viral with:</h4>
+            <p className="text-sm">{campaign.viralElement || campaign.viralHook}</p>
+          </div>
+        )}
       </div>
       
       {/* Expected Outcomes Section */}

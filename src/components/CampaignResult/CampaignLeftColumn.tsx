@@ -21,8 +21,8 @@ const CampaignLeftColumn: React.FC<CampaignLeftColumnProps> = ({
 }) => {
   return (
     <div className="md:col-span-5 space-y-6 border-r-0 md:border-r border-dashed border-gray-200 dark:border-gray-700 pr-0 md:pr-6">
-      {/* The Insight / Key Message */}
-      <div className="space-y-2">
+      {/* The Insight & The Idea Section - combined for better coherence */}
+      <div className="space-y-4">
         <ElementRating
           element="The Insight"
           elementKey="keyMessage"
@@ -31,13 +31,8 @@ const CampaignLeftColumn: React.FC<CampaignLeftColumnProps> = ({
           showFeedback={showFeedbackForm}
           feedbackSubmitted={feedbackSubmitted}
         />
-        <p>{campaign.keyMessage}</p>
-      </div>
-      
-      <Separator />
-      
-      {/* The Idea / Campaign Name */}
-      <div className="space-y-2">
+        <p className="text-muted-foreground italic mb-2">{campaign.keyMessage}</p>
+        
         <ElementRating
           element="The Idea"
           elementKey="campaignName"
@@ -45,8 +40,9 @@ const CampaignLeftColumn: React.FC<CampaignLeftColumnProps> = ({
           onRate={onRateElement}
           showFeedback={showFeedbackForm}
           feedbackSubmitted={feedbackSubmitted}
+          hideIfNoFeedback={true}
         />
-        <p className="font-medium">{campaign.campaignName}</p>
+        <p className="font-semibold text-lg text-primary">{campaign.campaignName}</p>
       </div>
       
       {/* Emotional Appeal Section */}
@@ -67,27 +63,20 @@ const CampaignLeftColumn: React.FC<CampaignLeftColumnProps> = ({
         </>
       )}
       
-      {/* Call to Action Section */}
+      {/* Call to Action Section - enhanced with better styling */}
       {(campaign.callToAction || campaign.consumerInteraction) && (
         <>
           <Separator />
           <div className="space-y-2">
             <h3 className="font-medium text-lg text-primary">Call to Action</h3>
-            <p>{campaign.callToAction || campaign.consumerInteraction}</p>
+            <p className="font-medium text-base border-l-4 border-primary pl-3 py-1 bg-primary/5 italic">
+              "{campaign.callToAction || campaign.consumerInteraction}"
+            </p>
           </div>
         </>
       )}
 
-      {/* Viral Element Section if available */}
-      {(campaign.viralElement || campaign.viralHook) && (
-        <>
-          <Separator />
-          <div className="space-y-2">
-            <h3 className="font-medium text-lg text-primary">Viral Element</h3>
-            <p>{campaign.viralElement || campaign.viralHook}</p>
-          </div>
-        </>
-      )}
+      {/* Viral Element moved to RightColumn */}
     </div>
   );
 };

@@ -10,6 +10,7 @@ interface ElementRatingProps {
   onRate: (element: string, value: number) => void;
   showFeedback: boolean;
   feedbackSubmitted: boolean;
+  hideIfNoFeedback?: boolean;
 }
 
 const ElementRating: React.FC<ElementRatingProps> = ({
@@ -18,8 +19,13 @@ const ElementRating: React.FC<ElementRatingProps> = ({
   rating,
   onRate,
   showFeedback,
-  feedbackSubmitted
+  feedbackSubmitted,
+  hideIfNoFeedback = false
 }) => {
+  if (!showFeedback && hideIfNoFeedback) {
+    return null;
+  }
+  
   if (!showFeedback || feedbackSubmitted) {
     return <h3 className="font-medium text-lg text-primary">{element}</h3>;
   }
