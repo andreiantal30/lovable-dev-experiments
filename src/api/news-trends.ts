@@ -1,19 +1,20 @@
-import { fetchNewsFromServer } from "../../server/fetchNewsTrends.server";
+import { fetchNewsFromServer } from "@/lib/fetchNewsFromServer";
 import { generateCulturalTrends } from "@/lib/generateCulturalTrends";
 
-export interface Headline {
-  title: string;
-  source: string;
-  publishedAt: string;
-}
+export async function GET() {
+  try {
+    const headlines = await fetchNewsFromServer();
+    const trends = await generateCulturalTrends(headlines);
 
-export const fetchNewsTrends = async (): Promise<Headline[]> => {
-  const response = await fetch("/api/news-trends");
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch news trends");
+    return new Response(JSON.stringify(trends), {
+      headers: { "Content-Type": "application/json" },
+      status: 200,
+    });
+  } catch (e) {
+    console.error("❌ API error:", e);
+    return new Response(
+      JSON.stringify({ error: "Failed to generate news trends", details: e }),
+      { status: 500 }
+    );
   }
-
-  return response.json();
-};
+}
