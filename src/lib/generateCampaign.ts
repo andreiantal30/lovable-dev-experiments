@@ -40,7 +40,25 @@ export const generateCampaign = async (
     
     // Get relevant cultural trends
     const culturalTrends = getCachedCulturalTrends();
-    const relevantTrends = culturalTrends.slice(0, 2); // Just take top 2 for now
+
+    // Give priority to non-tech trends for variety
+    const prioritized = [
+      ...culturalTrends.filter(t =>
+        !t.platformTags.some(tag => tag.toLowerCase().includes("ai") || tag.toLowerCase().includes("ar") || tag.toLowerCase().includes("vr") || tag.toLowerCase().includes("metaverse"))
+      ),
+      ...culturalTrends.filter(t =>
+        t.platformTags.some(tag => tag.toLowerCase().includes("ai") || tag.toLowerCase().includes("ar"))
+      )
+    ];
+    
+    // Shuffle and take 2 from the reordered list
+    const relevantTrends = prioritized
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 2);
+    
+    if (relevantTrends.length > 0) {
+      console.log("Incorporating Cultural Trends:", relevantTrends.map(t => t.title));
+    }
     
     if (relevantTrends.length > 0) {
       console.log("Incorporating Cultural Trends:", 

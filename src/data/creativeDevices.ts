@@ -1,4 +1,3 @@
-
 export interface CreativeDevice {
   name: string;
   description: string;
@@ -58,32 +57,11 @@ export const creativeDevices: CreativeDevice[] = [
   }
 ];
 
-/**
- * Get random creative devices from the list
- * @param count Number of devices to get
- * @returns Array of creative devices
- */
-export function getRandomCreativeDevices(count: number = 2): CreativeDevice[] {
-  if (count >= creativeDevices.length) {
-    return [...creativeDevices];
-  }
-  
-  const shuffled = [...creativeDevices].sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, count);
+function shuffle<T>(array: T[]): T[] {
+  return [...array].sort(() => 0.5 - Math.random());
 }
 
-/**
- * Get creative devices that might work well with a specific campaign style
- * @param campaignStyle The campaign style to match
- * @param count Number of devices to get
- * @returns Array of creative devices
- */
 export function getCreativeDevicesForStyle(campaignStyle?: string, count: number = 2): CreativeDevice[] {
-  if (!campaignStyle) {
-    return getRandomCreativeDevices(count);
-  }
-  
-  // Map campaign styles to creative devices that work well with them
   const styleDeviceMap: Record<string, string[]> = {
     "digital": ["Unexpected Use of Tech", "Disappearing Content", "Participatory Storytelling"],
     "experiential": ["Reality Distortion", "Media Hacking", "Brand as Utility"],
@@ -100,47 +78,33 @@ export function getCreativeDevicesForStyle(campaignStyle?: string, count: number
     "ooh-ambient": ["Reality Distortion", "Media Hacking", "Flip the Familiar"],
     "ar-vr": ["Unexpected Use of Tech", "Reality Distortion", "Brand as Utility"]
   };
-  
-  if (styleDeviceMap[campaignStyle]) {
-    // Get devices matching this style
-    const matchingDeviceNames = styleDeviceMap[campaignStyle];
-    const matchingDevices = creativeDevices.filter(device => 
-      matchingDeviceNames.includes(device.name)
-    );
-    
-    // If we have enough matching devices, shuffle and return the requested count
-    if (matchingDevices.length >= count) {
-      return matchingDevices.sort(() => 0.5 - Math.random()).slice(0, count);
-    }
-    
-    // If we don't have enough matches, get the matches we have and fill with random others
-    const remainingCount = count - matchingDevices.length;
-    const otherDevices = creativeDevices
-      .filter(device => !matchingDeviceNames.includes(device.name))
-      .sort(() => 0.5 - Math.random())
-      .slice(0, remainingCount);
-    
-    return [...matchingDevices, ...otherDevices];
+
+  let matches = campaignStyle && styleDeviceMap[campaignStyle]
+    ? shuffle(
+        creativeDevices.filter(d => styleDeviceMap[campaignStyle!].includes(d.name))
+      ).slice(0, count)
+    : [];
+
+  const remaining = count - matches.length;
+  if (remaining > 0) {
+    const remainingDevices = shuffle(
+      creativeDevices.filter(d => !matches.some(m => m.name === d.name))
+    ).slice(0, remaining);
+    matches = [...matches, ...remainingDevices];
   }
-  
-  // Default to random if no specific mapping
-  return getRandomCreativeDevices(count);
+
+  return matches;
 }
 
-/**
- * Format creative devices for inclusion in a prompt
- * @param devices Array of creative devices
- * @returns Formatted string for prompt inclusion
- */
 export function formatCreativeDevicesForPrompt(devices: CreativeDevice[]): string {
-  if (!devices || devices.length === 0) {
-    return "";
-  }
-  
+  if (!devices.length) return "";
   return `
 #### **Creative Devices to Consider**
 
 Consider using the following creative mechanics in your execution:
-${devices.map(device => `- **${device.name}**: ${device.description}`).join('\n')}
-`;
+${devices.map(d => `- **${d.name}**: ${d.description}`).join('\n')}`;
+}
+
+export function getRandomCreativeDevices(count: number = 2): CreativeDevice[] {
+  return shuffle(creativeDevices).slice(0, count);
 }
