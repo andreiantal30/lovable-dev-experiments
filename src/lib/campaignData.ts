@@ -3,7 +3,7 @@ export interface Campaign {
   id: string;
   name: string;
   brand: string;
-  year: number;
+  year?: number; // Changed from required to optional
   industry: string;
   targetAudience: string[];
   objectives: string[];
@@ -12,8 +12,8 @@ export interface Campaign {
   features: string[];
   emotionalAppeal: string[];
   outcomes: string[];
-  creativeActivation?: string; // Adding the missing property
-  viralElement?: string; // Adding the missing property
+  creativeActivation?: string;
+  viralElement?: string;
 }
 
 export const campaignData: Campaign[] = [
