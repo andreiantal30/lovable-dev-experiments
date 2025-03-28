@@ -25,8 +25,25 @@ export const emitCampaignUpdate = () => {
 
 // Get campaigns - always use the static file data
 export const getCampaigns = (): Campaign[] => {
-  // Return the campaigns from the static file with IDs
-  return campaigns as Campaign[];
+  try {
+    // Ensure each campaign has an ID
+    const campaignsWithIds = campaigns.map(campaign => {
+      // If the campaign already has an ID, use it, otherwise generate one
+      if (!campaign.id) {
+        return {
+          ...campaign,
+          id: uuidv4()
+        };
+      }
+      return campaign;
+    });
+    
+    console.log("Campaigns loaded from static file:", campaignsWithIds);
+    return campaignsWithIds as Campaign[];
+  } catch (error) {
+    console.error("Error loading campaigns:", error);
+    return [];
+  }
 };
 
 // Legacy functions maintained for compatibility

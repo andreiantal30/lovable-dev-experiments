@@ -13,10 +13,20 @@ import { ArrowLeft, Database, LayoutDashboard, Info } from 'lucide-react';
 const CampaignManager: React.FC = () => {
   const [campaignList, setCampaignList] = useState<Campaign[]>([]);
   const [activeTab, setActiveTab] = useState('browse');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Load campaigns using the getCampaigns function from campaignStorage
-    setCampaignList(getCampaigns());
+    try {
+      const campaigns = getCampaigns();
+      console.log("Loaded campaigns:", campaigns);
+      setCampaignList(campaigns);
+    } catch (error) {
+      console.error("Error loading campaigns:", error);
+      toast.error("Failed to load campaigns");
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   return (
@@ -55,12 +65,22 @@ const CampaignManager: React.FC = () => {
             </TabsList>
 
             <TabsContent value="browse" className="pt-2">
-              <CampaignList 
-                campaigns={campaignList} 
-                onDeleteCampaign={() => {
-                  toast.info("Campaigns can only be modified by the administrator.");
-                }} 
-              />
+              {isLoading ? (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">Loading campaigns...</p>
+                </div>
+              ) : campaignList.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">No campaigns found in the database.</p>
+                </div>
+              ) : (
+                <CampaignList 
+                  campaigns={campaignList} 
+                  onDeleteCampaign={() => {
+                    toast.info("Campaigns can only be modified by the administrator.");
+                  }} 
+                />
+              )}
             </TabsContent>
             
             <TabsContent value="insights" className="pt-2">

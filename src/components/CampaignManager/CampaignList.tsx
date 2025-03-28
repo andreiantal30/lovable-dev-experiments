@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Campaign } from '@/lib/campaignData';
+import { Campaign } from '@/types/Campaign';
 import { Input } from '@/components/ui/input';
 import { 
   Select, 
@@ -40,29 +40,33 @@ const CampaignList: React.FC<CampaignListProps> = ({ campaigns, onDeleteCampaign
   };
   
   const filteredCampaigns = campaigns.filter((campaign) => {
+    if (!campaign) return false;
+    
     const searchLower = searchTerm.toLowerCase();
     return (
-      campaign.name.toLowerCase().includes(searchLower) ||
-      campaign.brand.toLowerCase().includes(searchLower) ||
-      campaign.industry.toLowerCase().includes(searchLower) ||
-      campaign.targetAudience.some(audience => audience.toLowerCase().includes(searchLower)) ||
-      campaign.emotionalAppeal.some(appeal => appeal.toLowerCase().includes(searchLower))
+      campaign.name?.toLowerCase().includes(searchLower) ||
+      campaign.brand?.toLowerCase().includes(searchLower) ||
+      campaign.industry?.toLowerCase().includes(searchLower) ||
+      campaign.targetAudience?.some(audience => audience.toLowerCase().includes(searchLower)) ||
+      campaign.emotionalAppeal?.some(appeal => appeal.toLowerCase().includes(searchLower))
     );
   });
   
   const sortedCampaigns = [...filteredCampaigns].sort((a, b) => {
+    if (!a || !b) return 0;
+    
     let valueA: string | number = '';
     let valueB: string | number = '';
     
     if (sortBy === 'name') {
-      valueA = a.name;
-      valueB = b.name;
+      valueA = a.name || '';
+      valueB = b.name || '';
     } else if (sortBy === 'brand') {
-      valueA = a.brand;
-      valueB = b.brand;
+      valueA = a.brand || '';
+      valueB = b.brand || '';
     } else if (sortBy === 'industry') {
-      valueA = a.industry;
-      valueB = b.industry;
+      valueA = a.industry || '';
+      valueB = b.industry || '';
     } else if (sortBy === 'year') {
       valueA = a.year || 0;
       valueB = b.year || 0;
@@ -76,6 +80,10 @@ const CampaignList: React.FC<CampaignListProps> = ({ campaigns, onDeleteCampaign
       ? String(valueA).localeCompare(String(valueB))
       : String(valueB).localeCompare(String(valueA));
   });
+  
+  console.log("CampaignList received campaigns:", campaigns);
+  console.log("Filtered campaigns:", filteredCampaigns);
+  console.log("Sorted campaigns:", sortedCampaigns);
   
   return (
     <div className="space-y-6">
@@ -128,7 +136,7 @@ const CampaignList: React.FC<CampaignListProps> = ({ campaigns, onDeleteCampaign
       ) : (
         <div className="grid grid-cols-1 gap-4">
           {sortedCampaigns.map((campaign, index) => (
-            <Card key={campaign.id}>
+            <Card key={campaign.id || index}>
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">
                   <div className="flex items-start">
@@ -150,20 +158,24 @@ const CampaignList: React.FC<CampaignListProps> = ({ campaigns, onDeleteCampaign
                 {campaign.keyMessage && (
                   <p className="text-sm mb-2">{campaign.keyMessage}</p>
                 )}
-                <div className="flex flex-wrap gap-1 mb-2">
-                  {campaign.targetAudience.map((audience, i) => (
-                    <Badge key={i} variant="outline" className="bg-blue-50 dark:bg-blue-950">
-                      {audience}
-                    </Badge>
-                  ))}
-                </div>
-                <div className="flex flex-wrap gap-1">
-                  {campaign.emotionalAppeal.map((appeal, i) => (
-                    <Badge key={i} variant="secondary" className="bg-purple-50 dark:bg-purple-950">
-                      {appeal}
-                    </Badge>
-                  ))}
-                </div>
+                {campaign.targetAudience && campaign.targetAudience.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {campaign.targetAudience.map((audience, i) => (
+                      <Badge key={i} variant="outline" className="bg-blue-50 dark:bg-blue-950">
+                        {audience}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+                {campaign.emotionalAppeal && campaign.emotionalAppeal.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {campaign.emotionalAppeal.map((appeal, i) => (
+                      <Badge key={i} variant="secondary" className="bg-purple-50 dark:bg-purple-950">
+                        {appeal}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}
