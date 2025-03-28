@@ -3,7 +3,7 @@ export interface Campaign {
   id: string;
   name: string;
   brand: string;
-  year: number;
+  year?: number; // Changed from required to optional
   industry: string;
   targetAudience: string[];
   objectives: string[];
