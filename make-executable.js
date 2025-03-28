@@ -5,8 +5,8 @@ const { exec } = require('child_process');
 
 // List of scripts to make executable
 const scriptsToMakeExecutable = [
-  'start-dev.sh',
-  'start.js'
+  'start.js',
+  'quickstart.js'
 ];
 
 // Function to make a file executable
@@ -31,5 +31,6 @@ scriptsToMakeExecutable.forEach(script => {
 
 console.log('\nNow you can use one of these commands to start the server:');
 console.log('- node start.js');
-console.log('- npm run dev (if you\'ve run package-updater.js first)');
+console.log('- node quickstart.js');
 console.log('- npx vite');
+

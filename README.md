@@ -33,15 +33,10 @@ cd <YOUR_PROJECT_NAME>
 # Step 3: Install the necessary dependencies.
 npm i
 
-# Step 4: Set up the dev script (IMPORTANT - do this before starting the server)
-node package-updater.js
-
-# Step 5: Start the development server with auto-reloading and an instant preview.
-npm run dev
-
-# If you still encounter "missing script: dev" error, use one of these alternatives:
-npm start        # Alternative 1
-npx vite         # Alternative 2 (runs Vite directly)
+# Step 4: Start the development server using one of these methods:
+node start.js        # Option 1: Uses the enhanced start script
+node quickstart.js   # Option 2: Directly runs Vite without any package.json dependency
+npx vite             # Option 3: Runs Vite directly
 ```
 
 **Edit a file directly in GitHub**
@@ -80,9 +75,9 @@ We don't support custom domains (yet). If you want to deploy your project under 
 
 ### "Missing script: dev" error
 
-If you see this error, it means the development script hasn't been added to your package.json. To fix it:
+If you see this error when running `npm run dev`, you have several options:
 
-1. Run `node package-updater.js` to automatically add the script
-2. Then run `npm run dev` again
+1. Use `node start.js` - This will update your package.json with the necessary scripts and start the server
+2. Use `node quickstart.js` - This bypasses package.json entirely and runs Vite directly
+3. Use `npx vite` - This runs Vite directly without any script
 
-Alternatively, you can directly use `npx vite` to start the dev server without modifying package.json.
