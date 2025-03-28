@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { getCachedCulturalTrends, CulturalTrend } from '@/data/culturalTrends';
+import { getCachedCulturalTrends, CulturalTrend, getCulturalTrends } from '@/lib/generateCulturalTrends';
 import { Button } from '@/components/ui/button';
 import { Clock, ArrowRight, Filter } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -10,7 +10,12 @@ import { formatDistanceToNow } from 'date-fns';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const CulturalTrendsView: React.FC = () => {
-  const trends = getCachedCulturalTrends();
+  // Use both cached trends and in-memory trends
+  const cachedTrends = getCachedCulturalTrends();
+  const inMemoryTrends = getCulturalTrends();
+  // Combine both sources, prioritizing in-memory trends
+  const trends = inMemoryTrends.length > 0 ? inMemoryTrends : cachedTrends;
+  
   const navigate = useNavigate();
   const [sourceFilter, setSourceFilter] = useState<string | null>(null);
   
@@ -25,6 +30,9 @@ const CulturalTrendsView: React.FC = () => {
   const filteredTrends = sourceFilter 
     ? trends.filter(trend => trend.source === sourceFilter)
     : trends;
+  
+  console.log("Displaying cultural trends:", trends);
+  console.log("Sources available:", [...new Set(trends.map(trend => trend.source))]);
   
   if (trends.length === 0) {
     return (
@@ -82,7 +90,8 @@ const CulturalTrendsView: React.FC = () => {
                   <span>{trend.category}</span>
                 </div>
               </div>
-              <Badge variant={trend.source === "Reddit" ? "secondary" : "outline"} className={trend.source === "Reddit" ? "bg-orange-500/10 text-orange-500" : "bg-primary/10"}>
+              <Badge variant={trend.source === "Reddit" ? "secondary" : "outline"} 
+                 className={trend.source === "Reddit" ? "bg-orange-500/10 text-orange-500" : "bg-primary/10"}>
                 {trend.source}
               </Badge>
             </div>

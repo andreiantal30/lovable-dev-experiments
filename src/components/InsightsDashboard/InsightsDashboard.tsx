@@ -1,5 +1,5 @@
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { analyzeInsightPatterns, getTopAssociations } from '@/lib/insightAnalysis';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
@@ -11,7 +11,7 @@ import { Lightbulb, ChevronDown, RefreshCw, TrendingUp, Globe, MessageCircle, Bu
 import { useNavigate } from 'react-router-dom';
 import { fetchNewsTrends } from '@/lib/fetchNewsTrends.client.ts';
 import { fetchAndGenerateRedditTrends } from '@/lib/fetchRedditTrends';
-import { generateCulturalTrends, saveCulturalTrends } from '@/lib/generateCulturalTrends';
+import { generateCulturalTrends, saveCulturalTrends, getCulturalTrends } from '@/lib/generateCulturalTrends';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,6 +39,11 @@ const InsightsDashboard: React.FC = () => {
         count: pattern.count
       }))
   , [insightPatterns]);
+
+  // Log the current cultural trends for debugging
+  useEffect(() => {
+    console.log("Current cultural trends:", getCulturalTrends());
+  }, [activeTab]);
 
   const handleInsightCampaignCreate = (insightName: string) => {
     navigate('/', { state: { insightPrompt: `Give me a campaign based on the emotional insight: ${insightName}` }});
@@ -90,17 +95,20 @@ const InsightsDashboard: React.FC = () => {
   const handleUpdateRedditTrends = async () => {
     setIsUpdatingRedditTrends(true);
     try {
-      const trends = await fetchAndGenerateRedditTrends();
-      console.log("Generated Reddit trends:", trends);
+      console.log("📊 Updating trends from Reddit...");
+      const redditTrends = await fetchAndGenerateRedditTrends();
+      console.log("Generated Reddit trends:", redditTrends);
       
-      saveCulturalTrends(trends);
-      
-      setActiveTab("cultural-trends");
-      
-      toast.success("Reddit trends updated successfully");
+      if (redditTrends && redditTrends.length > 0) {
+        saveCulturalTrends(redditTrends);
+        setActiveTab("cultural-trends");
+        toast.success("Reddit trends updated successfully");
+      } else {
+        toast.error("No Reddit trends were generated");
+      }
     } catch (error) {
       console.error("Error updating Reddit trends:", error);
-      toast.error("Failed to update Reddit trends");
+      toast.error("Failed to update Reddit trends: " + (error instanceof Error ? error.message : String(error)));
     } finally {
       setIsUpdatingRedditTrends(false);
     }
