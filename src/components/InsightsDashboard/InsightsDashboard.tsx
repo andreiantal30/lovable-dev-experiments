@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { analyzeInsightPatterns, getTopAssociations } from '@/lib/insightAnalysis';
@@ -7,7 +6,7 @@ import InsightCategoryCard from './InsightCategoryCard';
 import CulturalTrendsView from './CulturalTrendsView';
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Lightbulb, ChevronDown, RefreshCw, TrendingUp, Globe, MessageCircle } from "lucide-react";
+import { Lightbulb, ChevronDown, RefreshCw, TrendingUp, Globe, MessageCircle, Bug } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import { fetchNewsTrends } from '@/lib/fetchNewsTrends.client.ts';
 import { fetchAndGenerateRedditTrends } from '@/lib/fetchRedditTrends';
@@ -18,31 +17,27 @@ import { Label } from "@/components/ui/label";
 import { saveNewsApiKey, getNewsApiKey } from '@/lib/fetchNewsTrends.client.ts';
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ApiKeyDebugger from './ApiKeyDebugger';
 
 const InsightsDashboard: React.FC = () => {
-  const navigate = useNavigate();
+  const [debugMode, setDebugMode] = useState(false);
   const [isUpdatingTrends, setIsUpdatingTrends] = useState(false);
   const [isUpdatingRedditTrends, setIsUpdatingRedditTrends] = useState(false);
   const [apiKeyInput, setApiKeyInput] = useState(getNewsApiKey());
   const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("human-insights");
+  const navigate = useNavigate();
   
-  // Analyze insight patterns
   const insightPatterns = useMemo(() => analyzeInsightPatterns(), []);
-  
-  // Prepare data for bar chart
   const chartData = useMemo(() =>
     insightPatterns
-      .filter(pattern => pattern.count > 2) // Only include patterns used in >2 campaigns
+      .filter(pattern => pattern.count > 2)
       .map(pattern => ({
         name: pattern.name,
         count: pattern.count
       }))
   , [insightPatterns]);
-  
 
   const handleInsightCampaignCreate = (insightName: string) => {
-    // Navigate to homepage with query parameter for the insight
     navigate('/', { state: { insightPrompt: `Give me a campaign based on the emotional insight: ${insightName}` }});
   };
 
@@ -51,7 +46,6 @@ const InsightsDashboard: React.FC = () => {
       saveNewsApiKey(apiKeyInput.trim());
       setApiKeyDialogOpen(false);
       
-      // Initialize NewsAPI with default key if using the default
       if (apiKeyInput.trim() === "ca7eb7fe6b614e7095719eb52b15f728") {
         toast.info("Using default NewsAPI key");
       }
@@ -70,24 +64,21 @@ const InsightsDashboard: React.FC = () => {
     
     setIsUpdatingTrends(true);
     try {
-      // 1. Fetch headlines
+      console.log("📊 Updating trends with NewsAPI...");
       const headlines = await fetchNewsTrends();
       console.log("Fetched headlines:", headlines);
       
-      // 2. Generate trends
       const trends = await generateCulturalTrends(headlines);
       console.log("Generated trends:", trends);
       
-      // 3. Save trends
       saveCulturalTrends(trends);
       
-      // 4. Switch to cultural trends tab
       setActiveTab("cultural-trends");
       
       toast.success("Cultural trends updated successfully");
     } catch (error) {
       console.error("Error updating trends:", error);
-      toast.error("Failed to update trends");
+      toast.error("Failed to update trends: " + (error instanceof Error ? error.message : String(error)));
     } finally {
       setIsUpdatingTrends(false);
     }
@@ -96,14 +87,11 @@ const InsightsDashboard: React.FC = () => {
   const handleUpdateRedditTrends = async () => {
     setIsUpdatingRedditTrends(true);
     try {
-      // Fetch and generate Reddit trends in one step
       const trends = await fetchAndGenerateRedditTrends();
       console.log("Generated Reddit trends:", trends);
       
-      // Save trends
       saveCulturalTrends(trends);
       
-      // Switch to cultural trends tab
       setActiveTab("cultural-trends");
       
       toast.success("Reddit trends updated successfully");
@@ -143,11 +131,28 @@ const InsightsDashboard: React.FC = () => {
               <Button 
                 variant="outline" 
                 className="gap-2" 
+                onClick={() => setApiKeyDialogOpen(true)}
+              >
+                🔑 Set NewsAPI Key
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => setDebugMode(!debugMode)}
+                title="Debug Mode"
+              >
+                <Bug className="h-4 w-4" />
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="gap-2" 
                 onClick={handleUpdateRedditTrends} 
                 disabled={isUpdatingRedditTrends}
               >
-<MessageCircle className={`h-4 w-4 ${isUpdatingRedditTrends ? 'animate-spin' : ''}`} />
-Update Trends from Reddit
+                <MessageCircle className={`h-4 w-4 ${isUpdatingRedditTrends ? 'animate-spin' : ''}`} />
+                Update Trends from Reddit
               </Button>
               
               <DropdownMenu>
@@ -174,6 +179,8 @@ Update Trends from Reddit
           </CardHeader>
           
           <CardContent>
+            {debugMode && <ApiKeyDebugger />}
+            
             <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
               <TabsList>
                 <TabsTrigger value="human-insights" className="flex items-center gap-2">
@@ -216,7 +223,6 @@ Update Trends from Reddit
           </CardContent>
         </Card>
         
-        {/* API Key Dialog */}
         <Dialog open={apiKeyDialogOpen} onOpenChange={setApiKeyDialogOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
