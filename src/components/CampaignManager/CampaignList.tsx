@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 
 import { Campaign } from '@/types/Campaign';
@@ -24,6 +25,7 @@ import {
   SortDesc,
   ListOrdered,
   Grid2X2,
+  Trash2,
 } from 'lucide-react';
 
 import ExportJsonButton from './ExportJsonButton';

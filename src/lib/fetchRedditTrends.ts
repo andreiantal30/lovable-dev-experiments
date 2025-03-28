@@ -43,8 +43,16 @@ export async function fetchAndGenerateRedditTrends(): Promise<any[]> {
       throw new Error("No Reddit headlines were fetched");
     }
 
+    // Generate cultural trends and explicitly set the source to "Reddit"
     const culturalTrends = await generateCulturalTrends(allHeadlines);
-    return culturalTrends;
+    
+    // Ensure each trend has the correct source set to "Reddit"
+    const redditTrends = culturalTrends.map(trend => ({
+      ...trend,
+      source: "Reddit"  // Explicitly set source to Reddit
+    }));
+    
+    return redditTrends;
   } catch (error) {
     console.error("❌ Error fetching Reddit trends:", error);
     throw error;
