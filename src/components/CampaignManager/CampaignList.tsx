@@ -65,21 +65,20 @@ const CampaignList: React.FC<CampaignListProps> = ({
 
   const filteredCampaigns = campaigns.filter((campaign) => {
     if (!campaign) return false;
-    if (!searchTerm.trim()) return true;
-
+  
     const searchLower = searchTerm.toLowerCase();
+  
+    // ✅ If no search term, show all campaigns
+    if (!searchLower.trim()) return true;
+  
     return (
-      (campaign.name?.toLowerCase() || '').includes(searchLower) ||
-      (campaign.brand?.toLowerCase() || '').includes(searchLower) ||
-      (campaign.industry?.toLowerCase() || '').includes(searchLower) ||
-      campaign.targetAudience?.some((audience) =>
-        audience.toLowerCase().includes(searchLower)
-      ) ||
-      campaign.emotionalAppeal?.some((appeal) =>
-        appeal.toLowerCase().includes(searchLower)
-      )
+      campaign.name?.toLowerCase().includes(searchLower) ||
+      campaign.brand?.toLowerCase().includes(searchLower) ||
+      campaign.industry?.toLowerCase().includes(searchLower) ||
+      campaign.targetAudience?.some(audience => audience.toLowerCase().includes(searchLower)) ||
+      campaign.emotionalAppeal?.some(appeal => appeal.toLowerCase().includes(searchLower))
     );
-  });
+  });  
 
   const sortedCampaigns = [...filteredCampaigns].sort((a, b) => {
     if (!a || !b) return 0;
