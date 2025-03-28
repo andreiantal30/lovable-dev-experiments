@@ -16,10 +16,11 @@ const CampaignManager: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Load campaigns using the getCampaigns function from campaignStorage
     try {
+      // Load campaigns using the getCampaigns function from campaignStorage
       const campaigns = getCampaigns();
       console.log("Loaded campaigns:", campaigns);
+      console.log("Number of campaigns loaded:", campaigns.length);
       setCampaignList(campaigns);
     } catch (error) {
       console.error("Error loading campaigns:", error);
@@ -51,6 +52,7 @@ const CampaignManager: React.FC = () => {
               <p className="text-sm text-blue-800 dark:text-blue-300">
                 <strong>Read-only access:</strong> This database can only be modified by the administrator. 
                 The campaign collection is loaded from <code className="bg-blue-100 dark:bg-blue-900/50 px-1.5 py-0.5 rounded text-xs">src/data/campaigns.ts</code>.
+                Total campaigns: {campaignList.length}
               </p>
             </div>
           </div>
