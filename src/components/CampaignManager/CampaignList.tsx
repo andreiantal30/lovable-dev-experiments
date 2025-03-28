@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Campaign } from '@/types/Campaign';
 import { Input } from '@/components/ui/input';
@@ -18,7 +17,7 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Search, SortAsc, SortDesc, ListOrdered } from 'lucide-react';
+import { Search, SortAsc, SortDesc, List } from 'lucide-react'; // ✅ replaced TableRows with List
 import ExportJsonButton from './ExportJsonButton';
 
 interface CampaignListProps {
@@ -80,10 +79,6 @@ const CampaignList: React.FC<CampaignListProps> = ({ campaigns, onDeleteCampaign
       ? String(valueA).localeCompare(String(valueB))
       : String(valueB).localeCompare(String(valueA));
   });
-  
-  console.log("CampaignList received campaigns:", campaigns);
-  console.log("Filtered campaigns:", filteredCampaigns);
-  console.log("Sorted campaigns:", sortedCampaigns);
   
   return (
     <div className="space-y-6">
@@ -151,7 +146,6 @@ const CampaignList: React.FC<CampaignListProps> = ({ campaigns, onDeleteCampaign
                       </CardDescription>
                     </div>
                   </div>
-                  {/* Delete button removed */}
                 </div>
               </CardHeader>
               <CardContent className="pt-2">
