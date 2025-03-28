@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Campaign } from '@/types/Campaign';
 import { Input } from '@/components/ui/input';
 import { 
@@ -18,8 +18,9 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Search, SortAsc, SortDesc, ListOrdered } from 'lucide-react';
+import { Search, SortAsc, SortDesc, ListOrdered, TableRows, Grid2X2 } from 'lucide-react';
 import ExportJsonButton from './ExportJsonButton';
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 
 interface CampaignListProps {
   campaigns: Campaign[];
@@ -30,6 +31,13 @@ const CampaignList: React.FC<CampaignListProps> = ({ campaigns, onDeleteCampaign
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
+  
+  useEffect(() => {
+    // Log when campaigns are received
+    console.log("CampaignList received campaigns:", campaigns);
+    console.log("Number of campaigns in CampaignList:", campaigns.length);
+  }, [campaigns]);
   
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -42,11 +50,14 @@ const CampaignList: React.FC<CampaignListProps> = ({ campaigns, onDeleteCampaign
   const filteredCampaigns = campaigns.filter((campaign) => {
     if (!campaign) return false;
     
+    // If searchTerm is empty, return all campaigns
+    if (!searchTerm.trim()) return true;
+    
     const searchLower = searchTerm.toLowerCase();
     return (
-      campaign.name?.toLowerCase().includes(searchLower) ||
-      campaign.brand?.toLowerCase().includes(searchLower) ||
-      campaign.industry?.toLowerCase().includes(searchLower) ||
+      (campaign.name?.toLowerCase() || '').includes(searchLower) ||
+      (campaign.brand?.toLowerCase() || '').includes(searchLower) ||
+      (campaign.industry?.toLowerCase() || '').includes(searchLower) ||
       campaign.targetAudience?.some(audience => audience.toLowerCase().includes(searchLower)) ||
       campaign.emotionalAppeal?.some(appeal => appeal.toLowerCase().includes(searchLower))
     );
@@ -81,9 +92,8 @@ const CampaignList: React.FC<CampaignListProps> = ({ campaigns, onDeleteCampaign
       : String(valueB).localeCompare(String(valueA));
   });
   
-  console.log("CampaignList received campaigns:", campaigns);
-  console.log("Filtered campaigns:", filteredCampaigns);
-  console.log("Sorted campaigns:", sortedCampaigns);
+  console.log("Filtered campaigns:", filteredCampaigns.length);
+  console.log("Sorted campaigns:", sortedCampaigns.length);
   
   return (
     <div className="space-y-6">
@@ -99,7 +109,7 @@ const CampaignList: React.FC<CampaignListProps> = ({ campaigns, onDeleteCampaign
           />
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Select value={sortBy} onValueChange={setSortBy}>
             <SelectTrigger className="w-36">
               <SelectValue placeholder="Sort by" />
@@ -125,15 +135,38 @@ const CampaignList: React.FC<CampaignListProps> = ({ campaigns, onDeleteCampaign
             )}
           </Button>
           
+          <div className="flex items-center border rounded-md overflow-hidden">
+            <Button
+              variant={viewMode === 'card' ? 'secondary' : 'ghost'}
+              size="sm"
+              className="rounded-none px-3"
+              onClick={() => setViewMode('card')}
+            >
+              <Grid2X2 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'table' ? 'secondary' : 'ghost'}
+              size="sm"
+              className="rounded-none px-3"
+              onClick={() => setViewMode('table')}
+            >
+              <TableRows className="h-4 w-4" />
+            </Button>
+          </div>
+          
           <ExportJsonButton campaigns={campaigns} />
         </div>
       </div>
       
+      <div className="text-muted-foreground text-sm mb-2">
+        Showing {sortedCampaigns.length} of {campaigns.length} campaigns
+      </div>
+      
       {sortedCampaigns.length === 0 ? (
         <div className="text-center py-8">
-          <p className="text-muted-foreground">No campaigns found</p>
+          <p className="text-muted-foreground">No campaigns found matching your search criteria</p>
         </div>
-      ) : (
+      ) : viewMode === 'card' ? (
         <div className="grid grid-cols-1 gap-4">
           {sortedCampaigns.map((campaign, index) => (
             <Card key={campaign.id || index}>
@@ -151,7 +184,6 @@ const CampaignList: React.FC<CampaignListProps> = ({ campaigns, onDeleteCampaign
                       </CardDescription>
                     </div>
                   </div>
-                  {/* Delete button removed */}
                 </div>
               </CardHeader>
               <CardContent className="pt-2">
@@ -179,6 +211,44 @@ const CampaignList: React.FC<CampaignListProps> = ({ campaigns, onDeleteCampaign
               </CardContent>
             </Card>
           ))}
+        </div>
+      ) : (
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>#</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Brand</TableHead>
+                <TableHead>Year</TableHead>
+                <TableHead>Industry</TableHead>
+                <TableHead>Target Audience</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sortedCampaigns.map((campaign, index) => (
+                <TableRow key={campaign.id || index}>
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>{campaign.name}</TableCell>
+                  <TableCell>{campaign.brand}</TableCell>
+                  <TableCell>{campaign.year}</TableCell>
+                  <TableCell>{campaign.industry}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {campaign.targetAudience?.slice(0, 2).map((audience, i) => (
+                        <Badge key={i} variant="outline" className="bg-blue-50 dark:bg-blue-950">
+                          {audience}
+                        </Badge>
+                      ))}
+                      {campaign.targetAudience && campaign.targetAudience.length > 2 && (
+                        <Badge variant="outline">+{campaign.targetAudience.length - 2}</Badge>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       )}
     </div>
