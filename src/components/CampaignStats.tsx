@@ -25,26 +25,29 @@ const CampaignStats: React.FC = () => {
       // Count industries
       industriesCount[campaign.industry] = (industriesCount[campaign.industry] || 0) + 1;
       
-      // Count years
-      const yearStr = campaign.year.toString();
-      yearDistribution[yearStr] = (yearDistribution[yearStr] || 0) + 1;
-      
-      // Find latest campaign
-      if (campaign.year > latestCampaign.year) {
-        latestCampaign = {
-          name: campaign.name,
-          brand: campaign.brand,
-          year: campaign.year
-        };
-      }
-      
-      // Find oldest campaign
-      if (campaign.year < oldestCampaign.year) {
-        oldestCampaign = {
-          name: campaign.name,
-          brand: campaign.brand,
-          year: campaign.year
-        };
+      // Only process year data if year is defined
+      if (campaign.year !== undefined) {
+        // Count years
+        const yearStr = campaign.year.toString();
+        yearDistribution[yearStr] = (yearDistribution[yearStr] || 0) + 1;
+        
+        // Find latest campaign
+        if (campaign.year > latestCampaign.year) {
+          latestCampaign = {
+            name: campaign.name,
+            brand: campaign.brand,
+            year: campaign.year
+          };
+        }
+        
+        // Find oldest campaign
+        if (campaign.year < oldestCampaign.year) {
+          oldestCampaign = {
+            name: campaign.name,
+            brand: campaign.brand,
+            year: campaign.year
+          };
+        }
       }
     });
 
