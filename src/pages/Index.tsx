@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import { SidebarInset } from "@/components/ui/sidebar";
 import CampaignSidebar from "@/components/CampaignSidebar";
@@ -7,6 +6,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import Header from "@/components/IndexPage/Header";
 import Footer from "@/components/IndexPage/Footer";
 import CampaignSection from "@/components/IndexPage/CampaignSection";
+import StatsPageLink from "@/components/StatsPageLink";
 import { useCampaignGeneration } from "@/hooks/useCampaignGeneration";
 import { useOpenAIConfig } from "@/hooks/useOpenAIConfig";
 import ApiKeyForm from "@/components/IndexPage/ApiKeyForm";
@@ -118,10 +118,13 @@ const Index = () => {
         </div>
         
         <div className="container mx-auto px-4 py-12 max-w-7xl relative z-10">
-          <Header 
-            apiKey={openAIConfig.apiKey} 
-            onChangeApiKey={() => setShowApiKeyInput(true)} 
-          />
+          <div className="flex justify-between items-start mb-6">
+            <Header 
+              apiKey={openAIConfig.apiKey} 
+              onChangeApiKey={() => setShowApiKeyInput(true)} 
+            />
+            <StatsPageLink />
+          </div>
           
           {showApiKeyInput && (
             <ApiKeyForm

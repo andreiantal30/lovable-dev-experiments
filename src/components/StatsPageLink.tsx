@@ -1,7 +1,4 @@
 
-// Since Header.tsx is marked as read-only, we can't modify it directly.
-// Instead, let's create a StatsPageLink component that we can add to the Index page.
-
 import { Link } from 'react-router-dom';
 import { BarChart2 } from 'lucide-react';
 

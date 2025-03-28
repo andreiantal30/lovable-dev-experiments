@@ -7,6 +7,7 @@ import NotFound from "./pages/NotFound";
 import CampaignManager from "./pages/CampaignManager";
 import CampaignLibrary from "./pages/CampaignLibrary";
 import CampaignDetail from "./pages/CampaignDetail";
+import StatsPage from "./pages/StatsPage";
 import { CampaignSidebarProvider } from "./components/CampaignSidebarProvider";
 import { useEffect } from "react";
 
@@ -38,6 +39,7 @@ function App() {
             <Route path="/manager" element={<CampaignManager />} />
             <Route path="/library" element={<CampaignLibrary />} />
             <Route path="/campaign/:id" element={<CampaignDetail />} />
+            <Route path="/stats" element={<StatsPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Router>
