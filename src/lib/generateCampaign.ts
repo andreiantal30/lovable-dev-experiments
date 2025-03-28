@@ -23,7 +23,7 @@ export const generateCampaign = async (
     const creativeInsights = await generateCreativeInsights(input, openAIConfig);
     console.log("Generated Creative Insights:", creativeInsights);
     
-    // Find similar reference campaigns
+    // Find similar reference campaigns - now returns up to 5 diverse references
     const referenceCampaigns = await findSimilarCampaigns(input, openAIConfig);
     
     console.log("Matched Reference Campaigns:", 
@@ -34,8 +34,8 @@ export const generateCampaign = async (
       }))
     );
 
-    // Select creative devices based on campaign style
-    const creativeDevices = getCreativeDevicesForStyle(input.campaignStyle, 2);
+    // Select creative devices based on campaign style - increased to 3
+    const creativeDevices = getCreativeDevicesForStyle(input.campaignStyle, 3);
     console.log("Selected Creative Devices:", creativeDevices.map(d => d.name));
     
     // Get relevant cultural trends
@@ -51,19 +51,13 @@ export const generateCampaign = async (
       )
     ];
     
-    // Shuffle and take 2 from the reordered list
+    // Shuffle and take 3 from the reordered list (increased from 2)
     const relevantTrends = prioritized
       .sort(() => Math.random() - 0.5)
-      .slice(0, 2);
+      .slice(0, 3);
     
     if (relevantTrends.length > 0) {
       console.log("Incorporating Cultural Trends:", relevantTrends.map(t => t.title));
-    }
-    
-    if (relevantTrends.length > 0) {
-      console.log("Incorporating Cultural Trends:", 
-        relevantTrends.map(t => t.title)
-      );
     }
     
     // Create the campaign generation prompt
