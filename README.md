@@ -33,13 +33,15 @@ cd <YOUR_PROJECT_NAME>
 # Step 3: Install the necessary dependencies.
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-# If you get a "missing script: dev" error, use one of these alternatives:
-npm run start   # Alternative 1
-npx vite        # Alternative 2 (recommended)
-
-# You can also install the dev script by running:
+# Step 4: Set up the dev script (IMPORTANT - do this before starting the server)
 node package-updater.js
+
+# Step 5: Start the development server with auto-reloading and an instant preview.
+npm run dev
+
+# If you still encounter "missing script: dev" error, use one of these alternatives:
+npm start        # Alternative 1
+npx vite         # Alternative 2 (runs Vite directly)
 ```
 
 **Edit a file directly in GitHub**
@@ -74,3 +76,13 @@ Simply open [Lovable](https://lovable.dev/projects/2325c5e1-efcc-41cb-8acf-106e3
 
 We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
 
+## Troubleshooting
+
+### "Missing script: dev" error
+
+If you see this error, it means the development script hasn't been added to your package.json. To fix it:
+
+1. Run `node package-updater.js` to automatically add the script
+2. Then run `npm run dev` again
+
+Alternatively, you can directly use `npx vite` to start the dev server without modifying package.json.

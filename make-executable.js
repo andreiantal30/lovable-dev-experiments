@@ -1,10 +1,35 @@
 
 const fs = require('fs');
 const path = require('path');
+const { exec } = require('child_process');
 
-try {
-  fs.chmodSync(path.join(__dirname, 'start-dev.sh'), '755');
-  console.log('Made start-dev.sh executable');
-} catch (error) {
-  console.error('Could not make script executable:', error.message);
+// List of scripts to make executable
+const scriptsToMakeExecutable = [
+  'start-dev.sh',
+  'start.js'
+];
+
+// Function to make a file executable
+function makeExecutable(filePath) {
+  try {
+    fs.chmodSync(filePath, '755');
+    console.log(`Made ${filePath} executable`);
+  } catch (error) {
+    console.error(`Could not make ${filePath} executable:`, error.message);
+  }
 }
+
+// Loop through and make each script executable
+scriptsToMakeExecutable.forEach(script => {
+  const fullPath = path.join(__dirname, script);
+  if (fs.existsSync(fullPath)) {
+    makeExecutable(fullPath);
+  } else {
+    console.log(`File ${script} not found. Skipping.`);
+  }
+});
+
+console.log('\nNow you can use one of these commands to start the server:');
+console.log('- node start.js');
+console.log('- npm run dev (if you\'ve run package-updater.js first)');
+console.log('- npx vite');
