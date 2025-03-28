@@ -1,3 +1,4 @@
+
 import { CampaignInput } from './types';
 import { Campaign } from '../campaignData';
 import { formatCampaignForPrompt } from '@/utils/formatCampaignForPrompt';
@@ -5,6 +6,55 @@ import { getCreativePatternGuidance } from '@/utils/matchReferenceCampaigns';
 import { getCreativeLensById } from '@/utils/creativeLenses';
 import { CreativeDevice, formatCreativeDevicesForPrompt } from '@/data/creativeDevices';
 import { CulturalTrend } from '@/data/culturalTrends';
+import { PersonaType } from '@/types/persona';
+
+// Add the missing function to get persona instructions
+function getPersonaInstructions(persona: PersonaType): string {
+  const personaMap: Record<string, string> = {
+    "unfiltered-director": `
+### Strategist Persona: Unfiltered Creative Director
+
+As an award-winning creative director, your job is not to play it safe.
+- Avoid cliché tech gimmicks like "AI influencers" or "AR filters" unless used subversively.
+- Start from real human behavior and surprising insights.
+- Challenge the brief if it's boring — bend it to make something unforgettable.
+- Channel emotion, tension, chaos, humor, rebellion — anything but mediocrity.
+- If the idea could have been done in 2020, it's dead on arrival.
+`,
+    "strategic-planner": `
+### Strategist Persona: Strategic Planner
+
+As a meticulous strategic planner, your job is to create campaigns built on data-driven insights.
+- Start with audience research and behavioral economics principles.
+- Focus on measurable outcomes and clear customer journeys.
+- Ensure every creative element serves a strategic purpose.
+- Map out precise touchpoint strategies and conversion paths.
+- Balance emotional appeal with rational drivers of behavior.
+`,
+    "culture-hacker": `
+### Strategist Persona: Culture Hacker
+
+As a culture hacker, your job is to turn brands into cultural phenomena.
+- Identify emerging cultural tensions before they hit the mainstream.
+- Subvert expectations and create genuine conversation.
+- Leverage internet phenomena, creators, and community dynamics.
+- Create ideas that feel more like movements than campaigns.
+- Focus on participation over passive consumption.
+`,
+    "tech-innovator": `
+### Strategist Persona: Tech Innovator
+
+As a tech innovator, your job is to use emerging technologies to solve brand problems.
+- Focus on real utility and meaningful applications, not gimmicks.
+- Find ways to use technology to enhance human experiences.
+- Consider how AI, AR, connected devices, or data visualization can be applied.
+- Create memorable firsts that demonstrate technological leadership.
+- Balance innovation with accessibility and practical implementation.
+`
+  };
+
+  return personaMap[persona] || personaMap["unfiltered-director"];
+}
 
 export const createCampaignPrompt = (
   input: CampaignInput, 

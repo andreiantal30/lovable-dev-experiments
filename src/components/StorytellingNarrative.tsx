@@ -15,6 +15,18 @@ const StorytellingNarrative: React.FC<StorytellingNarrativeProps> = ({ storytell
 
   if (!storytelling) return null;
 
+  // Use narrative as the main field from storytelling output
+  const narrativeText = storytelling.narrative || storytelling.storyNarrative || '';
+  
+  // Check if we have detailed story elements to show in expanded view
+  const hasExpandedDetails = !!(
+    storytelling.protagonistDescription || 
+    storytelling.conflictDescription || 
+    storytelling.resolutionDescription ||
+    storytelling.brandValueConnection ||
+    storytelling.audienceRelevance
+  );
+
   return (
     <TransitionElement animation="slide-up" delay={300}>
       <Card className="p-6 mt-8 bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/30 dark:to-amber-900/20 border shadow-md">
@@ -23,61 +35,73 @@ const StorytellingNarrative: React.FC<StorytellingNarrativeProps> = ({ storytell
             <BookOpen className="w-5 h-5 text-primary" />
             <h3 className="text-xl font-bold">Campaign Story</h3>
           </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center gap-1"
-          >
-            {isExpanded ? (
-              <>
-                <span>Show Less</span>
-                <ChevronUp className="w-4 h-4" />
-              </>
-            ) : (
-              <>
-                <span>Show More</span>
-                <ChevronDown className="w-4 h-4" />
-              </>
-            )}
-          </Button>
+          {hasExpandedDetails && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="flex items-center gap-1"
+            >
+              {isExpanded ? (
+                <>
+                  <span>Show Less</span>
+                  <ChevronUp className="w-4 h-4" />
+                </>
+              ) : (
+                <>
+                  <span>Show More</span>
+                  <ChevronDown className="w-4 h-4" />
+                </>
+              )}
+            </Button>
+          )}
         </div>
 
         <div className="prose prose-gray dark:prose-invert max-w-none">
-          <p className="leading-relaxed">{storytelling.storyNarrative}</p>
+          <p className="leading-relaxed">{narrativeText}</p>
           
           {isExpanded && (
             <div className="mt-6 grid grid-cols-1 md:grid-cols-12 gap-6">
               {/* Left column */}
               <div className="md:col-span-5 space-y-6">
-                <div>
-                  <h4 className="text-lg font-semibold mb-2">Protagonist</h4>
-                  <p>{storytelling.protagonistDescription}</p>
-                </div>
+                {storytelling.protagonistDescription && (
+                  <div>
+                    <h4 className="text-lg font-semibold mb-2">Protagonist</h4>
+                    <p>{storytelling.protagonistDescription}</p>
+                  </div>
+                )}
                 
-                <div>
-                  <h4 className="text-lg font-semibold mb-2">Conflict</h4>
-                  <p>{storytelling.conflictDescription}</p>
-                </div>
+                {storytelling.conflictDescription && (
+                  <div>
+                    <h4 className="text-lg font-semibold mb-2">Conflict</h4>
+                    <p>{storytelling.conflictDescription}</p>
+                  </div>
+                )}
               </div>
               
               {/* Right column */}
               <div className="md:col-span-7 space-y-6">
-                <div>
-                  <h4 className="text-lg font-semibold mb-2">Resolution</h4>
-                  <p>{storytelling.resolutionDescription}</p>
-                </div>
+                {storytelling.resolutionDescription && (
+                  <div>
+                    <h4 className="text-lg font-semibold mb-2">Resolution</h4>
+                    <p>{storytelling.resolutionDescription}</p>
+                  </div>
+                )}
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <h4 className="text-lg font-semibold mb-2">Brand Connection</h4>
-                    <p>{storytelling.brandValueConnection}</p>
-                  </div>
+                  {storytelling.brandValueConnection && (
+                    <div>
+                      <h4 className="text-lg font-semibold mb-2">Brand Connection</h4>
+                      <p>{storytelling.brandValueConnection}</p>
+                    </div>
+                  )}
                   
-                  <div>
-                    <h4 className="text-lg font-semibold mb-2">Audience Relevance</h4>
-                    <p>{storytelling.audienceRelevance}</p>
-                  </div>
+                  {storytelling.audienceRelevance && (
+                    <div>
+                      <h4 className="text-lg font-semibold mb-2">Audience Relevance</h4>
+                      <p>{storytelling.audienceRelevance}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

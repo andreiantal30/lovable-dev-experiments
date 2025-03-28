@@ -1,4 +1,8 @@
-import type { APIRoute } from 'vite';
+
+// Define a simple type for API handlers
+type APIRoute = {
+  (context: { request: Request }): Promise<Response>;
+};
 
 export const GET: APIRoute = async ({ request }) => {
   const NEWS_API_KEY = import.meta.env.VITE_NEWS_API_KEY;

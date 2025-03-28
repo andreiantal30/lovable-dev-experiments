@@ -10,9 +10,14 @@ export interface StorytellingInput {
   keyMessage: string;
 }
 
-// If needed by the app elsewhere
 export interface StorytellingOutput {
   narrative: string;
+  storyNarrative?: string;
+  protagonistDescription?: string;
+  conflictDescription?: string;
+  resolutionDescription?: string;
+  brandValueConnection?: string;
+  audienceRelevance?: string;
 }
 
 /**
