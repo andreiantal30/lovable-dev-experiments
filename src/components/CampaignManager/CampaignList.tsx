@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Campaign } from '@/types/Campaign';
 import { Input } from '@/components/ui/input';
 import { 
