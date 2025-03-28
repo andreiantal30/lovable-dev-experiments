@@ -2,20 +2,36 @@ import { v4 as uuidv4 } from "uuid";
 
 export const campaigns = [
   {
-    id: "2a955219-b9c5-4a05-8a10-827cad8bd013",
+    id: "19-b9c5-4a05-8a10-827cad8bd013",
     name: "Mayo McHack",
     brand: "Hellmann’s",
-    year: 2024,
     industry: "Food & Beverage",
-    targetAudience: ["Fast food lovers", "Mayonnaise enthusiasts", "Social media users"],
-    objectives: ["McDonald's in the UK does not serve mayonnaise as a dip, frustrating mayo lovers.", "Consumers are increasingly customizing their food experiences."],
-    keyMessage: "People will go to great lengths to get the condiments they love.",
-    strategy: "Encourage people to hack McDonald's menu to get their mayo.",
-    features: ["Encouraged consumers to order a McChicken without the chicken and lettuce, leaving just the mayo.", "Reimbursed consumers who posted their hack with #MayoMcHack.", "Placed ads outside McDonald's locations promoting the hack."],
+    targetAudience: [
+      "Fast food lovers",
+      "Mayonnaise enthusiasts",
+      "Social media users"
+    ],
+    humanInsight: [
+      "McDonald's in the UK does not serve mayonnaise as a dip, frustrating mayo lovers.",
+      "Consumers are increasingly customizing their orders.",
+      "People will go to great lengths to get the condiments they love."
+    ],
+    strategy:
+      "Encourage people to hack McDonald's menu to get their mayo.",
+    executionTactics: [
+      "Encouraged consumers to order a McChicken without the chicken and lettuce, leaving just the mayo.",
+      "Reimbursed consumers who posted their order hack."
+    ],
     emotionalAppeal: ["Humor", "Empowerment", "Rebellion"],
-    outcomes: ["320M+", "46% social lift", "+9 points in purchase intent", "Viral user-generated content and news coverage."],
-    creativeActivation: "Mayo McHack – The ultimate way to get McDonald's mayo without them serving it.",
-    viralElement: "People complain about no mayo → Hellmann’s introduces the hack → Consumers participate and spread the word → McDonald's acknowledges demand.",
+    results: [
+      "320M+ impressions",
+      "46% social lift",
+      "+9 points in purchase intent",
+      "Viral user-generated content and news coverage."
+    ],
+    creativeDevice: "Mayo McHack – The ultimate way to get McDonald’s mayo without them serving it.",
+    whyItWonAwards:
+      "People complain about no mayo → Hellmann’s introduces the hack → Consumers participate and spread the word → McDonald's acknowledges the buzz."
   },
   {
     id: "19ce631b-b0f3-4cca-ab5e-a6dd7678e970",
