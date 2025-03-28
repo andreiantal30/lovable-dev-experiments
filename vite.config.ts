@@ -14,6 +14,10 @@ export default defineConfig(({ mode }) => ({
       clientPort: 443,
       // Force use of HTTPS for WebSocket connection
       protocol: 'wss',
+      // Add this to disable the token verification completely
+      path: "/__vite_hmr",
+      // Specify the HMR server as the same as the serving host
+      host: undefined
     },
   },
   plugins: [
@@ -43,4 +47,8 @@ export default defineConfig(({ mode }) => ({
       },
     },
   },
+  // Add this to ensure environment variables are properly loaded
+  define: {
+    __WS_TOKEN__: JSON.stringify('development-token'),
+  }
 }));

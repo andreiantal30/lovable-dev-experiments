@@ -18,7 +18,11 @@ try {
     env: {
       ...process.env,
       // Disable WebSocket token validation
-      VITE_DISABLE_WS_TOKEN: 'true'
+      VITE_DISABLE_WS_TOKEN: 'true',
+      // Define the WS token directly in the environment
+      __WS_TOKEN__: 'development-token',
+      // Enable more detailed HMR logging
+      DEBUG: 'vite:hmr'
     }
   });
 } catch (error) {

@@ -79,7 +79,11 @@ const child = exec(command, {
   env: {
     ...process.env,
     // Disable WebSocket token validation
-    VITE_DISABLE_WS_TOKEN: 'true'
+    VITE_DISABLE_WS_TOKEN: 'true',
+    // Define the WS token directly
+    __WS_TOKEN__: 'development-token',
+    // Enable detailed hmr logging
+    DEBUG: 'vite:hmr'
   }
 });
 

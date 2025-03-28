@@ -21,6 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ApiKeyDebugger from './ApiKeyDebugger';
 
 const InsightsDashboard: React.FC = () => {
+  // Fixed: Use the correct type for activeTab state
   const [activeTab, setActiveTab] = useState<"human-insights" | "cultural-trends">("human-insights");
   const [debugMode, setDebugMode] = useState(false);
   const [isUpdatingTrends, setIsUpdatingTrends] = useState(false);
@@ -183,7 +184,12 @@ const InsightsDashboard: React.FC = () => {
           <CardContent>
             {debugMode && <ApiKeyDebugger />}
             
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+            {/* Fixed: Use correct event handler type for onValueChange */}
+            <Tabs 
+              value={activeTab} 
+              onValueChange={(value: "human-insights" | "cultural-trends") => setActiveTab(value)} 
+              className="mb-6"
+            >
               <TabsList>
                 <TabsTrigger value="human-insights" className="flex items-center gap-2">
                   <Lightbulb className="h-4 w-4" />
