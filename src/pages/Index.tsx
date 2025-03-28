@@ -1,3 +1,4 @@
+
 import { toast } from "sonner";
 import { SidebarInset } from "@/components/ui/sidebar";
 import CampaignSidebar from "@/components/CampaignSidebar";
@@ -6,7 +7,6 @@ import ThemeToggle from "@/components/ThemeToggle";
 import Header from "@/components/IndexPage/Header";
 import Footer from "@/components/IndexPage/Footer";
 import CampaignSection from "@/components/IndexPage/CampaignSection";
-import StatsPageLink from "@/components/StatsPageLink";
 import { useCampaignGeneration } from "@/hooks/useCampaignGeneration";
 import { useOpenAIConfig } from "@/hooks/useOpenAIConfig";
 import ApiKeyForm from "@/components/IndexPage/ApiKeyForm";
@@ -123,7 +123,6 @@ const Index = () => {
               apiKey={openAIConfig.apiKey} 
               onChangeApiKey={() => setShowApiKeyInput(true)} 
             />
-            <StatsPageLink />
           </div>
           
           {showApiKeyInput && (
