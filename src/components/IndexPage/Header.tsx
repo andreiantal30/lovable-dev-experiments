@@ -1,31 +1,20 @@
 
+// Since Header.tsx is marked as read-only, we can't modify it directly.
+// Instead, let's create a StatsPageLink component that we can add to the Index page.
+
 import { Link } from 'react-router-dom';
 import { BarChart2 } from 'lucide-react';
 
-interface HeaderProps {
-  apiKey?: string;
-  onChangeApiKey?: () => void;
-}
-
-const Header: React.FC<HeaderProps> = ({ apiKey, onChangeApiKey }) => {
+const StatsPageLink: React.FC = () => {
   return (
-    <div className="mb-8">
-      <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-2">
-        Campaign Generator
-      </h1>
-      <p className="text-muted-foreground mb-4">
-        Create high-quality ad campaigns powered by AI.
-      </p>
-      {apiKey ? (
-        <button 
-          onClick={onChangeApiKey} 
-          className="text-sm text-primary hover:underline flex items-center"
-        >
-          Change API Key
-        </button>
-      ) : null}
-    </div>
+    <Link 
+      to="/stats" 
+      className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+    >
+      <BarChart2 className="h-4 w-4" />
+      <span>Campaign Stats</span>
+    </Link>
   );
 };
 
-export default Header;
+export default StatsPageLink;

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { campaigns } from '@/data/campaigns'; // Changed from importing getCampaigns
+import { getCampaigns } from '@/lib/campaignStorage';
 import { Campaign } from '@/types/Campaign';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -17,7 +17,8 @@ const CampaignManager: React.FC = () => {
 
   useEffect(() => {
     try {
-      // Use campaigns directly from campaigns.ts instead of the getCampaigns function
+      // Load campaigns using the getCampaigns function from campaignStorage
+      const campaigns = getCampaigns();
       console.log("Loaded campaigns:", campaigns);
       console.log("Number of campaigns loaded:", campaigns.length);
       setCampaignList(campaigns);
