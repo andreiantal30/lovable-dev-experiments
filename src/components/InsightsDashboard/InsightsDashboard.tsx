@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { analyzeInsightPatterns, getTopAssociations } from '@/lib/insightAnalysis';
@@ -20,6 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ApiKeyDebugger from './ApiKeyDebugger';
 
 const InsightsDashboard: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<"human-insights" | "cultural-trends">("human-insights");
   const [debugMode, setDebugMode] = useState(false);
   const [isUpdatingTrends, setIsUpdatingTrends] = useState(false);
   const [isUpdatingRedditTrends, setIsUpdatingRedditTrends] = useState(false);

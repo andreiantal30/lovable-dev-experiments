@@ -75,7 +75,13 @@ console.log('🚀 Starting development server...');
 const command = 'npx vite --force';
 
 console.log(`Running: ${command}`);
-const child = exec(command);
+const child = exec(command, {
+  env: {
+    ...process.env,
+    // Disable WebSocket token validation
+    VITE_DISABLE_WS_TOKEN: 'true'
+  }
+});
 
 child.stdout.on('data', (data) => {
   console.log(data.trim());

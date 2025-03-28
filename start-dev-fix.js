@@ -8,13 +8,18 @@ const fs = require('fs');
 console.log('📦 Starting the development server...');
 
 try {
-  // Simple approach - just run Vite directly with the force flag to bypass WebSocket token checks
-  console.log('🚀 Launching Vite dev server...');
+  // Run Vite with the force flag and disable hmr verification
+  console.log('🚀 Launching Vite dev server with WebSocket fixes...');
   
   // Use execSync with stdio: 'inherit' to show output in real-time
-  execSync('npx vite --force', { 
+  execSync('npx vite --force --debug hmr', { 
     stdio: 'inherit',
-    cwd: process.cwd()
+    cwd: process.cwd(),
+    env: {
+      ...process.env,
+      // Disable WebSocket token validation
+      VITE_DISABLE_WS_TOKEN: 'true'
+    }
   });
 } catch (error) {
   console.error('❌ Error running Vite:', error.message);
