@@ -10,23 +10,23 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ apiKey, onChangeApiKey }) => {
   return (
     <div className="mb-8 text-center max-w-4xl mx-auto">
-      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-950 text-blue-200 mb-6">
+      <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-blue-950 text-blue-300 mb-8">
         <Sparkles className="h-4 w-4" />
-        <span className="text-sm font-medium">INSPIRED BY REAL CANNES LIONS CAMPAIGNS</span>
+        <span className="text-sm font-medium tracking-wider">INSPIRED BY REAL CANNES LIONS CAMPAIGNS</span>
       </div>
       
-      <h1 className="text-5xl font-extrabold tracking-tight lg:text-7xl mb-6">
+      <h1 className="text-6xl font-extrabold tracking-tight lg:text-8xl mb-8">
         <span className="text-white">Turn Big Ideas into</span>
         <br />
         <span className="text-blue-400">Campaigns Worth Celebrating</span>
       </h1>
       
-      <p className="text-xl text-gray-300 mb-4 max-w-3xl mx-auto">
+      <p className="text-xl text-gray-300 mb-6 max-w-3xl mx-auto">
         Backed by real Cannes Lions winners, our AI helps you generate creative concepts that 
         blend <span className="font-medium">insight, innovation</span>, and <span className="font-medium">execution</span> — just like the best in the world.
       </p>
       
-      <p className="text-gray-400 text-sm mb-6">
+      <p className="text-gray-400 text-base mb-8">
         Trained on award-winning campaigns from brands like Spotify, Dove, Netflix, Heinz, and more.
       </p>
       
