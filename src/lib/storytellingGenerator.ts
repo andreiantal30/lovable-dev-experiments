@@ -1,7 +1,7 @@
 
 import { generateWithOpenAI, OpenAIConfig, defaultOpenAIConfig } from './openai';
 
-interface StorytellingInput {
+export interface StorytellingInput {
   brand: string;
   industry: string;
   targetAudience: string[];
@@ -10,13 +10,18 @@ interface StorytellingInput {
   keyMessage: string;
 }
 
+// If needed by the app elsewhere
+export interface StorytellingOutput {
+  narrative: string;
+}
+
 /**
  * Generate a storytelling narrative based on campaign inputs
  */
 export async function generateStorytellingNarrative(
   input: StorytellingInput,
   openAIConfig: OpenAIConfig = defaultOpenAIConfig
-): Promise<string> {
+): Promise<StorytellingOutput> {
   const prompt = `
 You're a top-tier brand storyteller tasked with creating a powerful narrative.
 
@@ -47,7 +52,7 @@ Please return only the storytelling narrative as plain text. Do NOT include expl
 
   try {
     const response = await generateWithOpenAI(prompt, openAIConfig);
-    return response.trim();
+    return { narrative: response.trim() };
   } catch (error) {
     console.error("Failed to generate storytelling narrative:", error);
     throw error;
