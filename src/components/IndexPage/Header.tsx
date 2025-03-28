@@ -9,24 +9,24 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ apiKey, onChangeApiKey }) => {
   return (
-    <div className="mb-8 text-center max-w-4xl mx-auto">
-      <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-blue-950 text-blue-300 mb-8">
-        <Sparkles className="h-4 w-4" />
-        <span className="text-sm font-medium tracking-wider">INSPIRED BY REAL CANNES LIONS CAMPAIGNS</span>
+    <div className="mb-4 text-center max-w-3xl mx-auto">
+      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-950 text-blue-200 mb-4">
+        <Sparkles className="h-3.5 w-3.5" />
+        <span className="text-xs font-medium">INSPIRED BY REAL CANNES LIONS CAMPAIGNS</span>
       </div>
       
-      <h1 className="text-6xl font-extrabold tracking-tight lg:text-8xl mb-8">
+      <h1 className="text-4xl font-bold tracking-tight lg:text-5xl mb-3">
         <span className="text-white">Turn Big Ideas into</span>
         <br />
         <span className="text-blue-400">Campaigns Worth Celebrating</span>
       </h1>
       
-      <p className="text-xl text-gray-300 mb-6 max-w-3xl mx-auto">
+      <p className="text-base text-gray-300 mb-2 max-w-2xl mx-auto">
         Backed by real Cannes Lions winners, our AI helps you generate creative concepts that 
         blend <span className="font-medium">insight, innovation</span>, and <span className="font-medium">execution</span> — just like the best in the world.
       </p>
       
-      <p className="text-gray-400 text-base mb-8">
+      <p className="text-gray-400 text-xs mb-4">
         Trained on award-winning campaigns from brands like Spotify, Dove, Netflix, Heinz, and more.
       </p>
       
