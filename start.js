@@ -35,7 +35,7 @@ function updatePackageJson() {
     let updated = false;
     
     if (!packageJson.scripts.dev) {
-      packageJson.scripts.dev = "vite";
+      packageJson.scripts.dev = "vite --force";
       updated = true;
     }
     if (!packageJson.scripts.build) {
@@ -47,7 +47,7 @@ function updatePackageJson() {
       updated = true;
     }
     if (!packageJson.scripts.start) {
-      packageJson.scripts.start = "vite";
+      packageJson.scripts.start = "vite --force";
       updated = true;
     }
     
@@ -72,7 +72,7 @@ updatePackageJson();
 
 // Determine the best command to run
 console.log('🚀 Starting development server...');
-const command = 'npx vite';
+const command = 'npx vite --force';
 
 console.log(`Running: ${command}`);
 const child = exec(command);
@@ -89,7 +89,6 @@ child.on('error', (error) => {
   console.error('Error:', error.message);
   console.log('\n❓ Troubleshooting:');
   console.log('1. Make sure Vite is installed: npm install vite');
-  console.log('2. Try running npx vite directly');
+  console.log('2. Try running npx vite --force directly');
   console.log('3. Make sure all dependencies are installed: npm install');
 });
-

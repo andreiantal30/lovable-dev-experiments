@@ -14,6 +14,11 @@ export default defineConfig(({ mode }) => {
       host: "::",
       port: 8080,
       open: true, // Automatically open browser when starting
+      hmr: {
+        // Ensure HMR works properly
+        clientPort: 443,
+        overlay: true,
+      },
     },
     plugins: [
       react(),
