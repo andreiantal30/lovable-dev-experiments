@@ -1,3 +1,4 @@
+
 # Welcome to your Lovable project
 
 ## Project info
@@ -33,7 +34,12 @@ cd <YOUR_PROJECT_NAME>
 npm i
 
 # Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+# If you get a "missing script: dev" error, use one of these alternatives:
+npm run start   # Alternative 1
+npx vite        # Alternative 2 (recommended)
+
+# You can also install the dev script by running:
+node package-updater.js
 ```
 
 **Edit a file directly in GitHub**
@@ -52,7 +58,7 @@ npm run dev
 
 ## What technologies are used for this project?
 
-This project is built with .
+This project is built with:
 
 - Vite
 - TypeScript
@@ -67,3 +73,4 @@ Simply open [Lovable](https://lovable.dev/projects/2325c5e1-efcc-41cb-8acf-106e3
 ## I want to use a custom domain - is that possible?
 
 We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+
