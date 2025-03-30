@@ -4,13 +4,8 @@ import { Headline } from "./fetchNewsTrends.client";
 export async function fetchNewsFromServer(): Promise<Headline[]> {
   console.log("🔍 Fetching news from server...");
   
-  // First try to use the environment variable
-  const apiKey = import.meta.env.VITE_NEWS_API_KEY;
-
-  if (!apiKey) {
-    console.error("❌ NEWS_API_KEY is not set in environment");
-    throw new Error("NEWS_API_KEY is not set in environment");
-  }
+  // Try to use the environment variable from .env
+  const apiKey = import.meta.env.VITE_NEWS_API_KEY || "ca7eb7fe6b614e7095719eb52b15f728";
 
   console.log("🔑 Using API key:", apiKey.substring(0, 5) + "...");
   const url = `https://newsapi.org/v2/top-headlines?language=en&pageSize=10&apiKey=${apiKey}`;

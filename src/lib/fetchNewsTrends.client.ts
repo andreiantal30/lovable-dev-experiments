@@ -37,38 +37,17 @@ export const fetchNewsTrends = async (): Promise<Headline[]> => {
     // First try to get the key from localStorage
     let apiKey = localStorage.getItem(NEWS_API_STORAGE_KEY);
     
-    // If not in localStorage, try to use the environment variable as fallback
+    // If not in localStorage, use the default key
     if (!apiKey) {
-      apiKey = import.meta.env.VITE_NEWS_API_KEY;
-      
-      if (apiKey) {
-        // Save it to localStorage for future use
-        localStorage.setItem(NEWS_API_STORAGE_KEY, apiKey);
-        console.log("Using NewsAPI key from environment variables");
-      } else {
-        toast.error("NewsAPI key is not set. Please set it in the settings.");
-        throw new Error("NewsAPI key is not set");
-      }
+      apiKey = "ca7eb7fe6b614e7095719eb52b15f728";
+      // Save it to localStorage for future use
+      localStorage.setItem(NEWS_API_STORAGE_KEY, apiKey);
+      console.log("Using default NewsAPI key");
     }
 
     console.log("Fetching news with API key:", apiKey.substring(0, 5) + "...");
     
-    // Try to fetch from our own backend API first
-    try {
-      const response = await fetch("/api/news-trends");
-      if (response.ok) {
-        const data = await response.json();
-        return data.map((article: any) => ({
-          title: article.title,
-          source: article.source.name,
-          publishedAt: article.publishedAt
-        }));
-      }
-    } catch (err) {
-      console.log("Backend API fetch failed, trying direct NewsAPI...");
-    }
-    
-    // If backend fails, try direct API access with the key
+    // Make direct API request to NewsAPI
     const url = `https://newsapi.org/v2/top-headlines?language=en&pageSize=10&apiKey=${apiKey}`;
     
     const response = await fetch(url);
@@ -76,6 +55,13 @@ export const fetchNewsTrends = async (): Promise<Headline[]> => {
     if (!response.ok) {
       const errorData = await response.json();
       console.error("NewsAPI error:", errorData);
+      
+      if (errorData.code === "apiKeyInvalid" || errorData.code === "apiKeyExhausted" || errorData.code === "apiKeyMissing") {
+        toast.error("Invalid or expired NewsAPI key. Using default key.");
+        localStorage.removeItem(NEWS_API_STORAGE_KEY);
+        return fetchNewsTrends(); // Retry with default key
+      }
+      
       throw new Error(errorData.message || "Failed to fetch news trends");
     }
     
@@ -110,13 +96,6 @@ export const getNewsApiKey = (): string => {
   const localKey = localStorage.getItem(NEWS_API_STORAGE_KEY);
   if (localKey) return localKey;
   
-  // If not in localStorage, try env variable
-  const envKey = import.meta.env.VITE_NEWS_API_KEY;
-  if (envKey) {
-    // Save to localStorage for future use
-    localStorage.setItem(NEWS_API_STORAGE_KEY, envKey);
-    return envKey;
-  }
-  
-  return "";
+  // If not in localStorage, use default key
+  return "ca7eb7fe6b614e7095719eb52b15f728";
 };
