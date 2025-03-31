@@ -24,17 +24,12 @@ const updateNewsTrends = async () => {
 
     const data = await res.json();
 
-    // If server returns full cultural trends (ideal setup):
     if (Array.isArray(data) && data[0]?.title && data[0]?.platformTags) {
       saveCulturalTrends(data);
-      console.log("✅ Saved generated cultural trends.");
     } else if (Array.isArray(data) && data[0]?.title && data[0]?.source) {
-      // If server returned just headlines
       const generatedTrends = await generateCulturalTrends(data);
       saveCulturalTrends(generatedTrends);
-      console.log("✅ Generated and saved cultural trends from headlines.");
     } else {
-      console.warn("⚠️ Unexpected response structure:", data);
       throw new Error("Invalid trend data format");
     }
   } catch (err) {
