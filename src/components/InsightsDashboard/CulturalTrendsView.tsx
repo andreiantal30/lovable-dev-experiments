@@ -7,6 +7,27 @@ import { Clock, ArrowRight, Filter } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { generateCulturalTrends, saveCulturalTrends } from '@/lib/generateCulturalTrends';
+import { Headline } from '@/lib/fetchNewsTrends.client';
+
+const updateNewsTrends = async () => {
+  try {
+    const res = await fetch("/api/news");
+    if (!res.ok) throw new Error("Failed to fetch news");
+
+    const newsData = await res.json();
+    const articles: Headline[] = newsData.articles;
+
+    console.log("✅ NewsAPI articles:", articles);
+
+    const generatedTrends = await generateCulturalTrends(articles);
+    saveCulturalTrends(generatedTrends);
+    
+    console.log("✅ Generated + saved cultural trends:", generatedTrends);
+  } catch (err) {
+    console.error("❌ News fetch or trend generation error:", err);
+  }
+};
 
 const updateNewsTrends = async () => {
   try {
