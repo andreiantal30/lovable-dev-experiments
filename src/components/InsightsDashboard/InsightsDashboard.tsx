@@ -136,24 +136,7 @@ const InsightsDashboard: React.FC = () => {
             </div>
             
             <div className="flex flex-wrap gap-2">
-              <Button 
-                variant="outline" 
-                className="gap-2" 
-                onClick={handleUpdateTrends} 
-                disabled={isUpdatingTrends}
-              >
-                <Server className={`h-4 w-4 ${isUpdatingTrends ? 'animate-spin' : ''}`} />
-                Update Trends from NewsAPI
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                className="gap-2" 
-                onClick={() => setApiKeyDialogOpen(true)}
-              >
-                🔑 Set NewsAPI Key
-              </Button>
-                          
+                                    
               <Button 
                 variant="outline" 
                 className="gap-2" 
