@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { Headline } from "./fetchNewsTrends.client.ts";
 import { generateWithOpenAI, defaultOpenAIConfig } from "./openai";
 import { toast } from "sonner";
+import { extractJsonFromResponse } from "./campaign/utils";
 
 export interface CulturalTrend {
   id: string;
@@ -64,17 +65,21 @@ Format strictly like this:
     // 🚀 Send to OpenAI
     const response = await generateWithOpenAI(prompt, defaultOpenAIConfig);
 
-    // 🧪 Try parsing GPT output
+    // 🧪 Clean and parse GPT output
     console.log(`🧠 GPT Raw ${sourceType} Trend Response:`, response);
+    
+    // Extract JSON from response even if wrapped in markdown code blocks
+    const cleanedJson = extractJsonFromResponse(response);
+    console.log(`Cleaned JSON for parsing:`, cleanedJson);
 
     let jsonResponse;
     try {
-      jsonResponse = JSON.parse(response);
+      jsonResponse = JSON.parse(cleanedJson);
       if (!Array.isArray(jsonResponse)) {
         throw new Error("Response is not an array");
       }
     } catch (err) {
-      console.error(`❌ Failed to parse ${sourceType} trend response:`, response);
+      console.error(`❌ Failed to parse ${sourceType} trend response:`, cleanedJson);
       toast.error(`Failed to parse ${sourceType} trends from AI`);
       return [];
     }
