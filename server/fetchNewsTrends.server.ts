@@ -1,5 +1,11 @@
+// server/fetchNewsTrends.server.ts
 import "dotenv/config";
-import { Headline } from "../src/lib/fetchNewsTrends.client";
+
+export interface Headline {
+  title: string;
+  source: string;
+  publishedAt: string;
+}
 
 export const fetchNewsFromServer = async (): Promise<Headline[]> => {
   const apiKey = process.env.NEWS_API_KEY;
@@ -17,6 +23,7 @@ export const fetchNewsFromServer = async (): Promise<Headline[]> => {
   }
 
   const data = await response.json();
+
   return data.articles.map((article: any) => ({
     title: article.title,
     source: article.source.name,

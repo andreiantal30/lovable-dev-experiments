@@ -1,25 +1,26 @@
 // server/newsApi.ts
 import express from 'express';
-import fetch from 'node-fetch';
 import dotenv from 'dotenv';
-import newsRouter from './newsApi';
-
-app.use('/api', newsRouter); // This makes your route available at /api/news
+import { fetchNewsFromServer } from './fetchNewsTrends.server';
+import { generateCulturalTrends, saveCulturalTrends } from '../src/lib/generateCulturalTrends';
 
 dotenv.config();
 
 const router = express.Router();
 
+// GET /api/news
 router.get('/news', async (req, res) => {
-  const url = `https://newsapi.org/v2/top-headlines?country=us&apiKey=${process.env.NEWS_API_KEY}`;
-
   try {
-    const response = await fetch(url);
-    const data = await response.json();
-    res.json(data);
-  } catch (error) {
-    console.error("Error fetching NewsAPI:", error);
-    res.status(500).json({ error: 'Failed to fetch news' });
+    const headlines = await fetchNewsFromServer();
+    const trends = await generateCulturalTrends(headlines);
+
+    // Save trends in memory + localStorage (handled internally)
+    saveCulturalTrends(trends);
+
+    res.json({ success: true, trends });
+  } catch (error: any) {
+    console.error("❌ Error in /api/news:", error);
+    res.status(500).json({ error: error.message || "Failed to generate cultural trends" });
   }
 });
 
