@@ -6,48 +6,47 @@ export async function fetchNewsFromServer(): Promise<CulturalTrend[]> {
   console.log("🔍 Fetching news from server...");
 
   try {
-    // ✅ Always fetch from internal backend proxy route (not directly from NewsAPI)
-    console.log("📡 Fetching from internal API route /api/news...");
-
-    const response = await fetch("/api/news", {
+    // ✅ Use relative path instead of window.location.origin
+    const apiResponse = await fetch(`/api/news-trends`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`❌ API error: ${response.status}`, errorText);
-      throw new Error(`API response error: ${response.status}`);
+    if (!apiResponse.ok) {
+      console.error(`❌ API response error: ${apiResponse.status}`);
+      const errorText = await apiResponse.text();
+      console.error("Error response:", errorText);
+      throw new Error(`API response error: ${apiResponse.status}`);
     }
 
-    const articles = await response.json();
-    console.log(`✅ Received ${articles.length} articles from internal API`);
+    const data = await apiResponse.json();
+    console.log(`✅ Fetched data from server API: ${JSON.stringify(data).substring(0, 100)}...`);
 
-    const headlines: Headline[] = articles.map((article: any) => ({
-      title: article.title || "Untitled",
-      source: article.source?.name || "Unknown Source",
-      publishedAt: article.publishedAt || new Date().toISOString(),
-    }));
+    if (Array.isArray(data)) {
+      return ensureCulturalTrendFormat(data);
+    }
 
-    return convertHeadlinesToTrends(headlines);
-  } catch (error) {
-    console.error("❌ Failed to fetch from internal API:", error);
-    throw error; // stop here — no NewsAPI fallback in production
+    throw new Error("Invalid data format returned from server");
+  } catch (serverError) {
+    console.error("❌ Server API failed:", serverError);
+    throw serverError;
   }
 }
 
-// Convert headlines to cultural trends
-function convertHeadlinesToTrends(headlines: Headline[]): CulturalTrend[] {
-  return headlines.map((headline) => ({
-    id: uuidv4(),
-    title: headline.title,
-    description: `News from ${headline.source}`,
-    source: "NewsAPI",
-    platformTags: ["News", "Current Events"],
-    category: "News",
-    addedOn: new Date(),
-  }));
+// Helper function to ensure data is in CulturalTrend format
+function ensureCulturalTrendFormat(data: any[]): CulturalTrend[] {
+  return data.map(item => {
+    return {
+      id: item.id || uuidv4(),
+      title: item.title || "Untitled",
+      description: item.description || `News from ${item.source || "unknown source"}`,
+      source: typeof item.source === 'string' ? item.source : (item.source?.name || "NewsAPI"),
+      platformTags: item.platformTags || ["News", "Current Events"],
+      category: item.category || "News",
+      addedOn: item.addedOn ? new Date(item.addedOn) : new Date()
+    };
+  });
 }
