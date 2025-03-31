@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { analyzeInsightPatterns, getTopAssociations } from '@/lib/insightAnalysis';
@@ -11,7 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { fetchNewsTrends } from '@/lib/fetchNewsTrends.client.ts';
 import { fetchNewsFromServer } from '@/lib/fetchNewsFromServer';
 import { fetchAndGenerateRedditTrends } from '@/lib/fetchRedditTrends';
-import { generateCulturalTrends, saveCulturalTrends, getCulturalTrends } from '@/lib/generateCulturalTrends';
+import { generateCulturalTrends, saveCulturalTrends, getCulturalTrends, CulturalTrend } from '@/lib/generateCulturalTrends';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -74,7 +75,8 @@ const InsightsDashboard: React.FC = () => {
       
       try {
         console.log("Attempting to fetch news from server endpoint...");
-        const trends = await fetchNewsTrends();
+        // We now get CulturalTrend[] directly from fetchNewsFromServer
+        const trends = await fetchNewsFromServer();
         console.log("Fetched trends from server:", trends);
         
         if (trends && trends.length > 0) {

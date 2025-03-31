@@ -1,7 +1,9 @@
 
 import { Headline } from "./fetchNewsTrends.client";
+import { CulturalTrend } from "./generateCulturalTrends";
+import { v4 as uuidv4 } from "uuid";
 
-export async function fetchNewsFromServer(): Promise<Headline[]> {
+export async function fetchNewsFromServer(): Promise<CulturalTrend[]> {
   console.log("🔍 Fetching news from server...");
   
   try {
@@ -30,7 +32,8 @@ export async function fetchNewsFromServer(): Promise<Headline[]> {
     
     if (Array.isArray(data)) {
       // The API returns an array of trends or headlines
-      return data;
+      // Ensure all items are properly formatted as CulturalTrends
+      return ensureCulturalTrendFormat(data);
     }
     
     throw new Error("Invalid data format returned from server");
@@ -56,14 +59,63 @@ export async function fetchNewsFromServer(): Promise<Headline[]> {
       const data = await response.json();
       console.log(`✅ Fetched ${data.articles?.length || 0} articles from NewsAPI`);
 
-      return data.articles.map((article: any) => ({
+      const headlines = data.articles.map((article: any) => ({
         title: article.title || "Untitled",
         source: article.source?.name || "Unknown Source",
         publishedAt: article.publishedAt || new Date().toISOString(),
       }));
+      
+      // Convert headlines to CulturalTrends format
+      return convertHeadlinesToTrends(headlines);
     } catch (apiError) {
       console.error("❌ Direct NewsAPI call failed:", apiError);
       throw apiError;
     }
   }
+}
+
+// Helper function to ensure data is in CulturalTrend format
+function ensureCulturalTrendFormat(data: any[]): CulturalTrend[] {
+  return data.map(item => {
+    // Check if item already has all CulturalTrend properties
+    if (
+      item.id && 
+      item.title && 
+      item.description && 
+      item.source && 
+      item.platformTags && 
+      item.category && 
+      item.addedOn
+    ) {
+      // Item is already a CulturalTrend, just ensure addedOn is a Date
+      return {
+        ...item,
+        addedOn: item.addedOn instanceof Date ? item.addedOn : new Date(item.addedOn)
+      };
+    }
+    
+    // Item is a Headline or something else, convert to CulturalTrend
+    return {
+      id: item.id || uuidv4(),
+      title: item.title || "Untitled",
+      description: item.description || `News from ${item.source || "unknown source"}`,
+      source: typeof item.source === 'string' ? item.source : (item.source?.name || "NewsAPI"),
+      platformTags: item.platformTags || ["News", "Current Events"],
+      category: item.category || "News",
+      addedOn: item.addedOn ? new Date(item.addedOn) : new Date()
+    };
+  });
+}
+
+// Convert headlines to cultural trends
+function convertHeadlinesToTrends(headlines: Headline[]): CulturalTrend[] {
+  return headlines.map(headline => ({
+    id: uuidv4(),
+    title: headline.title,
+    description: `News from ${headline.source}`,
+    source: "NewsAPI",
+    platformTags: ["News", "Current Events"],
+    category: "News",
+    addedOn: new Date()
+  }));
 }

@@ -1,6 +1,7 @@
 
 import { fetchNewsFromServer } from "@/lib/fetchNewsFromServer";
-import { generateCulturalTrends } from "@/lib/generateCulturalTrends";
+import { generateCulturalTrends, CulturalTrend } from "@/lib/generateCulturalTrends";
+import { v4 as uuidv4 } from "uuid";
 
 export async function GET() {
   try {
@@ -30,8 +31,19 @@ export async function GET() {
     
     const trends = await generateCulturalTrends(headlines);
     console.log(`🧠 Generated ${trends.length} cultural trends`);
+    
+    // Ensure each trend follows the CulturalTrend interface
+    const formattedTrends: CulturalTrend[] = trends.map(trend => ({
+      id: trend.id || uuidv4(),
+      title: trend.title,
+      description: trend.description,
+      source: trend.source || "NewsAPI",
+      platformTags: trend.platformTags || [],
+      category: trend.category || "Uncategorized",
+      addedOn: trend.addedOn instanceof Date ? trend.addedOn : new Date(),
+    }));
 
-    return new Response(JSON.stringify(trends), {
+    return new Response(JSON.stringify(formattedTrends), {
       headers: { 
         "Content-Type": "application/json",
         // Add CORS headers to allow browser requests
