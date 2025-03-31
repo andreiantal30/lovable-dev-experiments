@@ -29,9 +29,12 @@ export async function generateCulturalTrends(headlines: Headline[]): Promise<Cul
       .map(h => `- "${h.title}" (${h.source})`)
       .join("\n");
 
+    // Determine number of trends to generate based on available headlines
+    const numTrends = Math.min(10, Math.max(3, Math.floor(headlines.length / 2)));
+    
     // ✍️ Craft the GPT prompt
     const prompt = `
-Based on the lines below, summarize 3 emerging cultural trends.
+Based on the lines below, summarize ${numTrends} emerging cultural trends.
 
 For each trend, give:
 - Title: A catchy, concise name

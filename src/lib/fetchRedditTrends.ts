@@ -3,7 +3,7 @@ import { generateCulturalTrends } from "./generateCulturalTrends";
 import { Headline } from "./fetchNewsTrends.client.ts";
 
 // We'll use the public Reddit JSON API instead of snoowrap
-const subreddits = ["GenZ", "trend", "OutOfTheLoop", "advertising", "marketing"];
+const subreddits = ["GenZ", "trend", "OutOfTheLoop", "advertising", "marketing", "trendingsubreddits", "popular"];
 
 export async function fetchAndGenerateRedditTrends(): Promise<any[]> {
   try {
@@ -12,7 +12,7 @@ export async function fetchAndGenerateRedditTrends(): Promise<any[]> {
     for (const sub of subreddits) {
       try {
         // Fetch the hot posts from the subreddit using the public JSON API
-        const response = await fetch(`https://www.reddit.com/r/${sub}/hot.json?limit=5`);
+        const response = await fetch(`https://www.reddit.com/r/${sub}/hot.json?limit=10`);
         
         if (!response.ok) {
           console.error(`Error fetching from r/${sub}: ${response.status}`);
@@ -31,6 +31,11 @@ export async function fetchAndGenerateRedditTrends(): Promise<any[]> {
             publishedAt: new Date(post.data.created_utc * 1000).toISOString(),
           });
         });
+        
+        // If we already have enough headlines, break out of the loop
+        if (allHeadlines.length >= 30) {
+          break;
+        }
       } catch (error) {
         console.error(`Error processing r/${sub}:`, error);
         // Continue with other subreddits even if one fails

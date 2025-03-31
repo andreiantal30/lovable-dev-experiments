@@ -27,8 +27,13 @@ const CulturalTrendsView: React.FC = () => {
   };
   
   // Separate trends by source
-  const redditTrends = trends.filter(trend => trend.source === "Reddit");
-  const newsTrends = trends.filter(trend => trend.source === "NewsAPI");
+  const redditTrends = trends
+    .filter(trend => trend.source === "Reddit")
+    .slice(0, 10); // Limit to 10 Reddit trends
+
+  const newsTrends = trends
+    .filter(trend => trend.source === "NewsAPI")
+    .slice(0, 10); // Limit to 10 NewsAPI trends
   
   console.log("Displaying cultural trends:", trends);
   console.log("Reddit trends:", redditTrends.length);
@@ -96,6 +101,9 @@ const CulturalTrendsView: React.FC = () => {
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-medium">Cultural Trends</h3>
+        <div className="text-sm text-muted-foreground">
+          Showing up to 10 trends from each source
+        </div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -105,7 +113,7 @@ const CulturalTrendsView: React.FC = () => {
             <Badge variant="secondary" className="bg-orange-500/10 text-orange-500">Reddit</Badge>
             <span>Trends</span>
             <span className="text-sm text-muted-foreground ml-2">
-              ({redditTrends.length})
+              ({redditTrends.length}/10)
             </span>
           </h4>
           
@@ -130,7 +138,7 @@ const CulturalTrendsView: React.FC = () => {
             <Badge variant="outline" className="bg-primary/10">NewsAPI</Badge>
             <span>Trends</span>
             <span className="text-sm text-muted-foreground ml-2">
-              ({newsTrends.length})
+              ({newsTrends.length}/10)
             </span>
           </h4>
           

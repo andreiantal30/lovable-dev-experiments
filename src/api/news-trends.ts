@@ -11,7 +11,7 @@ export async function GET() {
     const apiKey = import.meta.env.VITE_NEWS_API_KEY || "ca7eb7fe6b614e7095719eb52b15f728";
     console.log("🔑 Using API key:", apiKey.substring(0, 5) + "...");
     
-    const url = `https://newsapi.org/v2/top-headlines?language=en&pageSize=10&apiKey=${apiKey}`;
+    const url = `https://newsapi.org/v2/top-headlines?language=en&pageSize=20&apiKey=${apiKey}`;
     const response = await fetch(url);
     
     if (!response.ok) {
