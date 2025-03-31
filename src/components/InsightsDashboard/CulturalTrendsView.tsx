@@ -29,22 +29,6 @@ const updateNewsTrends = async () => {
   }
 };
 
-const updateNewsTrends = async () => {
-  try {
-    const res = await fetch("/api/news");
-    if (!res.ok) throw new Error("Failed to fetch news");
-    const newsData = await res.json();
-
-    console.log("✅ NewsAPI Response:", newsData);
-
-    // Optional: if you have a function like `generateCulturalTrends(newsData.articles)` somewhere, call it here
-    // Or save locally for now
-    localStorage.setItem("newsArticles", JSON.stringify(newsData.articles));
-  } catch (err) {
-    console.error("❌ News fetch error:", err);
-  }
-};
-
 const CulturalTrendsView: React.FC = () => {
   const cachedTrends = getCachedCulturalTrends();
   const inMemoryTrends = getCulturalTrends();
