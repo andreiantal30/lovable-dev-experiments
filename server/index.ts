@@ -4,7 +4,9 @@ dotenv.config();
 
 import express from "express";
 import cors from "cors";
-import newsApiRouter from "./newsApi"; // ✅ must match file exactly
+
+import newsApiRouter from "./newsApi";     // ✅ NewsAPI route
+import cdPassRoute from "./cdPass";        // ✅ Creative Director Pass route
 
 const app = express();
 const port = 8090;
@@ -17,8 +19,9 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// ✅ Mount the NewsAPI router at /api
-app.use('/api', newsApiRouter); // This makes /api/news available
+// ✅ Mount API routes
+app.use('/api', newsApiRouter);   // → /api/news
+app.use('/api', cdPassRoute);     // → /api/cd-pass
 
 // Optional: Health check route
 app.get("/api/health", (_req, res) => {

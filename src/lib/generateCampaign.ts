@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import { Campaign } from './campaignData';
 import { generateWithOpenAI, OpenAIConfig, defaultOpenAIConfig, evaluateCampaign } from './openai';
@@ -10,6 +9,15 @@ import { createCampaignPrompt } from './campaign/campaignPromptBuilder';
 import { extractJsonFromResponse } from './campaign/utils';
 import { getCreativeDevicesForStyle } from '@/data/creativeDevices';
 import { getCachedCulturalTrends } from '@/data/culturalTrends';
+const applyCreativeDirectorPass = async (rawOutput: any) => {
+  const res = await fetch('/api/cd-pass', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(rawOutput),
+  });
+  if (!res.ok) throw new Error('CD pass API error');
+  return await res.json();
+};
 
 /**
  * Main function to generate a campaign using AI
@@ -73,13 +81,20 @@ export const generateCampaign = async (
     
     // Generate the campaign with OpenAI
     const response = await generateWithOpenAI(prompt, openAIConfig);
-    
     const cleanedResponse = extractJsonFromResponse(response);
-    
     const generatedContent = JSON.parse(cleanedResponse);
-    
+
+    // Apply Creative Director refinement
+    let improvedContent = generatedContent;
+    try {
+      improvedContent = await applyCreativeDirectorPass(generatedContent);
+      console.log("✅ CD pass applied");
+    } catch (err) {
+      console.error("⚠️ CD pass failed:", err);
+    }
+
     const campaign: GeneratedCampaign = {
-      ...generatedContent,
+      ...improvedContent,
       referenceCampaigns,
       creativeInsights
     };
