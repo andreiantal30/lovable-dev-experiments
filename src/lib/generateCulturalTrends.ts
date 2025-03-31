@@ -207,11 +207,14 @@ export function getCulturalTrends(): CulturalTrend[] {
 
 export function saveCulturalTrends(trends: CulturalTrend[]) {
   console.log(`Saving ${trends.length} cultural trends to memory:`, trends);
+
+  // ✅ Ensure we keep Reddit and NewsAPI separately
   const source = trends[0]?.source;
   allCulturalTrends = [
     ...allCulturalTrends.filter(t => t.source !== source),
     ...trends,
   ];
+
   try {
     localStorage.setItem("cultural_trends_cache", JSON.stringify(allCulturalTrends));
     console.log("Saved trends to localStorage");

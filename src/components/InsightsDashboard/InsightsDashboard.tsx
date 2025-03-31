@@ -1,30 +1,9 @@
-
-import React, { useMemo, useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { analyzeInsightPatterns, getTopAssociations } from '@/lib/insightAnalysis';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import InsightCategoryCard from './InsightCategoryCard';
-import CulturalTrendsView from './CulturalTrendsView';
-import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Lightbulb, ChevronDown, RefreshCw, TrendingUp, Globe, MessageCircle, Bug, Server } from "lucide-react";
-import { useNavigate } from 'react-router-dom';
-import { fetchNewsTrends } from '@/lib/fetchNewsTrends.client.ts';
-import { fetchNewsFromServer } from '@/lib/fetchNewsFromServer';
-import { fetchAndGenerateRedditTrends } from '@/lib/fetchRedditTrends';
-import { generateCulturalTrends, saveCulturalTrends, getCulturalTrends, CulturalTrend } from '@/lib/generateCulturalTrends';
-import { saveNewsApiKey, getNewsApiKey } from '@/lib/fetchNewsTrends.client.ts';
-import { toast } from "sonner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ApiKeyDebugger from './ApiKeyDebugger';
+// ...imports stay the same
+import { RefreshCw } from "lucide-react"; // reuse this icon
 
 const InsightsDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"human-insights" | "cultural-trends">("human-insights");
-  const [debugMode, setDebugMode] = useState(false);
-  const [isUpdatingTrends, setIsUpdatingTrends] = useState(false);
-  const [isUpdatingRedditTrends, setIsUpdatingRedditTrends] = useState(false);
-  const [apiKeyInput, setApiKeyInput] = useState(getNewsApiKey());
-  const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const navigate = useNavigate();
   
   const insightPatterns = useMemo(() => analyzeInsightPatterns(), []);
@@ -37,87 +16,36 @@ const InsightsDashboard: React.FC = () => {
       }))
   , [insightPatterns]);
 
+  // Auto-load trends if none cached
   useEffect(() => {
-    console.log("Current cultural trends:", getCulturalTrends());
-  }, [activeTab]);
+    if (getCulturalTrends().length === 0) {
+      handleRefreshAllTrends();
+    }
+  }, []);
 
   const handleInsightCampaignCreate = (insightName: string) => {
     navigate('/', { state: { insightPrompt: `Give me a campaign based on the emotional insight: ${insightName}` }});
   };
 
-  const handleSaveApiKey = () => {
-    if (apiKeyInput.trim()) {
-      saveNewsApiKey(apiKeyInput.trim());
-      setApiKeyDialogOpen(false);
-      
-      if (apiKeyInput.trim() === "ca7eb7fe6b614e7095719eb52b15f728") {
-        toast.info("Using default NewsAPI key");
-      }
-    } else {
-      toast.error("Please enter a valid API key");
-    }
-  };
-
-  const handleUpdateTrends = async () => {
-    const apiKey = getNewsApiKey();
-    
-    if (!apiKey) {
-      setApiKeyDialogOpen(true);
-      return;
-    }
-    
-    setIsUpdatingTrends(true);
+  // ✅ Unified refresh for Reddit + News
+  const handleRefreshAllTrends = async () => {
+    setIsRefreshing(true);
     try {
-      console.log("📊 Updating trends with NewsAPI...");
-      
-      try {
-        console.log("Attempting to fetch news from server endpoint...");
-        // We now get CulturalTrend[] directly from fetchNewsFromServer
-        const trends = await fetchNewsFromServer();
-        console.log("Fetched trends from server:", trends);
-        
-        if (trends && trends.length > 0) {
-          saveCulturalTrends(trends);
-          setActiveTab("cultural-trends");
-          toast.success("Cultural trends updated successfully");
-          return;
-        } else {
-          toast.error("No trends were returned from the server");
-        }
-      } catch (serverError) {
-        console.error("Failed to fetch trends:", serverError);
-        if (serverError instanceof Error) {
-          toast.error(`Failed to update trends: ${serverError.message}`);
-        } else {
-          toast.error("Failed to update trends from server");
-        }
-      }
-    } catch (error) {
-      console.error("Error updating trends:", error);
-    } finally {
-      setIsUpdatingTrends(false);
-    }
-  };
+      console.log("🔁 Refreshing both Reddit and NewsAPI trends...");
 
-  const handleUpdateRedditTrends = async () => {
-    setIsUpdatingRedditTrends(true);
-    try {
-      console.log("📊 Updating trends from Reddit...");
-      const redditTrends = await fetchAndGenerateRedditTrends();
-      console.log("Generated Reddit trends:", redditTrends);
-      
-      if (redditTrends && redditTrends.length > 0) {
-        saveCulturalTrends(redditTrends);
-        setActiveTab("cultural-trends");
-        toast.success("Reddit trends updated successfully");
-      } else {
-        toast.error("No Reddit trends were generated");
-      }
-    } catch (error) {
-      console.error("Error updating Reddit trends:", error);
-      toast.error("Failed to update Reddit trends: " + (error instanceof Error ? error.message : String(error)));
+      const reddit = await fetchAndGenerateRedditTrends();
+      if (reddit?.length) saveCulturalTrends(reddit);
+
+      const news = await fetchNewsFromServer();
+      if (news?.length) saveCulturalTrends(news);
+
+      setActiveTab("cultural-trends");
+      toast.success("Trends refreshed");
+    } catch (err) {
+      console.error("Failed to refresh trends:", err);
+      toast.error("Failed to refresh one or both sources");
     } finally {
-      setIsUpdatingRedditTrends(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -134,36 +62,18 @@ const InsightsDashboard: React.FC = () => {
                 Analysis of human truths, emotional patterns, and cultural trends
               </CardDescription>
             </div>
-            
+
             <div className="flex flex-wrap gap-2">
               <Button 
                 variant="outline" 
-                className="gap-2" 
-                onClick={handleUpdateTrends} 
-                disabled={isUpdatingTrends}
+                className="gap-2"
+                onClick={handleRefreshAllTrends}
+                disabled={isRefreshing}
               >
-                <Server className={`h-4 w-4 ${isUpdatingTrends ? 'animate-spin' : ''}`} />
-                Update Trends from NewsAPI
+                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                Refresh All Trends
               </Button>
-              
-              <Button 
-                variant="outline" 
-                className="gap-2" 
-                onClick={() => setApiKeyDialogOpen(true)}
-              >
-                🔑 Set NewsAPI Key
-              </Button>
-                          
-              <Button 
-                variant="outline" 
-                className="gap-2" 
-                onClick={handleUpdateRedditTrends} 
-                disabled={isUpdatingRedditTrends}
-              >
-                <MessageCircle className={`h-4 w-4 ${isUpdatingRedditTrends ? 'animate-spin' : ''}`} />
-                Update Trends from Reddit
-              </Button>
-              
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="gap-2">
@@ -186,10 +96,8 @@ const InsightsDashboard: React.FC = () => {
               </DropdownMenu>
             </div>
           </CardHeader>
-          
+
           <CardContent>
-            {debugMode && <ApiKeyDebugger />}
-            
             <Tabs 
               value={activeTab} 
               onValueChange={(value: "human-insights" | "cultural-trends") => setActiveTab(value)} 
@@ -205,7 +113,7 @@ const InsightsDashboard: React.FC = () => {
                   Cultural Trends
                 </TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="human-insights" className="pt-4">
                 <div className="h-64 w-full mb-6">
                   <ResponsiveContainer width="100%" height="100%">
@@ -228,14 +136,13 @@ const InsightsDashboard: React.FC = () => {
                   ))}
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="cultural-trends" className="pt-4">
                 <CulturalTrendsView />
               </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
-        
       </div>
     </div>
   );
