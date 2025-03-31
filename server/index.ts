@@ -8,6 +8,9 @@ import cors from "cors";
 import newsApiRouter from "./newsApi";     // ✅ NewsAPI route
 import cdPassRoute from "./cdPass";        // ✅ Creative Director Pass route
 
+import disruptivePassRoute from './disruptivePass';
+app.use('/api', disruptivePassRoute);
+
 const app = express();
 const port = 8090;
 

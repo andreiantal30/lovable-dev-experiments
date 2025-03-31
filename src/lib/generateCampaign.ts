@@ -79,25 +79,41 @@ export const generateCampaign = async (
     
     console.log("Prompt Preview (first 200 chars):", prompt.substring(0, 200));
     
-    // Generate the campaign with OpenAI
-    const response = await generateWithOpenAI(prompt, openAIConfig);
-    const cleanedResponse = extractJsonFromResponse(response);
-    const generatedContent = JSON.parse(cleanedResponse);
+// Generate the campaign with OpenAI
+const response = await generateWithOpenAI(prompt, openAIConfig);
+const cleanedResponse = extractJsonFromResponse(response);
+const generatedContent = JSON.parse(cleanedResponse);
 
-    // Apply Creative Director refinement
-    let improvedContent = generatedContent;
-    try {
-      improvedContent = await applyCreativeDirectorPass(generatedContent);
-      console.log("✅ CD pass applied");
-    } catch (err) {
-      console.error("⚠️ CD pass failed:", err);
-    }
+// Apply Creative Director refinement
+let improvedContent = generatedContent;
+try {
+  improvedContent = await applyCreativeDirectorPass(generatedContent);
+  console.log("✅ CD pass applied");
+} catch (err) {
+  console.error("⚠️ CD pass failed:", err);
+}
 
-    const campaign: GeneratedCampaign = {
-      ...improvedContent,
-      referenceCampaigns,
-      creativeInsights
-    };
+// Inject Disruptive Device via API
+let finalContent = improvedContent;
+try {
+  const res = await fetch('/api/disruptive-pass', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(improvedContent),
+  });
+
+  if (!res.ok) throw new Error('Disruptive pass API error');
+  finalContent = await res.json();
+  console.log("🎯 Disruptive twist added");
+} catch (err) {
+  console.error("⚠️ Disruptive device injection failed:", err);
+}
+
+const campaign: GeneratedCampaign = {
+  ...finalContent,
+  referenceCampaigns,
+  creativeInsights
+};
     
     // Generate storytelling narrative
     try {
