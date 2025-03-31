@@ -1,4 +1,3 @@
-
 import { CampaignInput } from './types';
 import { Campaign } from '../campaignData';
 import { formatCampaignForPrompt } from '@/utils/formatCampaignForPrompt';
@@ -8,12 +7,10 @@ import { CreativeDevice, formatCreativeDevicesForPrompt } from '@/data/creativeD
 import { CulturalTrend } from '@/data/culturalTrends';
 import { PersonaType } from '@/types/persona';
 
-// Add the missing function to get persona instructions
 function getPersonaInstructions(persona: PersonaType): string {
   const personaMap: Record<string, string> = {
     "unfiltered-director": `
 ### Strategist Persona: Unfiltered Creative Director
-
 As an award-winning creative director, your job is not to play it safe.
 - Avoid cliché tech gimmicks like "AI influencers" or "AR filters" unless used subversively.
 - Start from real human behavior and surprising insights.
@@ -23,7 +20,6 @@ As an award-winning creative director, your job is not to play it safe.
 `,
     "strategic-planner": `
 ### Strategist Persona: Strategic Planner
-
 As a meticulous strategic planner, your job is to create campaigns built on data-driven insights.
 - Start with audience research and behavioral economics principles.
 - Focus on measurable outcomes and clear customer journeys.
@@ -33,7 +29,6 @@ As a meticulous strategic planner, your job is to create campaigns built on data
 `,
     "culture-hacker": `
 ### Strategist Persona: Culture Hacker
-
 As a culture hacker, your job is to turn brands into cultural phenomena.
 - Identify emerging cultural tensions before they hit the mainstream.
 - Subvert expectations and create genuine conversation.
@@ -43,7 +38,6 @@ As a culture hacker, your job is to turn brands into cultural phenomena.
 `,
     "tech-innovator": `
 ### Strategist Persona: Tech Innovator
-
 As a tech innovator, your job is to use emerging technologies to solve brand problems.
 - Focus on real utility and meaningful applications, not gimmicks.
 - Find ways to use technology to enhance human experiences.
@@ -57,41 +51,34 @@ As a tech innovator, your job is to use emerging technologies to solve brand pro
 }
 
 export const createCampaignPrompt = (
-  input: CampaignInput, 
+  input: CampaignInput,
   referenceCampaigns: Campaign[],
   creativeInsights: string[] = [],
   creativeDevices: CreativeDevice[] = [],
   culturalTrends: CulturalTrend[] = []
 ): string => {
-  const referenceCampaignsText = referenceCampaigns.map(campaign => formatCampaignForPrompt(campaign)).join('\n');
+  const referenceCampaignsText = referenceCampaigns.map(c => formatCampaignForPrompt(c)).join('\n');
 
   const insightsBlock = creativeInsights.length > 0 ? `
 #### **Creative Insights**
-The following audience insights have been identified as key tensions or truths that can drive powerful creative:
-
+These human truths should shape your concept:
 ${creativeInsights.map((insight, index) => `${index + 1}. "${insight}"`).join('\n')}
-
-Use at least one of these insights as a foundation for your campaign strategy.
-` : '';
+Use at least one insight. Ground your story in emotion.` : '';
 
   const culturalTrendsBlock = culturalTrends.length > 0 ? `
-#### **Cultural Trends**
-The following cultural trends should be considered for your campaign:
-
-${culturalTrends.map((trend, index) => `${index + 1}. "${trend.title}": ${trend.description}`).join('\n')}
-
-Try to leverage one of these cultural trends to make your campaign more relevant and timely.
-` : '';
+#### **Cultural Trends (Use for Flavor Only)**
+These are not campaign themes. Do NOT use them as the core idea.
+They're just cultural backdrops—like set design for your story.
+${culturalTrends.slice(0, 3).map((trend, index) => `${index + 1}. "${trend.title}": ${trend.description}`).join('\n')}` : '';
 
   const referencePrompt = `
-Use the following real-world award-winning campaigns as inspiration. These examples align with the target audience, emotional appeal, or strategy you're being asked to create for. Do not copy them, but analyze what makes them powerful, then build something fresh.
-
+Use these real-world awarded campaigns for inspiration. Study their emotional appeal, cultural angle, and structure—but do not copy:
 ${referenceCampaignsText}
 `;
 
   const awardPatterns = getCreativePatternGuidance();
 
-  let campaignStyleDescription = input.campaignStyle || 'Any';
+  const campaignStyleDescription = input.campaignStyle || 'Any';
   const styleDescriptions: Record<string, string> = {
     'digital': 'Digital-first approach with highly shareable, interactive content',
     'experiential': 'Experiential marketing focused on real-world brand immersion',
@@ -116,137 +103,77 @@ ${referenceCampaignsText}
     'loyalty-community': 'Loyalty & Community-Building – Built around exclusivity and brand affinity'
   };
 
-  if (input.campaignStyle && styleDescriptions[input.campaignStyle]) {
-    campaignStyleDescription = styleDescriptions[input.campaignStyle];
-  }
+  const campaignStyle = styleDescriptions[input.campaignStyle || ''] || campaignStyleDescription;
+  const personaInstructions = getPersonaInstructions(input.persona || "unfiltered-director" as PersonaType)
 
-  const defaultStrategistPersona = `
-### Strategist Persona: Unfiltered Creative Director
-
-As an award-winning creative director, your job is not to play it safe.
-- Avoid cliché tech gimmicks like "AI influencers" or "AR filters" unless used subversively.
-- Start from real human behavior and surprising insights.
-- Challenge the brief if it's boring — bend it to make something unforgettable.
-- Channel emotion, tension, chaos, humor, rebellion — anything but mediocrity.
-- If the idea could have been done in 2020, it’s dead on arrival.
-`;
-
-  const personaInstructions = input.persona ? getPersonaInstructions(input.persona) : defaultStrategistPersona;
-
-  let creativeLensInstructions = '';
-  if (input.creativeLens) {
-    const lens = getCreativeLensById(input.creativeLens);
-    if (lens) {
-      creativeLensInstructions = `
-### **Creative Lens: ${lens.name}**
-**Choose this creative lens and apply it to this brief before writing the idea.**
-
-${lens.description} - ${lens.promptGuidance}
-
-When creating this campaign, ensure that you incorporate this creative perspective throughout your thinking.
-`;
-    }
-  }
+  const creativeLens = input.creativeLens ? getCreativeLensById(input.creativeLens) : null;
+  const creativeLensInstructions = creativeLens ? `
+### Creative Lens: ${creativeLens.name}
+${creativeLens.description}
+Use this perspective to shape the campaign’s voice, concept, and cultural relevance.
+` : '';
 
   const creativeDevicesBlock = formatCreativeDevicesForPrompt(creativeDevices);
 
   const provocationBlock = `
 ### Creative Provocation
-Before you write the campaign:
-- Ask yourself: what would make people argue in the comments?
-- How could this idea start a movement or a meme?
-- What would Gen Z screenshot and share?
-- What’s the twist that makes this campaign unforgettable?
+Ask yourself:
+- What would Gen Z screenshot?
+- What would spark comments or controversy?
+- What’s the twist, the meme, the moment?
 
-Use this provocation to pressure-test your idea.
+Pressure-test your idea. It must break through.
 `;
 
-  return `### Generate a groundbreaking marketing campaign with the following key elements:
+  return `### Generate a groundbreaking marketing campaign with the following:
 
 ${personaInstructions}
-
 ${creativeLensInstructions}
 
-#### **Brand & Strategic Positioning**
-- **Brand Name:** ${input.brand}
-- **Industry:** ${input.industry}
-- **Target Audience:** ${input.targetAudience.join(', ')}
-- **Brand Personality:** ${input.brandPersonality || 'Flexible – Adapt to campaign needs'}
-- **Competitive Differentiator:** ${input.differentiator || 'N/A'}
-- **Current Market Trends / Cultural Insights to Consider:** ${input.culturalInsights || 'N/A'}
-- **Emotional Appeal to Tap Into:** ${input.emotionalAppeal.join(', ')}
+#### Brand & Strategy
+- Brand: ${input.brand}
+- Industry: ${input.industry}
+- Target Audience: ${input.targetAudience.join(', ')}
+- Personality: ${input.brandPersonality || 'Flexible'}
+- Differentiator: ${input.differentiator || 'N/A'}
+- Market Trends: ${input.culturalInsights || 'N/A'}
+- Emotional Appeal: ${input.emotionalAppeal.join(', ')}
 
 ${insightsBlock}
-
 ${culturalTrendsBlock}
-
 ${creativeDevicesBlock}
-
 ${provocationBlock}
 
-#### **Campaign Details**
-- **Primary Objective:** ${input.objectives.join(', ')}
-- **Campaign Style:** ${campaignStyleDescription}
-- **Additional Constraints:** ${input.additionalConstraints || 'None'}
+#### Campaign Format
+- Objective: ${input.objectives.join(', ')}
+- Style: ${campaignStyle}
+- Constraints: ${input.additionalConstraints || 'None'}
 
-#### **Strategic Reference Campaign Injection**
-
-Purpose: Match award-winning examples to your request.
-
+#### Award-Winning Inspiration
 ${referencePrompt}
 
-Draw strategic parallels, learn from their emotional appeals, and innovate beyond their tactics.
-
-#### **Award-Winning Pattern Library**
-
+#### Pattern Library
 ${awardPatterns}
 
-If relevant, use one or more of these patterns when shaping the campaign strategy or execution.
-
 ---
 
-#### **Campaign Output Requirements:**
-Please generate a campaign concept that includes:
-1. **A campaign name that is bold, memorable, and culturally relevant**  
-2. **A key message that is both simple and emotionally powerful**  
-3. **Three creative strategies that push boundaries and bring fresh energy**  
-4. **Five executional elements that maximize reach, engagement, and participation**  
-5. **A cultural hook or viral trigger** (e.g., meme, challenge, unexpected collab, internet trend)  
-6. **A unique brand-consumer interaction mechanic** (e.g., gamification, user participation, real-world touchpoint)  
-7. **Four expected outcomes or success metrics**  
-8. **A viral element** (e.g., a specific viral trigger or campaign element that will drive engagement)  
-9. **A call to action** (e.g., a clear call to action for the audience to take)
-
----
-
-### **Response Format:**  
-Provide your response in **JSON format** with the following structure:
-
+### Response Requirements (in JSON format):
 \`\`\`json
 {
-  "campaignName": "Innovative Campaign Name",
-  "keyMessage": "Short, impactful key message",
-  "creativeStrategy": ["Creative strategy 1", "Creative strategy 2", "Creative strategy 3"],
-  "executionPlan": ["Execution item 1", "Execution item 2", "Execution item 3", "Execution item 4", "Execution item 5"],
-  "viralHook": "How the campaign becomes culturally relevant and shareable",
-  "consumerInteraction": "How the audience actively participates",
+  "campaignName": "Bold Campaign Name",
+  "keyMessage": "Sharp, emotional one-liner",
+  "creativeStrategy": ["Tactic 1", "Tactic 2", "Tactic 3"],
+  "executionPlan": ["Execution 1", "Execution 2", "Execution 3", "Execution 4", "Execution 5"],
+  "viralHook": "What makes it spread",
+  "consumerInteraction": "How people participate",
   "expectedOutcomes": ["Outcome 1", "Outcome 2", "Outcome 3", "Outcome 4"],
-  "viralElement": "Viral element description",
-  "callToAction": "Call to action description",
-  "creativeInsights": ["Creative insight used 1", "Creative insight used 2", "Creative insight used 3"]
+  "viralElement": "One specific viral moment",
+  "callToAction": "Clear audience prompt",
+  "creativeInsights": ["Used Insight 1", "Used Insight 2"]
 }
 \`\`\`
 
 ---
 
-### **Guidelines:**
-- **Make it groundbreaking:** Think beyond traditional ads—consider experiential, tech-driven, or culture-hacking approaches.  
-- **Make it insightful:** Tie the campaign to a real-world trend, behavior, or cultural moment.  
-- **Make it entertaining:** Infuse humor, surprise, or an emotional twist to make the campaign unforgettable.  
-- **Leverage the creative insights:** Use at least one of the provided audience insights to create a more relevant and impactful campaign.
-
----
-
-**Objective:** Generate a campaign that feels like an award-winning, culture-defining moment rather than just another ad. 🚀  
-`;
+Make it unforgettable. Make it shareable. Make it win awards.`;
 };
