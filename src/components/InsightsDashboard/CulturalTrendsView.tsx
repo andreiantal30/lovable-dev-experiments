@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Card, CardContent, CardHeader, CardTitle
 } from "@/components/ui/card";
@@ -6,36 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import {
   getCachedCulturalTrends,
   CulturalTrend,
-  getCulturalTrends,
-  generateCulturalTrends,
-  saveCulturalTrends
+  getCulturalTrends
 } from '@/lib/generateCulturalTrends';
 import { Button } from '@/components/ui/button';
 import { Clock, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
-
-// ✅ Updated fetch from your own server-side endpoint
-const updateNewsTrends = async () => {
-  try {
-    const baseUrl = window.location.origin;
-    const res = await fetch(`${baseUrl}/api/news-trends`);
-    if (!res.ok) throw new Error("Failed to fetch news trends");
-
-    const data = await res.json();
-
-    if (Array.isArray(data) && data[0]?.title && data[0]?.platformTags) {
-      saveCulturalTrends(data);
-    } else if (Array.isArray(data) && data[0]?.title && data[0]?.source) {
-      const generatedTrends = await generateCulturalTrends(data);
-      saveCulturalTrends(generatedTrends);
-    } else {
-      throw new Error("Invalid trend data format");
-    }
-  } catch (err) {
-    console.error("❌ News fetch error:", err);
-  }
-};
 
 const CulturalTrendsView: React.FC = () => {
   const cachedTrends = getCachedCulturalTrends();
@@ -100,9 +76,6 @@ const CulturalTrendsView: React.FC = () => {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-medium">Cultural Trends</h3>
-        <Button size="sm" onClick={updateNewsTrends}>
-          Update Trends from NewsAPI
-        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
