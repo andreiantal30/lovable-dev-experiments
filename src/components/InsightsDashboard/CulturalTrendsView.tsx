@@ -15,17 +15,28 @@ import { Clock, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 
+// ✅ Updated fetch from your own server-side endpoint
 const updateNewsTrends = async () => {
   try {
-    const res = await fetch("/api/news");
-    if (!res.ok) throw new Error("Failed to fetch news");
-    const newsData = await res.json();
+    const baseUrl = window.location.origin;
+    const res = await fetch(`${baseUrl}/api/news-trends`);
+    if (!res.ok) throw new Error("Failed to fetch news trends");
 
-    // ✅ Convert articles to trends
-    const generatedTrends = await generateCulturalTrends(newsData.articles);
+    const data = await res.json();
 
-    // ✅ Save in memory + localStorage
-    saveCulturalTrends(generatedTrends);
+    // If server returns full cultural trends (ideal setup):
+    if (Array.isArray(data) && data[0]?.title && data[0]?.platformTags) {
+      saveCulturalTrends(data);
+      console.log("✅ Saved generated cultural trends.");
+    } else if (Array.isArray(data) && data[0]?.title && data[0]?.source) {
+      // If server returned just headlines
+      const generatedTrends = await generateCulturalTrends(data);
+      saveCulturalTrends(generatedTrends);
+      console.log("✅ Generated and saved cultural trends from headlines.");
+    } else {
+      console.warn("⚠️ Unexpected response structure:", data);
+      throw new Error("Invalid trend data format");
+    }
   } catch (err) {
     console.error("❌ News fetch error:", err);
   }
