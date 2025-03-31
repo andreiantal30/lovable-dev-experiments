@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { analyzeInsightPatterns, getTopAssociations } from '@/lib/insightAnalysis';
@@ -7,9 +6,10 @@ import InsightCategoryCard from './InsightCategoryCard';
 import CulturalTrendsView from './CulturalTrendsView';
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Lightbulb, ChevronDown, RefreshCw, TrendingUp, Globe, MessageCircle, Bug } from "lucide-react";
+import { Lightbulb, ChevronDown, RefreshCw, TrendingUp, Globe, MessageCircle, Bug, Server } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import { fetchNewsTrends } from '@/lib/fetchNewsTrends.client.ts';
+import { fetchNewsFromServer } from '@/lib/fetchNewsFromServer';
 import { fetchAndGenerateRedditTrends } from '@/lib/fetchRedditTrends';
 import { generateCulturalTrends, saveCulturalTrends, getCulturalTrends } from '@/lib/generateCulturalTrends';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -21,7 +21,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ApiKeyDebugger from './ApiKeyDebugger';
 
 const InsightsDashboard: React.FC = () => {
-  // Fixed: Use the correct type for activeTab state
   const [activeTab, setActiveTab] = useState<"human-insights" | "cultural-trends">("human-insights");
   const [debugMode, setDebugMode] = useState(false);
   const [isUpdatingTrends, setIsUpdatingTrends] = useState(false);
@@ -40,7 +39,6 @@ const InsightsDashboard: React.FC = () => {
       }))
   , [insightPatterns]);
 
-  // Log the current cultural trends for debugging
   useEffect(() => {
     console.log("Current cultural trends:", getCulturalTrends());
   }, [activeTab]);
@@ -73,20 +71,44 @@ const InsightsDashboard: React.FC = () => {
     setIsUpdatingTrends(true);
     try {
       console.log("📊 Updating trends with NewsAPI...");
+      
+      try {
+        console.log("Attempting to fetch news from server...");
+        const headlines = await fetchNewsFromServer();
+        console.log("Server fetch successful:", headlines);
+        
+        if (headlines && headlines.length > 0) {
+          const trends = await generateCulturalTrends(headlines);
+          console.log("Generated trends from server data:", trends);
+          
+          saveCulturalTrends(trends);
+          setActiveTab("cultural-trends");
+          toast.success("Cultural trends updated successfully");
+          setIsUpdatingTrends(false);
+          return;
+        }
+      } catch (serverError) {
+        console.error("Server-side fetch failed:", serverError);
+        toast.error("Server-side news fetch failed, trying direct API...");
+      }
+      
       const headlines = await fetchNewsTrends();
-      console.log("Fetched headlines:", headlines);
+      console.log("Direct API fetch successful:", headlines);
       
       const trends = await generateCulturalTrends(headlines);
       console.log("Generated trends:", trends);
       
       saveCulturalTrends(trends);
-      
       setActiveTab("cultural-trends");
       
       toast.success("Cultural trends updated successfully");
     } catch (error) {
       console.error("Error updating trends:", error);
-      toast.error("Failed to update trends: " + (error instanceof Error ? error.message : String(error)));
+      if (error instanceof Error && error.message.includes("corsNotAllowed")) {
+        toast.error("NewsAPI doesn't allow browser requests. Please run locally or use the server endpoint.");
+      } else {
+        toast.error("Failed to update trends: " + (error instanceof Error ? error.message : String(error)));
+      }
     } finally {
       setIsUpdatingTrends(false);
     }
@@ -135,7 +157,7 @@ const InsightsDashboard: React.FC = () => {
                 onClick={handleUpdateTrends} 
                 disabled={isUpdatingTrends}
               >
-                <Globe className={`h-4 w-4 ${isUpdatingTrends ? 'animate-spin' : ''}`} />
+                <Server className={`h-4 w-4 ${isUpdatingTrends ? 'animate-spin' : ''}`} />
                 Update Trends from NewsAPI
               </Button>
               
@@ -192,7 +214,6 @@ const InsightsDashboard: React.FC = () => {
           <CardContent>
             {debugMode && <ApiKeyDebugger />}
             
-            {/* Fixed: Use correct event handler type for onValueChange */}
             <Tabs 
               value={activeTab} 
               onValueChange={(value: "human-insights" | "cultural-trends") => setActiveTab(value)} 
@@ -261,7 +282,11 @@ const InsightsDashboard: React.FC = () => {
                 />
               </div>
               <div className="text-sm text-muted-foreground mt-2">
-                Default key: ca7eb7fe6b614e7095719eb52b15f728
+                <p>Default key: ca7eb7fe6b614e7095719eb52b15f728</p>
+                <p className="text-amber-500 mt-1">
+                  Note: NewsAPI free plan only allows direct API calls from localhost.
+                  When deployed, trends will be fetched through the server.
+                </p>
               </div>
             </div>
             <DialogFooter>

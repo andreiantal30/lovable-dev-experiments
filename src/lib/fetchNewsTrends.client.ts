@@ -34,7 +34,35 @@ export interface Headline {
  */
 export const fetchNewsTrends = async (): Promise<Headline[]> => {
   try {
-    // First try to get the key from localStorage
+    // First try to fetch from our server endpoint
+    console.log("Trying to fetch news from server endpoint...");
+    
+    try {
+      const response = await fetch("/api/news-trends");
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Successfully fetched news from server endpoint");
+        
+        if (Array.isArray(data) && data.length > 0) {
+          // If the server returned processed trends or headlines
+          return data.map((item: any) => ({
+            title: item.title,
+            source: item.source.name || item.source,
+            publishedAt: item.publishedAt
+          }));
+        }
+      } else {
+        console.error("Server endpoint error:", await response.text());
+      }
+    } catch (serverError) {
+      console.error("Backend API fetch failed:", serverError);
+    }
+    
+    // If server endpoint fails, try direct API (only works on localhost)
+    console.log("Backend API fetch failed, trying direct NewsAPI...");
+    
+    // Get the key from localStorage
     let apiKey = localStorage.getItem(NEWS_API_STORAGE_KEY);
     
     // If not in localStorage, use the default key
@@ -47,7 +75,7 @@ export const fetchNewsTrends = async (): Promise<Headline[]> => {
 
     console.log("Fetching news with API key:", apiKey.substring(0, 5) + "...");
     
-    // Make direct API request to NewsAPI
+    // Make direct API request to NewsAPI - this will only work on localhost due to CORS
     const url = `https://newsapi.org/v2/top-headlines?language=en&pageSize=10&apiKey=${apiKey}`;
     
     const response = await fetch(url);
@@ -60,6 +88,9 @@ export const fetchNewsTrends = async (): Promise<Headline[]> => {
         toast.error("Invalid or expired NewsAPI key. Using default key.");
         localStorage.removeItem(NEWS_API_STORAGE_KEY);
         return fetchNewsTrends(); // Retry with default key
+      } else if (errorData.code === "corsNotAllowed") {
+        toast.error("NewsAPI doesn't allow browser requests except from localhost. Please run locally or use the server endpoint.");
+        throw new Error("CORS restrictions: " + errorData.message);
       }
       
       throw new Error(errorData.message || "Failed to fetch news trends");
