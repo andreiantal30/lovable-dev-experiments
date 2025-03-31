@@ -80,8 +80,10 @@ Format strictly like this:
       }
     } catch (err) {
       console.error(`❌ Failed to parse ${sourceType} trend response:`, cleanedJson);
-      toast.error(`Failed to parse ${sourceType} trends from AI`);
-      return [];
+      
+      // Fallback: Try to create simple trends from headlines directly
+      console.log("⚠️ Attempting fallback trend generation from headlines directly");
+      return createFallbackTrendsFromHeadlines(headlines, sourceType);
     }
 
     // 🔁 Optional: Map vague or duplicate categories to cleaner tags
@@ -120,8 +122,130 @@ Format strictly like this:
   } catch (err) {
     console.error(`🔥 Failed to generate cultural trends:`, err);
     toast.error(`Failed to generate cultural trends`);
-    return [];
+    
+    // Last resort fallback
+    return createFallbackTrendsFromHeadlines(headlines, headlines[0]?.source?.includes("r/") ? "Reddit" : "NewsAPI");
   }
+}
+
+// Create fallback trends directly from headlines when AI generation fails
+function createFallbackTrendsFromHeadlines(headlines: Headline[], sourceType: string): CulturalTrend[] {
+  console.log(`Creating ${Math.min(10, headlines.length)} fallback trends from headlines`);
+  
+  // Group headlines by common themes or keywords
+  const topicGroups = groupHeadlinesByTopics(headlines);
+  
+  // Convert the top groups to trends
+  return topicGroups.slice(0, 10).map((group) => {
+    const mainHeadline = group.headlines[0];
+    const topic = group.topic;
+    
+    // Determine category based on keywords
+    let category = "News & Current Events";
+    if (topic.match(/tech|ai|digital|computer|robot|internet/i)) category = "Innovation & Tech";
+    else if (topic.match(/climate|environment|green|sustain|planet|earth/i)) category = "Sustainability & Environment";
+    else if (topic.match(/mental|health|well|therapy|anxiety|stress/i)) category = "Mental Health & Wellbeing";
+    else if (topic.match(/social|community|culture|identity|belong/i)) category = "Belonging & Identity";
+    else if (topic.match(/finance|money|economy|market|invest|crypto/i)) category = "Finance & Economics";
+    
+    // Generate relevant platform tags
+    const platformTags = generateRelevantPlatformTags(topic, category);
+    
+    return {
+      id: uuidv4(),
+      title: createTrendTitle(topic, group.headlines),
+      description: `Trend based on news about ${topic}, including "${mainHeadline.title}"`,
+      source: sourceType,
+      platformTags,
+      category,
+      addedOn: new Date()
+    };
+  });
+}
+
+// Group headlines by common topics
+function groupHeadlinesByTopics(headlines: Headline[]): { topic: string, headlines: Headline[] }[] {
+  const groups: { [key: string]: Headline[] } = {};
+  
+  // Extract keywords from headlines
+  headlines.forEach(headline => {
+    // Get important keywords from the title
+    const words = headline.title
+      .toLowerCase()
+      .replace(/[^\w\s]/g, '')
+      .split(' ')
+      .filter(word => word.length > 3 && !['this', 'that', 'with', 'from', 'have', 'what'].includes(word));
+    
+    // Find the most relevant keyword
+    const mainKeyword = words[0] || 'news';
+    
+    if (!groups[mainKeyword]) {
+      groups[mainKeyword] = [];
+    }
+    
+    groups[mainKeyword].push(headline);
+  });
+  
+  // Convert to array and sort by group size
+  return Object.entries(groups)
+    .map(([topic, headlines]) => ({ topic, headlines }))
+    .sort((a, b) => b.headlines.length - a.headlines.length);
+}
+
+// Create a catchy title from keywords
+function createTrendTitle(topic: string, headlines: Headline[]): string {
+  // Capitalize the topic
+  const capitalizedTopic = topic.charAt(0).toUpperCase() + topic.slice(1);
+  
+  // Generate different title patterns
+  const titlePatterns = [
+    `The ${capitalizedTopic} Wave`,
+    `${capitalizedTopic} Revolution`,
+    `Rise of ${capitalizedTopic}`,
+    `${capitalizedTopic} Movement`,
+    `${capitalizedTopic} Renaissance`,
+    `${capitalizedTopic} Phenomenon`
+  ];
+  
+  // Use a different pattern based on the length of the headlines array
+  const patternIndex = headlines.length % titlePatterns.length;
+  return titlePatterns[patternIndex];
+}
+
+// Generate relevant platform tags based on topic and category
+function generateRelevantPlatformTags(topic: string, category: string): string[] {
+  const tags: string[] = [];
+  
+  // Add topic-specific platform
+  if (topic.match(/video|watch|stream/i)) tags.push('YouTube', 'TikTok');
+  else if (topic.match(/photo|image|picture/i)) tags.push('Instagram', 'Pinterest');
+  else if (topic.match(/news|politics|world/i)) tags.push('Twitter', 'News Apps');
+  else if (topic.match(/business|work|career/i)) tags.push('LinkedIn', 'Twitter');
+  else tags.push('Social Media');
+  
+  // Add category-specific platform
+  switch (category) {
+    case "Innovation & Tech": 
+      tags.push('Reddit', 'Product Hunt');
+      break;
+    case "Sustainability & Environment":
+      tags.push('Instagram', 'Change.org');
+      break;
+    case "Mental Health & Wellbeing":
+      tags.push('TikTok', 'Reddit');
+      break;
+    case "Belonging & Identity":
+      tags.push('Twitter', 'TikTok');
+      break;
+    case "Finance & Economics":
+      tags.push('Twitter', 'Reddit');
+      break;
+    default:
+      tags.push('Twitter');
+  }
+  
+  // Deduplicate and return top 3
+  return [...new Set(tags)].slice(0, 3);
 }
 
 // Retrieve all trends from in-memory storage
