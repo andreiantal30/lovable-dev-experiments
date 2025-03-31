@@ -13,9 +13,6 @@ import { fetchNewsTrends } from '@/lib/fetchNewsTrends.client.ts';
 import { fetchNewsFromServer } from '@/lib/fetchNewsFromServer';
 import { fetchAndGenerateRedditTrends } from '@/lib/fetchRedditTrends';
 import { generateCulturalTrends, saveCulturalTrends, getCulturalTrends, CulturalTrend } from '@/lib/generateCulturalTrends';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { saveNewsApiKey, getNewsApiKey } from '@/lib/fetchNewsTrends.client.ts';
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -156,16 +153,7 @@ const InsightsDashboard: React.FC = () => {
               >
                 🔑 Set NewsAPI Key
               </Button>
-              
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={() => setDebugMode(!debugMode)}
-                title="Debug Mode"
-              >
-                <Bug className="h-4 w-4" />
-              </Button>
-              
+                          
               <Button 
                 variant="outline" 
                 className="gap-2" 
@@ -248,43 +236,6 @@ const InsightsDashboard: React.FC = () => {
           </CardContent>
         </Card>
         
-        <Dialog open={apiKeyDialogOpen} onOpenChange={setApiKeyDialogOpen}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>NewsAPI API Key</DialogTitle>
-              <DialogDescription>
-                Enter your NewsAPI API key to fetch the latest news trends
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="apiKey" className="text-right">
-                  API Key
-                </Label>
-                <Input
-                  id="apiKey"
-                  value={apiKeyInput}
-                  onChange={(e) => setApiKeyInput(e.target.value)}
-                  placeholder="Enter your NewsAPI API key"
-                  className="col-span-3"
-                />
-              </div>
-              <div className="text-sm text-muted-foreground mt-2">
-                <p>Default key: ca7eb7fe6b614e7095719eb52b15f728</p>
-                <p className="text-amber-500 mt-1">
-                  Note: NewsAPI free plan only allows direct API calls from localhost.
-                  When deployed, trends will be fetched through the server.
-                </p>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setApiKeyDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSaveApiKey}>Save</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </div>
   );
