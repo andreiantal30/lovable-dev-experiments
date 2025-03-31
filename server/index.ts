@@ -5,6 +5,8 @@ import express from "express";
 import cors from "cors";
 import { fetchNewsFromServer } from "./fetchNewsTrends.server.ts";
 import { generateCulturalTrends } from "../src/lib/generateCulturalTrends.ts";
+import newsApiRouter from './newsApi';
+app.use('/api/news', newsApiRouter);
 
 const app = express();
 const port = 8090;

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,36 +8,44 @@ import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
+const updateNewsTrends = async () => {
+  try {
+    const res = await fetch("/api/news");
+    if (!res.ok) throw new Error("Failed to fetch news");
+    const newsData = await res.json();
+
+    console.log("✅ NewsAPI Response:", newsData);
+
+    // Optional: if you have a function like `generateCulturalTrends(newsData.articles)` somewhere, call it here
+    // Or save locally for now
+    localStorage.setItem("newsArticles", JSON.stringify(newsData.articles));
+  } catch (err) {
+    console.error("❌ News fetch error:", err);
+  }
+};
+
 const CulturalTrendsView: React.FC = () => {
-  // Use both cached trends and in-memory trends
   const cachedTrends = getCachedCulturalTrends();
   const inMemoryTrends = getCulturalTrends();
-  // Combine both sources, prioritizing in-memory trends
   const trends = inMemoryTrends.length > 0 ? inMemoryTrends : cachedTrends;
-  
+
   const navigate = useNavigate();
-  
+
   const handleCreateCampaign = (trend: CulturalTrend) => {
-    navigate('/', { 
-      state: { 
+    navigate('/', {
+      state: {
         insightPrompt: `Give me a campaign based on the cultural trend: ${trend.title} - ${trend.description}`
       }
     });
   };
-  
-  // Separate trends by source
-  const redditTrends = trends
-    .filter(trend => trend.source === "Reddit")
-    .slice(0, 10); // Limit to 10 Reddit trends
 
-  const newsTrends = trends
-    .filter(trend => trend.source === "NewsAPI")
-    .slice(0, 10); // Limit to 10 NewsAPI trends
-  
+  const redditTrends = trends.filter(trend => trend.source === "Reddit").slice(0, 10);
+  const newsTrends = trends.filter(trend => trend.source === "NewsAPI").slice(0, 10);
+
   console.log("Displaying cultural trends:", trends);
   console.log("Reddit trends:", redditTrends.length);
   console.log("NewsAPI trends:", newsTrends.length);
-  
+
   const renderTrendCard = (trend: CulturalTrend) => (
     <Card key={trend.id} className="w-full overflow-hidden group mb-4">
       <CardHeader className="pb-2">
@@ -54,8 +61,7 @@ const CulturalTrendsView: React.FC = () => {
               <span>{trend.category}</span>
             </div>
           </div>
-          <Badge variant={trend.source === "Reddit" ? "secondary" : "outline"} 
-             className={trend.source === "Reddit" ? "bg-orange-500/10 text-orange-500" : "bg-primary/10"}>
+          <Badge variant={trend.source === "Reddit" ? "secondary" : "outline"} className={trend.source === "Reddit" ? "bg-orange-500/10 text-orange-500" : "bg-primary/10"}>
             {trend.source}
           </Badge>
         </div>
@@ -72,12 +78,7 @@ const CulturalTrendsView: React.FC = () => {
               </Badge>
             ))}
           </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-xs"
-            onClick={() => handleCreateCampaign(trend)}
-          >
+          <Button variant="ghost" size="sm" className="text-xs" onClick={() => handleCreateCampaign(trend)}>
             Create Campaign <ArrowRight className="ml-1 h-3 w-3" />
           </Button>
         </div>
@@ -96,7 +97,7 @@ const CulturalTrendsView: React.FC = () => {
       </Card>
     );
   }
-  
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-4">
@@ -105,18 +106,20 @@ const CulturalTrendsView: React.FC = () => {
           Showing up to 10 trends from each source
         </div>
       </div>
-      
+
+      <div className="flex gap-4 mb-4">
+        <Button size="sm" onClick={updateNewsTrends}>
+          Update Trends from NewsAPI
+        </Button>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Reddit Column */}
         <div>
           <h4 className="text-md font-medium mb-4 flex items-center gap-2">
             <Badge variant="secondary" className="bg-orange-500/10 text-orange-500">Reddit</Badge>
             <span>Trends</span>
-            <span className="text-sm text-muted-foreground ml-2">
-              ({redditTrends.length}/10)
-            </span>
+            <span className="text-sm text-muted-foreground ml-2">({redditTrends.length}/10)</span>
           </h4>
-          
           {redditTrends.length === 0 ? (
             <Card className="w-full bg-muted/50 mb-4">
               <CardContent className="flex flex-col items-center justify-center py-6">
@@ -131,17 +134,13 @@ const CulturalTrendsView: React.FC = () => {
             </div>
           )}
         </div>
-        
-        {/* NewsAPI Column */}
+
         <div>
           <h4 className="text-md font-medium mb-4 flex items-center gap-2">
             <Badge variant="outline" className="bg-primary/10">NewsAPI</Badge>
             <span>Trends</span>
-            <span className="text-sm text-muted-foreground ml-2">
-              ({newsTrends.length}/10)
-            </span>
+            <span className="text-sm text-muted-foreground ml-2">({newsTrends.length}/10)</span>
           </h4>
-          
           {newsTrends.length === 0 ? (
             <Card className="w-full bg-muted/50 mb-4">
               <CardContent className="flex flex-col items-center justify-center py-6">

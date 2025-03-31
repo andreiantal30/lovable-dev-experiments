@@ -1,4 +1,3 @@
-
 import { v4 as uuidv4 } from "uuid";
 import { Headline } from "./fetchNewsTrends.client.ts";
 import { generateWithOpenAI, defaultOpenAIConfig } from "./openai";
@@ -32,7 +31,7 @@ export async function generateCulturalTrends(headlines: Headline[]): Promise<Cul
 
     // Determine number of trends to generate based on available headlines
     const numTrends = Math.min(10, Math.max(3, Math.floor(headlines.length / 2)));
-    
+
     // ✍️ Craft the GPT prompt
     const prompt = `
 Based on the lines below, summarize ${numTrends} emerging cultural trends.
@@ -67,7 +66,7 @@ Format strictly like this:
 
     // 🧪 Clean and parse GPT output
     console.log(`🧠 GPT Raw ${sourceType} Trend Response:`, response);
-    
+
     // Extract JSON from response even if wrapped in markdown code blocks
     const cleanedJson = extractJsonFromResponse(response);
     console.log(`Cleaned JSON for parsing:`, cleanedJson);
@@ -80,7 +79,7 @@ Format strictly like this:
       }
     } catch (err) {
       console.error(`❌ Failed to parse ${sourceType} trend response:`, cleanedJson);
-      
+
       // Fallback: Try to create simple trends from headlines directly
       console.log("⚠️ Attempting fallback trend generation from headlines directly");
       return createFallbackTrendsFromHeadlines(headlines, sourceType);
@@ -118,11 +117,14 @@ Format strictly like this:
       addedOn: new Date(),
     }));
 
+    // ✅ Store in memory + localStorage
+    saveCulturalTrends(culturalTrends);
+
     return culturalTrends;
   } catch (err) {
     console.error(`🔥 Failed to generate cultural trends:`, err);
     toast.error(`Failed to generate cultural trends`);
-    
+
     // Last resort fallback
     return createFallbackTrendsFromHeadlines(headlines, headlines[0]?.source?.includes("r/") ? "Reddit" : "NewsAPI");
   }
@@ -131,15 +133,15 @@ Format strictly like this:
 // Create fallback trends directly from headlines when AI generation fails
 function createFallbackTrendsFromHeadlines(headlines: Headline[], sourceType: string): CulturalTrend[] {
   console.log(`Creating ${Math.min(10, headlines.length)} fallback trends from headlines`);
-  
+
   // Group headlines by common themes or keywords
   const topicGroups = groupHeadlinesByTopics(headlines);
-  
+
   // Convert the top groups to trends
   return topicGroups.slice(0, 10).map((group) => {
     const mainHeadline = group.headlines[0];
     const topic = group.topic;
-    
+
     // Determine category based on keywords
     let category = "News & Current Events";
     if (topic.match(/tech|ai|digital|computer|robot|internet/i)) category = "Innovation & Tech";
@@ -147,10 +149,10 @@ function createFallbackTrendsFromHeadlines(headlines: Headline[], sourceType: st
     else if (topic.match(/mental|health|well|therapy|anxiety|stress/i)) category = "Mental Health & Wellbeing";
     else if (topic.match(/social|community|culture|identity|belong/i)) category = "Belonging & Identity";
     else if (topic.match(/finance|money|economy|market|invest|crypto/i)) category = "Finance & Economics";
-    
+
     // Generate relevant platform tags
     const platformTags = generateRelevantPlatformTags(topic, category);
-    
+
     return {
       id: uuidv4(),
       title: createTrendTitle(topic, group.headlines),
@@ -166,7 +168,7 @@ function createFallbackTrendsFromHeadlines(headlines: Headline[], sourceType: st
 // Group headlines by common topics
 function groupHeadlinesByTopics(headlines: Headline[]): { topic: string, headlines: Headline[] }[] {
   const groups: { [key: string]: Headline[] } = {};
-  
+
   // Extract keywords from headlines
   headlines.forEach(headline => {
     // Get important keywords from the title
@@ -175,17 +177,17 @@ function groupHeadlinesByTopics(headlines: Headline[]): { topic: string, headlin
       .replace(/[^\w\s]/g, '')
       .split(' ')
       .filter(word => word.length > 3 && !['this', 'that', 'with', 'from', 'have', 'what'].includes(word));
-    
+
     // Find the most relevant keyword
     const mainKeyword = words[0] || 'news';
-    
+
     if (!groups[mainKeyword]) {
       groups[mainKeyword] = [];
     }
-    
+
     groups[mainKeyword].push(headline);
   });
-  
+
   // Convert to array and sort by group size
   return Object.entries(groups)
     .map(([topic, headlines]) => ({ topic, headlines }))
@@ -196,7 +198,7 @@ function groupHeadlinesByTopics(headlines: Headline[]): { topic: string, headlin
 function createTrendTitle(topic: string, headlines: Headline[]): string {
   // Capitalize the topic
   const capitalizedTopic = topic.charAt(0).toUpperCase() + topic.slice(1);
-  
+
   // Generate different title patterns
   const titlePatterns = [
     `The ${capitalizedTopic} Wave`,
@@ -206,7 +208,7 @@ function createTrendTitle(topic: string, headlines: Headline[]): string {
     `${capitalizedTopic} Renaissance`,
     `${capitalizedTopic} Phenomenon`
   ];
-  
+
   // Use a different pattern based on the length of the headlines array
   const patternIndex = headlines.length % titlePatterns.length;
   return titlePatterns[patternIndex];
@@ -215,14 +217,14 @@ function createTrendTitle(topic: string, headlines: Headline[]): string {
 // Generate relevant platform tags based on topic and category
 function generateRelevantPlatformTags(topic: string, category: string): string[] {
   const tags: string[] = [];
-  
+
   // Add topic-specific platform
   if (topic.match(/video|watch|stream/i)) tags.push('YouTube', 'TikTok');
   else if (topic.match(/photo|image|picture/i)) tags.push('Instagram', 'Pinterest');
   else if (topic.match(/news|politics|world/i)) tags.push('Twitter', 'News Apps');
   else if (topic.match(/business|work|career/i)) tags.push('LinkedIn', 'Twitter');
   else tags.push('Social Media');
-  
+
   // Add category-specific platform
   switch (category) {
     case "Innovation & Tech": 
@@ -243,7 +245,7 @@ function generateRelevantPlatformTags(topic: string, category: string): string[]
     default:
       tags.push('Twitter');
   }
-  
+
   // Deduplicate and return top 3
   return [...new Set(tags)].slice(0, 3);
 }
@@ -257,7 +259,7 @@ export function getCulturalTrends(): CulturalTrend[] {
 export function saveCulturalTrends(trends: CulturalTrend[]) {
   console.log(`Saving ${trends.length} cultural trends to memory:`, trends);
   allCulturalTrends = trends;
-  
+
   // Also save to localStorage for persistence
   try {
     localStorage.setItem("cultural_trends_cache", JSON.stringify(trends));
@@ -284,7 +286,7 @@ export function getCachedCulturalTrends(): CulturalTrend[] {
   } catch (error) {
     console.error("Error loading cached trends:", error);
   }
-  
+
   // Return empty array if nothing found
   return [];
 }
