@@ -1,51 +1,74 @@
-// ...imports stay the same
-import { RefreshCw } from "lucide-react"; // reuse this icon
+import React, { useMemo, useState, useEffect } from 'react';
+import {
+  Card, CardContent, CardDescription, CardHeader, CardTitle
+} from "@/components/ui/card";
+import { analyzeInsightPatterns } from '@/lib/insightAnalysis';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import InsightCategoryCard from './InsightCategoryCard';
+import CulturalTrendsView from './CulturalTrendsView';
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Lightbulb, ChevronDown, TrendingUp, MessageCircle, Server } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
+import { fetchNewsFromServer } from '@/lib/fetchNewsFromServer';
+import { fetchAndGenerateRedditTrends } from '@/lib/fetchRedditTrends';
+import { saveCulturalTrends, getCulturalTrends } from '@/lib/generateCulturalTrends';
+import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const InsightsDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"human-insights" | "cultural-trends">("human-insights");
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isUpdatingTrends, setIsUpdatingTrends] = useState(false);
   const navigate = useNavigate();
-  
+
   const insightPatterns = useMemo(() => analyzeInsightPatterns(), []);
   const chartData = useMemo(() =>
     insightPatterns
       .filter(pattern => pattern.count > 2)
-      .map(pattern => ({
-        name: pattern.name,
-        count: pattern.count
-      }))
+      .map(pattern => ({ name: pattern.name, count: pattern.count }))
   , [insightPatterns]);
 
-  // Auto-load trends if none cached
+  // Automatically load both trend types on initial mount
   useEffect(() => {
-    if (getCulturalTrends().length === 0) {
-      handleRefreshAllTrends();
-    }
+    const fetchAllTrends = async () => {
+      if (getCulturalTrends().length === 0) {
+        await handleUpdateAllTrends();
+      }
+    };
+    fetchAllTrends();
   }, []);
 
   const handleInsightCampaignCreate = (insightName: string) => {
-    navigate('/', { state: { insightPrompt: `Give me a campaign based on the emotional insight: ${insightName}` }});
+    navigate('/', {
+      state: {
+        insightPrompt: `Give me a campaign based on the emotional insight: ${insightName}`
+      }
+    });
   };
 
-  // ✅ Unified refresh for Reddit + News
-  const handleRefreshAllTrends = async () => {
-    setIsRefreshing(true);
+  const handleUpdateAllTrends = async () => {
+    setIsUpdatingTrends(true);
     try {
-      console.log("🔁 Refreshing both Reddit and NewsAPI trends...");
+      const [newsTrends, redditTrends] = await Promise.all([
+        fetchNewsFromServer(),
+        fetchAndGenerateRedditTrends()
+      ]);
 
-      const reddit = await fetchAndGenerateRedditTrends();
-      if (reddit?.length) saveCulturalTrends(reddit);
+      if (newsTrends?.length > 0) {
+        saveCulturalTrends(newsTrends);
+      }
 
-      const news = await fetchNewsFromServer();
-      if (news?.length) saveCulturalTrends(news);
+      if (redditTrends?.length > 0) {
+        saveCulturalTrends(redditTrends);
+      }
 
+      toast.success("Trends refreshed successfully");
       setActiveTab("cultural-trends");
-      toast.success("Trends refreshed");
-    } catch (err) {
-      console.error("Failed to refresh trends:", err);
-      toast.error("Failed to refresh one or both sources");
+    } catch (error) {
+      console.error("❌ Error updating trends:", error);
+      toast.error("Failed to refresh one or more trend sources.");
     } finally {
-      setIsRefreshing(false);
+      setIsUpdatingTrends(false);
     }
   };
 
@@ -64,13 +87,13 @@ const InsightsDashboard: React.FC = () => {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="gap-2"
-                onClick={handleRefreshAllTrends}
-                disabled={isRefreshing}
+                onClick={handleUpdateAllTrends}
+                disabled={isUpdatingTrends}
               >
-                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                <Server className={`h-4 w-4 ${isUpdatingTrends ? 'animate-spin' : ''}`} />
                 Refresh All Trends
               </Button>
 
@@ -84,7 +107,7 @@ const InsightsDashboard: React.FC = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 bg-popover">
                   {insightPatterns.map((pattern) => (
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       key={pattern.name}
                       onClick={() => handleInsightCampaignCreate(pattern.name)}
                       className="cursor-pointer"
@@ -98,9 +121,9 @@ const InsightsDashboard: React.FC = () => {
           </CardHeader>
 
           <CardContent>
-            <Tabs 
-              value={activeTab} 
-              onValueChange={(value: "human-insights" | "cultural-trends") => setActiveTab(value)} 
+            <Tabs
+              value={activeTab}
+              onValueChange={(value: "human-insights" | "cultural-trends") => setActiveTab(value)}
               className="mb-6"
             >
               <TabsList>
@@ -128,9 +151,9 @@ const InsightsDashboard: React.FC = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
                   {insightPatterns.slice(0, 4).map((pattern) => (
-                    <InsightCategoryCard 
-                      key={pattern.name} 
-                      pattern={pattern} 
+                    <InsightCategoryCard
+                      key={pattern.name}
+                      pattern={pattern}
                       onCreateCampaign={() => handleInsightCampaignCreate(pattern.name)}
                     />
                   ))}
