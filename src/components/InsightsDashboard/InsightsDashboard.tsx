@@ -73,42 +73,28 @@ const InsightsDashboard: React.FC = () => {
       console.log("📊 Updating trends with NewsAPI...");
       
       try {
-        console.log("Attempting to fetch news from server...");
-        const headlines = await fetchNewsFromServer();
-        console.log("Server fetch successful:", headlines);
+        console.log("Attempting to fetch news from server endpoint...");
+        const trends = await fetchNewsTrends();
+        console.log("Fetched trends from server:", trends);
         
-        if (headlines && headlines.length > 0) {
-          const trends = await generateCulturalTrends(headlines);
-          console.log("Generated trends from server data:", trends);
-          
+        if (trends && trends.length > 0) {
           saveCulturalTrends(trends);
           setActiveTab("cultural-trends");
           toast.success("Cultural trends updated successfully");
-          setIsUpdatingTrends(false);
           return;
+        } else {
+          toast.error("No trends were returned from the server");
         }
       } catch (serverError) {
-        console.error("Server-side fetch failed:", serverError);
-        toast.error("Server-side news fetch failed, trying direct API...");
+        console.error("Failed to fetch trends:", serverError);
+        if (serverError instanceof Error) {
+          toast.error(`Failed to update trends: ${serverError.message}`);
+        } else {
+          toast.error("Failed to update trends from server");
+        }
       }
-      
-      const headlines = await fetchNewsTrends();
-      console.log("Direct API fetch successful:", headlines);
-      
-      const trends = await generateCulturalTrends(headlines);
-      console.log("Generated trends:", trends);
-      
-      saveCulturalTrends(trends);
-      setActiveTab("cultural-trends");
-      
-      toast.success("Cultural trends updated successfully");
     } catch (error) {
       console.error("Error updating trends:", error);
-      if (error instanceof Error && error.message.includes("corsNotAllowed")) {
-        toast.error("NewsAPI doesn't allow browser requests. Please run locally or use the server endpoint.");
-      } else {
-        toast.error("Failed to update trends: " + (error instanceof Error ? error.message : String(error)));
-      }
     } finally {
       setIsUpdatingTrends(false);
     }

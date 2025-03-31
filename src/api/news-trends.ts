@@ -21,17 +21,24 @@ export async function GET() {
     const data = await response.json();
     console.log(`📰 Fetched ${data.articles.length} headlines from NewsAPI`);
     
+    // Map to consistent format
     const headlines = data.articles.map((article: any) => ({
-      title: article.title,
-      source: article.source.name,
-      publishedAt: article.publishedAt,
+      title: article.title || "Untitled",
+      source: article.source?.name || "Unknown Source",
+      publishedAt: article.publishedAt || new Date().toISOString(),
     }));
     
     const trends = await generateCulturalTrends(headlines);
     console.log(`🧠 Generated ${trends.length} cultural trends`);
 
     return new Response(JSON.stringify(trends), {
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        // Add CORS headers to allow browser requests
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization"
+      },
       status: 200,
     });
   } catch (e) {
@@ -40,8 +47,26 @@ export async function GET() {
       JSON.stringify({ error: "Failed to generate news trends", details: String(e) }),
       { 
         status: 500,
-        headers: { "Content-Type": "application/json" }
+        headers: { 
+          "Content-Type": "application/json",
+          // Add CORS headers to allow error responses
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization"
+        }
       }
     );
   }
+}
+
+// Add OPTIONS handler for CORS preflight requests
+export function OPTIONS() {
+  return new Response(null, {
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization"
+    },
+    status: 204
+  });
 }

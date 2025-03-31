@@ -37,8 +37,16 @@ export const fetchNewsTrends = async (): Promise<Headline[]> => {
     // First try to fetch from our server endpoint
     console.log("Trying to fetch news from server endpoint...");
     
+    const baseUrl = window.location.origin;
+    
     try {
-      const response = await fetch("/api/news-trends");
+      const response = await fetch(`${baseUrl}/api/news-trends`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+      });
       
       if (response.ok) {
         const data = await response.json();
@@ -48,65 +56,29 @@ export const fetchNewsTrends = async (): Promise<Headline[]> => {
           // If the server returned processed trends or headlines
           return data.map((item: any) => ({
             title: item.title,
-            source: item.source.name || item.source,
+            source: typeof item.source === 'object' ? item.source.name : item.source,
             publishedAt: item.publishedAt
           }));
+        } else {
+          throw new Error("Invalid data format from server");
         }
       } else {
         console.error("Server endpoint error:", await response.text());
+        throw new Error(`Server endpoint error: ${response.status}`);
       }
     } catch (serverError) {
       console.error("Backend API fetch failed:", serverError);
+      throw new Error("Server endpoint unavailable");
     }
-    
-    // If server endpoint fails, try direct API (only works on localhost)
-    console.log("Backend API fetch failed, trying direct NewsAPI...");
-    
-    // Get the key from localStorage
-    let apiKey = localStorage.getItem(NEWS_API_STORAGE_KEY);
-    
-    // If not in localStorage, use the default key
-    if (!apiKey) {
-      apiKey = "ca7eb7fe6b614e7095719eb52b15f728";
-      // Save it to localStorage for future use
-      localStorage.setItem(NEWS_API_STORAGE_KEY, apiKey);
-      console.log("Using default NewsAPI key");
-    }
-
-    console.log("Fetching news with API key:", apiKey.substring(0, 5) + "...");
-    
-    // Make direct API request to NewsAPI - this will only work on localhost due to CORS
-    const url = `https://newsapi.org/v2/top-headlines?language=en&pageSize=10&apiKey=${apiKey}`;
-    
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("NewsAPI error:", errorData);
-      
-      if (errorData.code === "apiKeyInvalid" || errorData.code === "apiKeyExhausted" || errorData.code === "apiKeyMissing") {
-        toast.error("Invalid or expired NewsAPI key. Using default key.");
-        localStorage.removeItem(NEWS_API_STORAGE_KEY);
-        return fetchNewsTrends(); // Retry with default key
-      } else if (errorData.code === "corsNotAllowed") {
-        toast.error("NewsAPI doesn't allow browser requests except from localhost. Please run locally or use the server endpoint.");
-        throw new Error("CORS restrictions: " + errorData.message);
-      }
-      
-      throw new Error(errorData.message || "Failed to fetch news trends");
-    }
-    
-    const data: NewsApiResponse = await response.json();
-    
-    // Map to simplified format
-    return data.articles.map(article => ({
-      title: article.title,
-      source: article.source.name,
-      publishedAt: article.publishedAt
-    }));
   } catch (error) {
     console.error("Error fetching news trends:", error);
-    toast.error("Failed to fetch news trends");
+    
+    // Check if this is a CORS error
+    if (error instanceof Error && error.message.includes("CORS")) {
+      toast.error("NewsAPI doesn't allow browser requests. Please run locally or use the server endpoint.");
+    } else {
+      toast.error("Failed to fetch news trends");
+    }
     throw error;
   }
 };

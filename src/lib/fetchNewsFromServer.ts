@@ -6,18 +6,30 @@ export async function fetchNewsFromServer(): Promise<Headline[]> {
   
   try {
     // First try to fetch from our own API endpoint
-    console.log("📡 Trying to fetch from server API...");
-    const apiResponse = await fetch("/api/news-trends");
+    console.log("📡 Trying to fetch from server API endpoint...");
+    
+    // Use absolute URL to ensure correct path resolution
+    const baseUrl = window.location.origin;
+    const apiResponse = await fetch(`${baseUrl}/api/news-trends`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+    });
     
     if (!apiResponse.ok) {
+      console.error(`❌ API response error: ${apiResponse.status}`);
+      const errorText = await apiResponse.text();
+      console.error("Error response:", errorText);
       throw new Error(`API response error: ${apiResponse.status}`);
     }
     
     const data = await apiResponse.json();
     console.log(`✅ Fetched data from server API: ${JSON.stringify(data).substring(0, 100)}...`);
     
-    // Check if the response is an array of trends or raw articles
-    if (data.length > 0 && 'title' in data[0] && 'source' in data[0]) {
+    if (Array.isArray(data)) {
+      // The API returns an array of trends or headlines
       return data;
     }
     
@@ -45,9 +57,9 @@ export async function fetchNewsFromServer(): Promise<Headline[]> {
       console.log(`✅ Fetched ${data.articles?.length || 0} articles from NewsAPI`);
 
       return data.articles.map((article: any) => ({
-        title: article.title,
-        source: article.source.name,
-        publishedAt: article.publishedAt,
+        title: article.title || "Untitled",
+        source: article.source?.name || "Unknown Source",
+        publishedAt: article.publishedAt || new Date().toISOString(),
       }));
     } catch (apiError) {
       console.error("❌ Direct NewsAPI call failed:", apiError);
