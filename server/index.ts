@@ -1,41 +1,28 @@
-
+// server/index.ts
 import dotenv from "dotenv";
 dotenv.config();
+
 import express from "express";
 import cors from "cors";
-import { fetchNewsFromServer } from "./fetchNewsTrends.server.ts";
-import { generateCulturalTrends } from "../src/lib/generateCulturalTrends.ts";
-import newsApiRouter from './newsApi';
-app.use('/api/news', newsApiRouter);
+import newsApiRouter from "./newsApi"; // ✅ must match file exactly
 
 const app = express();
 const port = 8090;
 
+app.use(express.json());
+
 app.use(cors({
-  origin: '*', // Allow all origins
+  origin: '*',
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.get("/api/news-trends", async (_req, res) => {
-  try {
-    console.log("📰 API: Fetching news trends...");
-    const headlines = await fetchNewsFromServer();
-    console.log(`📰 API: Fetched ${headlines.length} headlines`);
-    
-    const trends = await generateCulturalTrends(headlines);
-    console.log(`🧠 API: Generated ${trends.length} cultural trends`);
-    
-    res.json(trends);
-  } catch (e) {
-    console.error("❌ News API error:", e);
-    res.status(500).json({ error: "Failed to fetch news trends", details: String(e) });
-  }
-});
+// ✅ Mount the NewsAPI router at /api
+app.use('/api', newsApiRouter); // This makes /api/news available
 
-// Explicitly handle OPTIONS requests for CORS preflight
-app.options("/api/news-trends", (_req, res) => {
-  res.status(204).end();
+// Optional: Health check route
+app.get("/api/health", (_req, res) => {
+  res.json({ status: "ok" });
 });
 
 app.listen(port, () => {

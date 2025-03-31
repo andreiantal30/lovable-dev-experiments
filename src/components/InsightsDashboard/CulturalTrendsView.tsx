@@ -6,12 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import {
   getCachedCulturalTrends,
   CulturalTrend,
-  getCulturalTrends
+  getCulturalTrends,
+  saveCulturalTrends
 } from '@/lib/generateCulturalTrends';
 import { Button } from '@/components/ui/button';
-import { Clock, ArrowRight } from 'lucide-react';
+import { Clock, ArrowRight, Server } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
+import { toast } from 'sonner';
 
 const CulturalTrendsView: React.FC = () => {
   const cachedTrends = getCachedCulturalTrends();
@@ -76,6 +78,7 @@ const CulturalTrendsView: React.FC = () => {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-medium">Cultural Trends</h3>
+
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
