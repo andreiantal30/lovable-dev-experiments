@@ -1,3 +1,4 @@
+
 import { toast } from "sonner";
 import { Campaign } from './campaignData';
 import { generateWithOpenAI, OpenAIConfig, defaultOpenAIConfig, evaluateCampaign } from './openai';
@@ -9,14 +10,25 @@ import { createCampaignPrompt } from './campaign/campaignPromptBuilder';
 import { extractJsonFromResponse } from './campaign/utils';
 import { getCreativeDevicesForStyle } from '@/data/creativeDevices';
 import { getCachedCulturalTrends } from '@/data/culturalTrends';
+
 const applyCreativeDirectorPass = async (rawOutput: any) => {
-  const res = await fetch('/api/cd-pass', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(rawOutput),
-  });
-  if (!res.ok) throw new Error('CD pass API error');
-  return await res.json();
+  try {
+    const res = await fetch('/api/cd-pass', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(rawOutput),
+    });
+    
+    if (!res.ok) {
+      console.error(`CD pass API error: ${res.status}`);
+      return rawOutput; // Return original if API fails
+    }
+    
+    return await res.json();
+  } catch (err) {
+    console.error("CD pass failed:", err);
+    return rawOutput; // Return original if API fails
+  }
 };
 
 /**
@@ -79,41 +91,47 @@ export const generateCampaign = async (
     
     console.log("Prompt Preview (first 200 chars):", prompt.substring(0, 200));
     
-// Generate the campaign with OpenAI
-const response = await generateWithOpenAI(prompt, openAIConfig);
-const cleanedResponse = extractJsonFromResponse(response);
-const generatedContent = JSON.parse(cleanedResponse);
+    // Generate the campaign with OpenAI
+    const response = await generateWithOpenAI(prompt, openAIConfig);
+    const cleanedResponse = extractJsonFromResponse(response);
+    const generatedContent = JSON.parse(cleanedResponse);
 
-// Apply Creative Director refinement
-let improvedContent = generatedContent;
-try {
-  improvedContent = await applyCreativeDirectorPass(generatedContent);
-  console.log("✅ CD pass applied");
-} catch (err) {
-  console.error("⚠️ CD pass failed:", err);
-}
+    // Apply Creative Director refinement
+    let improvedContent = generatedContent;
+    try {
+      improvedContent = await applyCreativeDirectorPass(generatedContent);
+      console.log("✅ CD pass applied");
+    } catch (err) {
+      console.error("⚠️ CD pass failed:", err);
+    }
 
-// Inject Disruptive Device via API
-let finalContent = improvedContent;
-try {
-  const res = await fetch('/api/disruptive-pass', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(improvedContent),
-  });
+    // Inject Disruptive Device via API
+    let finalContent = improvedContent;
+    try {
+      const res = await fetch('/api/disruptive-pass', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(improvedContent),
+      });
 
-  if (!res.ok) throw new Error('Disruptive pass API error');
-  finalContent = await res.json();
-  console.log("🎯 Disruptive twist added");
-} catch (err) {
-  console.error("⚠️ Disruptive device injection failed:", err);
-}
+      if (!res.ok) {
+        throw new Error(`Disruptive pass API error: ${res.status}`);
+      }
+      
+      const jsonResponse = await res.json();
+      finalContent = jsonResponse;
+      console.log("🎯 Disruptive twist added");
+    } catch (err) {
+      console.error("⚠️ Disruptive device injection failed:", err);
+      // Use the previous content if the disruptive pass fails
+      toast.error("Disruptive enhancement failed, using base campaign");
+    }
 
-const campaign: GeneratedCampaign = {
-  ...finalContent,
-  referenceCampaigns,
-  creativeInsights
-};
+    const campaign: GeneratedCampaign = {
+      ...finalContent,
+      referenceCampaigns,
+      creativeInsights
+    };
     
     // Generate storytelling narrative
     try {
