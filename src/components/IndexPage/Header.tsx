@@ -16,18 +16,14 @@ const Header: React.FC<HeaderProps> = ({ apiKey, onChangeApiKey }) => {
       </div>
       
       <h1 className="text-4xl font-bold tracking-tight lg:text-5xl mb-3">
-        <span className="text-white">Turn Big Ideas into</span>
+        <span className="text-white">Your next big idea?</span>
         <br />
-        <span className="text-blue-400">Campaigns Worth Celebrating</span>
+        <span className="text-blue-400">Trained on the world's best.</span>
       </h1>
       
       <p className="text-base text-gray-300 mb-2 max-w-2xl mx-auto">
-        Backed by real Cannes Lions winners, our AI helps you generate creative concepts that 
-        blend <span className="font-medium">insight, innovation</span>, and <span className="font-medium">execution</span> — just like the best in the world.
-      </p>
-      
-      <p className="text-gray-400 text-xs mb-4">
-        Trained on award-winning campaigns from brands like Spotify, Dove, Netflix, Heinz, and more.
+        WriteAway is your AI creative partner—built on hundreds of awarded campaigns from Cannes, D&AD, and more. 
+        It helps you crack the brief, sharpen your angle, and generate fresh campaign ideas… fast.
       </p>
       
       {apiKey ? (
