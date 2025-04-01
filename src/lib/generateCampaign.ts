@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import { Campaign } from './campaignData';
 import { generateWithOpenAI, OpenAIConfig, defaultOpenAIConfig, evaluateCampaign } from './openai';
@@ -27,41 +26,29 @@ const applyCreativeDirectorPass = async (rawOutput: any) => {
     return await res.json();
   } catch (err) {
     console.error("CD pass failed:", err);
-    return rawOutput; // Return original if API fails
+    return rawOutput;
   }
 };
 
-/**
- * Main function to generate a campaign using AI
- */
 export const generateCampaign = async (
   input: CampaignInput, 
   openAIConfig: OpenAIConfig = defaultOpenAIConfig
 ): Promise<GeneratedCampaign> => {
   try {
-    // Generate creative insights
     const creativeInsights = await generateCreativeInsights(input, openAIConfig);
     console.log("Generated Creative Insights:", creativeInsights);
-    
-    // Find similar reference campaigns - now returns up to 5 diverse references
-    const referenceCampaigns = await findSimilarCampaigns(input, openAIConfig);
-    
-    console.log("Matched Reference Campaigns:", 
-      referenceCampaigns.map(c => ({
-        name: c.name,
-        brand: c.brand,
-        industry: c.industry
-      }))
-    );
 
-    // Select creative devices based on campaign style - increased to 3
+    const referenceCampaigns = await findSimilarCampaigns(input, openAIConfig);
+    console.log("Matched Reference Campaigns:", referenceCampaigns.map(c => ({
+      name: c.name,
+      brand: c.brand,
+      industry: c.industry
+    })));
+
     const creativeDevices = getCreativeDevicesForStyle(input.campaignStyle, 3);
     console.log("Selected Creative Devices:", creativeDevices.map(d => d.name));
-    
-    // Get relevant cultural trends
-    const culturalTrends = getCachedCulturalTrends();
 
-    // Give priority to non-tech trends for variety
+    const culturalTrends = getCachedCulturalTrends();
     const prioritized = [
       ...culturalTrends.filter(t =>
         !t.platformTags.some(tag => tag.toLowerCase().includes("ai") || tag.toLowerCase().includes("ar") || tag.toLowerCase().includes("vr") || tag.toLowerCase().includes("metaverse"))
@@ -70,33 +57,21 @@ export const generateCampaign = async (
         t.platformTags.some(tag => tag.toLowerCase().includes("ai") || tag.toLowerCase().includes("ar"))
       )
     ];
-    
-    // Shuffle and take 3 from the reordered list (increased from 2)
-    const relevantTrends = prioritized
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 3);
-    
+    const relevantTrends = prioritized.sort(() => Math.random() - 0.5).slice(0, 3);
     if (relevantTrends.length > 0) {
       console.log("Incorporating Cultural Trends:", relevantTrends.map(t => t.title));
     }
-    
-    // Create the campaign generation prompt
+
     const prompt = createCampaignPrompt(
-      input, 
-      referenceCampaigns, 
-      creativeInsights, 
-      creativeDevices,
-      relevantTrends
+      input, referenceCampaigns, creativeInsights, creativeDevices, relevantTrends
     );
-    
     console.log("Prompt Preview (first 200 chars):", prompt.substring(0, 200));
-    
-    // Generate the campaign with OpenAI
+
     const response = await generateWithOpenAI(prompt, openAIConfig);
     const cleanedResponse = extractJsonFromResponse(response);
     const generatedContent = JSON.parse(cleanedResponse);
 
-    // Apply Creative Director refinement
+    // ✏️ CD pass
     let improvedContent = generatedContent;
     try {
       improvedContent = await applyCreativeDirectorPass(generatedContent);
@@ -105,60 +80,72 @@ export const generateCampaign = async (
       console.error("⚠️ CD pass failed:", err);
     }
 
-    // Inject Disruptive Device via API
+    // 💥 Disruptive Device pass
     let finalContent = improvedContent;
+    const payload = { campaign: improvedContent };
+    console.log("📦 Payload sent to /api/disruptive-pass:", JSON.stringify(payload, null, 2));
+
     try {
       const res = await fetch('/api/disruptive-pass', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(improvedContent),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
         throw new Error(`Disruptive pass API error: ${res.status}`);
       }
-      
+
       const jsonResponse = await res.json();
       finalContent = jsonResponse;
       console.log("🎯 Disruptive twist added");
     } catch (err) {
       console.error("⚠️ Disruptive device injection failed:", err);
-      // Use the previous content if the disruptive pass fails
       toast.error("Disruptive enhancement failed, using base campaign");
     }
 
     const campaign: GeneratedCampaign = {
       ...finalContent,
+      prHeadline: finalContent.prHeadline, // Make sure prHeadline is included here
       referenceCampaigns,
-      creativeInsights
+      creativeInsights,
+      evaluation: finalContent.evaluation // Ensuring the evaluation (CD feedback) is included in the final campaign
     };
-    
-    // Generate storytelling narrative
+
+    // 📖 Storytelling generation
     try {
-      const storytellingInput = {
+      const storytelling = await generateStorytellingNarrative({
         brand: input.brand,
         industry: input.industry,
         targetAudience: input.targetAudience,
         emotionalAppeal: input.emotionalAppeal,
         campaignName: campaign.campaignName,
         keyMessage: campaign.keyMessage
-      };
-      
-      const storytelling = await generateStorytellingNarrative(storytellingInput, openAIConfig);
+      }, openAIConfig);
       campaign.storytelling = storytelling;
     } catch (error) {
       console.error("Error generating storytelling content:", error);
       toast.error("Error generating storytelling content");
     }
-    
-    // Generate campaign evaluation
+
+    // 🧠 Evaluation
     try {
       const evaluation: CampaignEvaluation = await evaluateCampaign(campaign, openAIConfig);
       campaign.evaluation = evaluation;
+      console.log("🧠 CD Evaluation injected:", evaluation);
     } catch (error) {
-      console.error("Error evaluating campaign:", error);
+      console.error("❌ Campaign evaluation failed:", error);
+      campaign.evaluation = {
+        insightSharpness: 5,
+        ideaOriginality: 5,
+        executionPotential: 5,
+        awardPotential: 5,
+        finalVerdict: "Evaluation could not be processed correctly."
+      };
     }
-    
+
+    console.log("🚀 Final campaign object being returned:", campaign);
+
     return campaign;
   } catch (error) {
     console.error("Error generating campaign:", error);
@@ -166,5 +153,4 @@ export const generateCampaign = async (
   }
 };
 
-// Re-export types for backwards compatibility
 export type { CampaignInput, GeneratedCampaign, CampaignVersion };

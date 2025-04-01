@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { extractJsonFromResponse } from '../src/lib/campaign/utils';
 
 type CampaignOutput = {
   campaignName: string;
@@ -36,5 +37,6 @@ ${JSON.stringify(generatedCampaign, null, 2)}
   });
 
   const raw = response.choices?.[0]?.message?.content || '{}';
-  return JSON.parse(raw);
+  const cleaned = extractJsonFromResponse(raw);
+  return JSON.parse(cleaned);
 }

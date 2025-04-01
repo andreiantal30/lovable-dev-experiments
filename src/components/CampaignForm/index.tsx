@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { CampaignInput } from "@/lib/generateCampaign";
 import TransitionElement from "@/components/TransitionElement";
@@ -64,7 +63,6 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
 
   const addTagItem = (key: 'targetAudience' | 'objectives' | 'emotionalAppeal', value: string) => {
     if (!value.trim()) return;
-    
     if (formData[key].includes(value.trim())) return;
     
     setFormData(prev => ({
@@ -93,31 +91,18 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ onSubmit, isGenerating }) =
     
     const newErrors: typeof errors = {};
     
-    if (!formData.brand.trim()) {
-      newErrors.brand = "Brand name is required";
-    }
-    
-    if (!formData.industry.trim()) {
-      newErrors.industry = "Industry is required";
-    }
-    
-    if (formData.targetAudience.length === 0) {
-      newErrors.targetAudience = "At least one target audience is required";
-    }
-    
-    if (formData.objectives.length === 0) {
-      newErrors.objectives = "At least one objective is required";
-    }
-    
-    if (formData.emotionalAppeal.length === 0) {
-      newErrors.emotionalAppeal = "At least one emotional appeal is required";
-    }
+    if (!formData.brand.trim()) newErrors.brand = "Brand name is required";
+    if (!formData.industry.trim()) newErrors.industry = "Industry is required";
+    if (formData.targetAudience.length === 0) newErrors.targetAudience = "At least one target audience is required";
+    if (formData.objectives.length === 0) newErrors.objectives = "At least one objective is required";
+    if (formData.emotionalAppeal.length === 0) newErrors.emotionalAppeal = "At least one emotional appeal is required";
     
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
-    
+
+    console.log("🚀 Submitting campaign input:", formData);
     onSubmit(formData);
   };
 

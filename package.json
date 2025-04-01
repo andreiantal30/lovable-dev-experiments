@@ -9,7 +9,7 @@
     "fetch-news": "tsx server/index.ts",
     "build": "vite build",
     "preview": "vite preview",
-    "backend": "ts-node server/index.ts"
+    "dev:server": "ts-node server/index.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

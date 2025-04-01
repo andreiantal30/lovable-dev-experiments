@@ -1,5 +1,4 @@
-
-import { generateWithOpenAI, OpenAIConfig, defaultOpenAIConfig } from './openai';
+import { generateWithOpenAI, OpenAIConfig } from './openai';
 
 export interface StorytellingInput {
   brand: string;
@@ -25,7 +24,7 @@ export interface StorytellingOutput {
  */
 export async function generateStorytellingNarrative(
   input: StorytellingInput,
-  openAIConfig: OpenAIConfig = defaultOpenAIConfig
+  openAIConfig?: OpenAIConfig
 ): Promise<StorytellingOutput> {
   const prompt = `
 You're a top-tier brand storyteller tasked with creating a powerful narrative.

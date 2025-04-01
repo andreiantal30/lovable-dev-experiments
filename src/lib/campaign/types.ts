@@ -47,10 +47,10 @@ export interface FeedbackCriterion {
 }
 
 export interface CampaignEvaluation {
-  insightSharpness: FeedbackCriterion;
-  ideaOriginality: FeedbackCriterion;
-  executionPotential: FeedbackCriterion;
-  awardPotential: FeedbackCriterion;
+  insightSharpness: number;
+  ideaOriginality: number;
+  executionPotential: number;
+  awardPotential: number;
   finalVerdict: string;
 }
 
@@ -72,6 +72,7 @@ export interface GeneratedCampaign {
   referenceCampaigns: Campaign[];
   storytelling?: StorytellingOutput;
   viralElement?: string;
+  prHeadline?: string;
   callToAction?: string;
   emotionalAppeal?: string[];
   evaluation?: CampaignEvaluation;

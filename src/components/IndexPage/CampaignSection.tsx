@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import CampaignForm from "@/components/CampaignForm";
 import CampaignResult, { CampaignFeedback } from "@/components/CampaignResult";
@@ -65,7 +64,25 @@ const CampaignSection = ({
 }: CampaignSectionProps) => {
   const scrollArrowRef = React.useRef<HTMLDivElement>(null);
   const mainScrollArrowRef = React.useRef<HTMLDivElement>(null);
-  
+
+  // Define handleRefineCampaign function here
+  const handleRefineCampaign = async (feedback: CampaignFeedback) => {
+    console.log("Refining campaign with feedback:", feedback);
+
+    // Send feedback to the backend for refinement
+    await fetch("/api/refine-campaign", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(feedback),
+    });
+
+    // After refinement, update your generated campaign
+    // (Assuming the refined campaign is returned by the backend)
+    // setGeneratedCampaign(newRefinedCampaign);
+  };
+
   // Effect to scroll to campaign result when generated
   useEffect(() => {
     if (generatedCampaign && campaignResultRef.current) {
@@ -78,21 +95,21 @@ const CampaignSection = ({
       }, 100);
     }
   }, [generatedCampaign, campaignResultRef]);
-  
+
   // Effect to hide arrow on scroll
   useEffect(() => {
     const handleScroll = () => {
       if (scrollArrowRef.current && window.scrollY > 100) {
         scrollArrowRef.current.classList.add('opacity-0');
       }
-      
+
       if (mainScrollArrowRef.current && window.scrollY > 100) {
         mainScrollArrowRef.current.classList.add('opacity-0');
       }
     };
-    
+
     window.addEventListener('scroll', handleScroll);
-    
+
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
@@ -122,11 +139,11 @@ const CampaignSection = ({
               </Alert>
             </TransitionElement>
           )}
-          
+
           <div className="flex justify-center w-full">
             <CampaignForm onSubmit={onGenerateCampaign} isGenerating={isGenerating} />
           </div>
-          
+
           {/* Main page scroll down arrow */}
           <div 
             ref={mainScrollArrowRef}
@@ -153,16 +170,16 @@ const CampaignSection = ({
               </div>
             </div>
           )}
-          
+
           <div className={isRefining || isRegenerating ? "opacity-50 pointer-events-none" : ""}>
             <CampaignResult 
               campaign={generatedCampaign} 
               onGenerateAnother={onGenerateAnother}
               showFeedbackForm={!isChatActive}
-              onRefine={onRefine}
+              onRefine={handleRefineCampaign} // Passing handleRefineCampaign
             />
           </div>
-          
+
           {/* Scroll down arrow */}
           <div 
             ref={scrollArrowRef}
@@ -172,7 +189,7 @@ const CampaignSection = ({
               <ChevronDown className="h-6 w-6" />
             </div>
           </div>
-          
+
           {isChatActive && (
             <TransitionElement animation="slide-up" delay={100}>
               <ChatWindow 
@@ -189,7 +206,7 @@ const CampaignSection = ({
           )}
         </div>
       )}
-      
+
       {generatedCampaign && (
         <div className="mt-8 text-center">
           <TransitionElement animation="fade" delay={700}>
@@ -200,7 +217,7 @@ const CampaignSection = ({
               >
                 Create a new campaign
               </button>
-              
+
               <Link to="/library" className="text-muted-foreground hover:text-foreground text-sm">
                 <span className="flex items-center">
                   <Library className="mr-1.5 h-3.5 w-3.5" />
@@ -211,7 +228,7 @@ const CampaignSection = ({
           </TransitionElement>
         </div>
       )}
-      
+
       {!generatedCampaign && <HowItWorks id="how-it-works" />}
       {!generatedCampaign && <Plans />}
     </>

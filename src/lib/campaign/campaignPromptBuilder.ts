@@ -168,6 +168,7 @@ ${awardPatterns}
   "consumerInteraction": "How people participate",
   "expectedOutcomes": ["Outcome 1", "Outcome 2", "Outcome 3", "Outcome 4"],
   "viralElement": "One specific viral moment",
+  "prHeadline": "Witty PR headline used in press releases and earned media",
   "callToAction": "Clear audience prompt",
   "creativeInsights": ["Used Insight 1", "Used Insight 2"]
 }
