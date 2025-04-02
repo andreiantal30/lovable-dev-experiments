@@ -57,7 +57,49 @@ export const createCampaignPrompt = (
   creativeDevices: CreativeDevice[] = [],
   culturalTrends: CulturalTrend[] = []
 ): string => {
-  const referenceCampaignsText = referenceCampaigns.map(c => formatCampaignForPrompt(c)).join('\n');
+  const awardHeadlinePatterns = `
+### Award-Winning Headline Patterns to Inspire Naming
+- “The [Unexpected Mechanism] That [Human Outcome]”  
+- “We Didn’t [Do X], We [Did Y Instead]”  
+- “Turning [Problem] Into [Cultural Power]”  
+- “When [Group] Meets [World/Context]”  
+- “The Campaign That [Media Reaction]”  
+Use these to name the campaign or spark a unique structure.
+`;
+
+const wildcardCampaigns: Campaign[] = [
+  {
+    id: '999-wild',
+    name: 'The Breakaway',
+    brand: 'Decathlon',
+    year: 2021,
+    industry: 'Retail',
+    targetAudience: ['Sports fans', 'Cycling enthusiasts', 'Rehabilitation advocates'],
+    objectives: ['Brand Reappraisal', 'Social Awareness'],
+    keyMessage: 'A virtual cycling team made up of prisoners',
+    strategy: 'Unexpected empathy storytelling in a virtual cycling context',
+    features: [],
+    emotionalAppeal: ['Empathy', 'Liberation'],
+    outcomes: ['Global media buzz', 'Increased awareness for prison rehabilitation']
+  },
+  {
+    id: '998-wild',
+    name: 'Backup Ukraine',
+    brand: 'UNESCO x Polycam',
+    year: 2022,
+    industry: 'Culture/Heritage',
+    targetAudience: ['Cultural preservationists', 'Tech-savvy youth', 'Global citizens'],
+    objectives: ['Cultural Protection', 'Tech-Driven Participation'],
+    keyMessage: 'Digitally preserve endangered heritage sites in war zones',
+    strategy: 'Crowdsourced digital preservation via AR',
+    features: [],
+    emotionalAppeal: ['Urgency', 'Cultural Protection'],
+    outcomes: ['Millions of 3D scans submitted', 'International collaboration sparked']
+  }
+];
+
+  const fullReferences = [...referenceCampaigns, ...wildcardCampaigns];
+  const referenceCampaignsText = fullReferences.map(c => formatCampaignForPrompt(c)).join('\n');
 
   const insightsBlock = creativeInsights.length > 0 ? `
 #### **Creative Insights**
@@ -104,14 +146,15 @@ ${referenceCampaignsText}
   };
 
   const campaignStyle = styleDescriptions[input.campaignStyle || ''] || campaignStyleDescription;
-  const personaInstructions = getPersonaInstructions(input.persona || "unfiltered-director" as PersonaType)
-
+  const personaInstructions = getPersonaInstructions(input.persona || "unfiltered-director" as PersonaType);
   const creativeLens = input.creativeLens ? getCreativeLensById(input.creativeLens) : null;
   const creativeLensInstructions = creativeLens ? `
 ### Creative Lens: ${creativeLens.name}
 ${creativeLens.description}
 Use this perspective to shape the campaign’s voice, concept, and cultural relevance.
 ` : '';
+
+  // ... [unchanged imports and helper functions remain above]
 
   const creativeDevicesBlock = formatCreativeDevicesForPrompt(creativeDevices);
 
@@ -123,6 +166,18 @@ Ask yourself:
 - What’s the unexpected twist, uncomfortable truth, or cultural spike?
 
 Push for tension, contradiction, or irony. The idea should spark instant conversation.
+`;
+
+  const executionReminder = `
+### Execution Spike Reminder
+Your execution plan must include at least one:
+- Brave or controversial move
+- Genre-defying medium
+- Wild cultural twist
+- Bold channel hack
+- Unexpected tension or friction point
+
+This is what earns metal at Cannes. At least one execution must punch above the brief.
 `;
 
   return `### Generate a groundbreaking marketing campaign with the following:
@@ -142,7 +197,9 @@ ${creativeLensInstructions}
 ${insightsBlock}
 ${culturalTrendsBlock}
 ${creativeDevicesBlock}
+${awardHeadlinePatterns}
 ${provocationBlock}
+${executionReminder}
 
 #### Campaign Format
 - Objective: ${input.objectives.join(', ')}
@@ -186,4 +243,4 @@ Judges at top festivals reward:
 Your campaign should **challenge norms**, **ignite conversation**, and **feel inevitable in hindsight**. Don’t just meet the brief—**bend it into something iconic**.
 
 Now respond with a culturally powerful campaign that could headline Cannes Lions 2025.`;
-}
+};

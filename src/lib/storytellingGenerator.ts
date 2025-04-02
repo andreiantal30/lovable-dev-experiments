@@ -27,14 +27,11 @@ export async function generateStorytellingNarrative(
   openAIConfig?: OpenAIConfig
 ): Promise<StorytellingOutput> {
   const prompt = `
-You're a top-tier brand storyteller tasked with creating a powerful narrative.
+You're a top-tier brand storyteller writing a 2025 Cannes Lions case film voiceover.
 
-Your task is to turn a campaign idea into a human, emotionally resonant narrative that could be used in a voiceover, manifesto film, or about section of a case study. 
+Your task is to transform this campaign into a powerful, emotionally resonant story — something that could open a manifesto film, captivate a jury, or move an audience.
 
-Tone: authentic, vivid, emotionally insightful — not cheesy or generic. Use sensory language, compelling metaphors, and rhythm to create a narrative that resonates with the target audience.
-
-Here's the campaign input:
-
+Here's the campaign data:
 - Brand: ${input.brand}
 - Industry: ${input.industry}
 - Target Audience: ${input.targetAudience.join(", ")}
@@ -42,16 +39,17 @@ Here's the campaign input:
 - Campaign Name: ${input.campaignName}
 - Key Message: ${input.keyMessage}
 
-Create a story that:
-- Opens with an emotionally resonant hook
-- Builds tension or curiosity
-- Contains vivid, sensory details
-- Has an authentic human voice
-- Connects to deeper emotional truths
-- Resolves in a way that reinforces the key message
-- Is between 150-200 words
+Write a 150–200 word story that:
+- Starts with a punchy human insight or cultural tension
+- Builds emotional stakes with specificity and rhythm
+- Includes sensory details or a vivid metaphor
+- Makes the audience *feel* the conflict or need
+- Resolves with how the brand or idea steps in
+- Feels like something you'd hear in a winning case film VO
 
-Please return only the storytelling narrative as plain text. Do NOT include explanations, formatting, or headings.
+Avoid cliché lines. Use a grounded, evocative, confident tone.
+
+Return only the final story as plain text — no titles, no formatting, no notes.
 `;
 
   try {

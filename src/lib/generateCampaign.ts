@@ -13,6 +13,19 @@ import { getCachedCulturalTrends } from '@/data/culturalTrends';
 import { saveCampaignToLibrary } from './campaignStorage';
 import { evaluateCampaign } from './campaign/evaluateCampaign';
 
+// 🔥 Bravery Enhancer
+const ensureOneBraveExecution = (executions: string[]): string[] => {
+  const safeWords = ['docuseries', 'AR experience', 'pop-up', 'co-creation', 'TikTok challenge'];
+  const safe = executions.some(e =>
+    safeWords.some(s => e.toLowerCase().includes(s))
+  );
+  if (safe) {
+    console.warn("🛑 Execution too safe. Injecting braver fallback.");
+    return [...executions, "Create an experience that forces people to confront a personal truth in a public way."];
+  }
+  return executions;
+};
+
 const applyCreativeDirectorPass = async (rawOutput: any) => {
   try {
     const res = await fetch('/api/cd-pass', {
@@ -20,12 +33,10 @@ const applyCreativeDirectorPass = async (rawOutput: any) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(rawOutput),
     });
-
     if (!res.ok) {
       console.error(`CD pass API error: ${res.status}`);
       return rawOutput;
     }
-
     return await res.json();
   } catch (err) {
     console.error("CD pass failed:", err);
@@ -53,7 +64,6 @@ export const generateCampaign = async (
           tag.toLowerCase().includes("ai") || tag.toLowerCase().includes("ar"))
       )
     ];
-
     const relevantTrends = prioritized.sort(() => Math.random() - 0.5).slice(0, 3);
 
     const prompt = createCampaignPrompt(
@@ -95,13 +105,16 @@ export const generateCampaign = async (
       toast.error("Disruptive enhancement failed, using base campaign");
     }
 
+    // ✅ Bravery Check
+    finalContent.executionPlan = ensureOneBraveExecution(finalContent.executionPlan);
+
     // 🧱 Compose full campaign object
     const campaign: GeneratedCampaign = {
       ...finalContent,
       referenceCampaigns,
       creativeInsights,
       storytelling: "",
-      evaluation: finalContent.evaluation // Will be overwritten by next step
+      evaluation: finalContent.evaluation
     };
 
     // 🪄 Storytelling
@@ -140,9 +153,8 @@ export const generateCampaign = async (
       };
     }
 
-    // 💾 Save to Library — including all critical fields
+    // 💾 Save to Library
     try {
-      console.log("📦 Saving campaign to Library:", campaign);
       const saved = saveCampaignToLibrary({
         id: crypto.randomUUID(),
         timestamp: new Date().toISOString(),

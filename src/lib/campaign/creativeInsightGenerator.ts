@@ -1,4 +1,3 @@
-
 import { CampaignInput } from './types';
 import { generateWithOpenAI, OpenAIConfig } from '../openai';
 import { extractJsonFromResponse } from './utils';
@@ -16,10 +15,9 @@ export async function generateCreativeInsights(
     const objectivesString = input.objectives.join(', ');
     
     const prompt = `
-### Creative Insight Builder
+### Cultural Tension Mapper + Insight Builder
 
-Generate 3 powerful insights about the target audience that will unlock creative potential for this campaign. 
-These should be tensions, truths, or emotional realities that the target audience experiences in ${currentYear}.
+You are a strategist working on a campaign in ${currentYear}. First, identify ONE cultural tension that is affecting the target audience at a macro level. Then generate 3 sharp insights derived from this tension that can fuel creative ideas.
 
 **Target Audience:** ${audienceString}
 **Brand:** ${input.brand}
@@ -27,35 +25,47 @@ These should be tensions, truths, or emotional realities that the target audienc
 **Campaign Objectives:** ${objectivesString}
 **Emotional Appeal to Tap Into:** ${input.emotionalAppeal.join(', ')}
 
-For each insight:
-1. Focus on a specific tension or truth that the audience feels
-2. Make it specific, not generic
-3. Connect it to the brand's ability to solve or provoke this tension
-4. Phrase it as a simple, powerful statement that could inspire creative work
+#### Step 1: Cultural Tension
+Write 1 cultural tension as a string. This should reflect something happening in the world (social, economic, digital, generational) that’s affecting this audience’s worldview. Keep it punchy and inspiring. Example:
+- “We’re more connected than ever, but feel lonelier than ever.”
 
-Format your response as a JSON array of exactly 3 insights:
+#### Step 2: 3 Creative Insights
+Now, based on that tension, write 3 audience insights:
+- Make each one specific and emotionally grounded
+- Show contradiction, behavior, or unmet needs
+- Phrase each one as a powerful truth for creative teams
+
+### Format:
+Return a JSON object with two keys:
 \`\`\`json
-["Insight statement 1", "Insight statement 2", "Insight statement 3"]
+{
+  "tension": "Macro tension here",
+  "insights": [
+    "Insight 1",
+    "Insight 2",
+    "Insight 3"
+  ]
+}
 \`\`\`
-
-The best insights will reveal something that feels true but hasn't been overly exploited in marketing.
 `;
 
     const response = await generateWithOpenAI(prompt, config);
     const cleanedResponse = extractJsonFromResponse(response);
-    
+
     try {
-      const insights = JSON.parse(cleanedResponse);
-      if (Array.isArray(insights) && insights.length > 0) {
-        return insights.slice(0, 3);
+      const parsed = JSON.parse(cleanedResponse);
+      if (parsed?.insights && Array.isArray(parsed.insights)) {
+        return parsed.insights.slice(0, 3);
       }
     } catch (error) {
-      console.error("Error parsing creative insights:", error);
+      console.error("Error parsing insight JSON:", error);
     }
-    
-    return ["The audience seeks authentic connections in an increasingly digital world.",
-            "They value brands that understand their specific needs rather than generic solutions.",
-            "They want to feel seen and validated through their brand choices."];
+
+    return [
+      "The audience seeks authentic connections in an increasingly digital world.",
+      "They value brands that understand their specific needs rather than generic solutions.",
+      "They want to feel seen and validated through their brand choices."
+    ];
   } catch (error) {
     console.error("Error generating creative insights:", error);
     return [];

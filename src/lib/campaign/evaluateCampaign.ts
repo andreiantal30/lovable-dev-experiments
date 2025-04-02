@@ -1,7 +1,6 @@
 import { CampaignEvaluation, GeneratedCampaign } from "./types";
 import { generateWithOpenAI, OpenAIConfig, defaultOpenAIConfig } from "../openai";
 import { extractJsonFromResponse } from "./utils";
-import { findSimilarCampaigns } from "./campaignMatcher";
 
 interface EvaluationContext {
   brand: string;
@@ -21,9 +20,20 @@ export const evaluateCampaign = async (
     }).join("\n");
 
     const prompt = `
-You are an award-winning creative director evaluating the quality of an AI-generated campaign. 
+You are an award-winning creative director reviewing a marketing campaign. Your role is to score it like a Cannes Lions juror. Be sharp, opinionated, and honest.
 
-Your feedback must be sharp, specific, and varied. Use the scoring system below and include a compelling one-line final verdict. Compare this campaign against global Cannes Lions standards.
+Evaluate not just the logic of the idea, but the **creative bravery**, **emotional power**, and **execution originality**.
+
+Ask yourself:
+- Would this make other creatives jealous?
+- Does it punch above its weight?
+- Could this spark conversation, imitation, or cultural shift?
+
+Do NOT reward:
+- Safe or familiar formats
+- Gimmicky tech without depth
+- Overused influencer or UGC tropes
+- Generic “feel good” messaging without insight
 
 — CAMPAIGN TO EVALUATE —
 Name: ${campaign.campaignName}
@@ -37,17 +47,19 @@ Emotional Appeal: ${campaign.emotionalAppeal?.join(", ") || "None"}
 Call to Action: ${campaign.callToAction || campaign.consumerInteraction || "None"}
 
 — SIMILAR REFERENCE CAMPAIGNS —
-${referenceBrief}
+${referenceBrief || "None"}
 
 — EVALUATION FORMAT —
-Return a JSON object with the following fields:
+Return a JSON object like this:
+\`\`\`json
 {
   "insightSharpness": number (1–10),
   "ideaOriginality": number (1–10),
   "executionPotential": number (1–10),
   "awardPotential": number (1–10),
-  "finalVerdict": string — a smart one-line opinion, no fluff
+  "finalVerdict": "One bold, witty sentence that summarizes your creative POV."
 }
+\`\`\`
     `.trim();
 
     const response = await generateWithOpenAI(prompt, openAIConfig);
