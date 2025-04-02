@@ -1,9 +1,9 @@
 import { Campaign } from '@/types/Campaign';
 import { campaigns } from '@/data/campaigns';
 import { GeneratedCampaign } from './generateCampaign';
+import { CampaignEvaluation } from './campaign/types'; // ✅ Add this line
 import { v4 as uuidv4 } from 'uuid';
 
-// Local storage keys
 const CAMPAIGN_STORAGE_KEY = 'campaign-generator-data';
 const SAVED_CAMPAIGNS_KEY = 'saved-campaigns';
 
@@ -14,6 +14,8 @@ export interface SavedCampaign {
   brand: string;
   industry: string;
   favorite: boolean;
+  prHeadline?: string;
+  evaluation?: CampaignEvaluation;
 }
 
 // 🔁 Notify components
@@ -26,63 +28,52 @@ export const getCampaigns = (): Campaign[] => {
   try {
     const campaignsWithIds = campaigns.map(campaign => {
       if (!campaign.id) {
-        return {
-          ...campaign,
-          id: uuidv4()
-        };
+        return { ...campaign, id: uuidv4() };
       }
       return campaign;
     });
     console.log("Campaigns loaded from static file:", campaignsWithIds);
-    return campaignsWithIds as Campaign[];
+    return campaignsWithIds;
   } catch (error) {
     console.error("Error loading campaigns:", error);
     return [];
   }
 };
 
-// 🧹 Legacy (deprecated)
-export const saveCampaigns = (campaigns: Campaign[]): boolean => {
-  console.warn('saveCampaigns is deprecated. Edit the static file directly.');
-  return false;
-};
-
-export const addCampaigns = (newCampaigns: Campaign[]): boolean => {
-  console.warn('addCampaigns is deprecated. Edit the static file directly.');
-  return false;
-};
-
-export const deleteCampaign = (campaignId: string): boolean => {
-  console.warn('deleteCampaign is deprecated. Edit the static file directly.');
-  return false;
-};
-
-export const resetCampaignData = (): boolean => {
-  console.warn('resetCampaignData is deprecated. Edit the static file directly.');
-  return false;
-};
-
-// 💾 Load from localStorage
-export const getSavedCampaigns = (): SavedCampaign[] => {
+// 💾 Load saved campaigns (with array patch → object)
+export const getSavedCampaigns = (): Record<string, SavedCampaign> => {
   try {
-    const storedCampaigns = localStorage.getItem(SAVED_CAMPAIGNS_KEY);
-    return storedCampaigns ? JSON.parse(storedCampaigns) : [];
+    const raw = localStorage.getItem(SAVED_CAMPAIGNS_KEY);
+    if (!raw) return {};
+
+    const parsed = JSON.parse(raw);
+
+    // 🛠 Patch legacy array format
+    if (Array.isArray(parsed)) {
+      const objectified = parsed.reduce((acc, entry) => {
+        if (entry.id) acc[entry.id] = entry;
+        return acc;
+      }, {} as Record<string, SavedCampaign>);
+      localStorage.setItem(SAVED_CAMPAIGNS_KEY, JSON.stringify(objectified));
+      console.log("✅ Migrated saved campaigns from array to object format");
+      return objectified;
+    }
+
+    return parsed;
   } catch (error) {
     console.error('Error retrieving saved campaigns from storage:', error);
-    return [];
+    return {};
   }
-};
+}
 
-// 💾 Save to localStorage (overload-safe)
+// 💾 Save to localStorage (object mode)
 export function saveCampaignToLibrary(campaign: GeneratedCampaign, brand: string, industry: string): SavedCampaign | null;
 export function saveCampaignToLibrary(entry: SavedCampaign): SavedCampaign | null;
 export function saveCampaignToLibrary(arg1: any, arg2?: string, arg3?: string): SavedCampaign | null {
   try {
     const savedCampaigns = getSavedCampaigns();
-
     let newEntry: SavedCampaign;
 
-    // Full object variant
     if (typeof arg1 === 'object' && 'id' in arg1 && 'campaign' in arg1) {
       newEntry = arg1 as SavedCampaign;
     } else {
@@ -99,10 +90,12 @@ export function saveCampaignToLibrary(arg1: any, arg2?: string, arg3?: string): 
         }
       };
 
-      if (isCampaignSaved(campaign.campaignName, arg2!)) {
-        console.log('Campaign already saved', campaign.campaignName, arg2);
-        const existing = savedCampaigns.find(c => c.campaign.campaignName === campaign.campaignName && c.brand === arg2);
-        return existing || null;
+      const existing = Object.values(savedCampaigns).find(
+        c => c.campaign.campaignName === campaign.campaignName && c.brand === arg2
+      );
+      if (existing) {
+        console.log('⚠️ Campaign already saved:', campaign.campaignName, arg2);
+        return existing;
       }
 
       newEntry = {
@@ -115,7 +108,7 @@ export function saveCampaignToLibrary(arg1: any, arg2?: string, arg3?: string): 
       };
     }
 
-    savedCampaigns.push(newEntry);
+    savedCampaigns[newEntry.id] = newEntry;
     localStorage.setItem(SAVED_CAMPAIGNS_KEY, JSON.stringify(savedCampaigns));
     emitCampaignUpdate();
     return newEntry;
@@ -129,7 +122,7 @@ export function saveCampaignToLibrary(arg1: any, arg2?: string, arg3?: string): 
 export const getSavedCampaignById = (id: string): SavedCampaign | null => {
   try {
     const savedCampaigns = getSavedCampaigns();
-    return savedCampaigns.find(c => c.id === id) || null;
+    return savedCampaigns[id] ?? null;
   } catch (error) {
     console.error('Error retrieving saved campaign:', error);
     return null;
@@ -140,10 +133,10 @@ export const getSavedCampaignById = (id: string): SavedCampaign | null => {
 export const removeSavedCampaign = (id: string): boolean => {
   try {
     const savedCampaigns = getSavedCampaigns();
-    const updatedSavedCampaigns = savedCampaigns.filter(c => c.id !== id);
-    if (updatedSavedCampaigns.length === savedCampaigns.length) return false;
+    if (!savedCampaigns[id]) return false;
 
-    localStorage.setItem(SAVED_CAMPAIGNS_KEY, JSON.stringify(updatedSavedCampaigns));
+    delete savedCampaigns[id];
+    localStorage.setItem(SAVED_CAMPAIGNS_KEY, JSON.stringify(savedCampaigns));
     emitCampaignUpdate();
     return true;
   } catch (error) {
@@ -156,12 +149,10 @@ export const removeSavedCampaign = (id: string): boolean => {
 export const toggleFavoriteStatus = (id: string): boolean => {
   try {
     const savedCampaigns = getSavedCampaigns();
-    const updatedSavedCampaigns = savedCampaigns.map(c => ({
-      ...c,
-      favorite: c.id === id ? !c.favorite : c.favorite
-    }));
+    if (!savedCampaigns[id]) return false;
 
-    localStorage.setItem(SAVED_CAMPAIGNS_KEY, JSON.stringify(updatedSavedCampaigns));
+    savedCampaigns[id].favorite = !savedCampaigns[id].favorite;
+    localStorage.setItem(SAVED_CAMPAIGNS_KEY, JSON.stringify(savedCampaigns));
     emitCampaignUpdate();
     return true;
   } catch (error) {
@@ -174,7 +165,7 @@ export const toggleFavoriteStatus = (id: string): boolean => {
 export const isCampaignSaved = (campaignName: string, brand: string): boolean => {
   try {
     const savedCampaigns = getSavedCampaigns();
-    return savedCampaigns.some(
+    return Object.values(savedCampaigns).some(
       c => c.campaign.campaignName === campaignName && c.brand === brand
     );
   } catch (error) {

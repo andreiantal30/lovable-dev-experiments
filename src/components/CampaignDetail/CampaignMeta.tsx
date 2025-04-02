@@ -1,5 +1,3 @@
-// src/components/CampaignDetail/CampaignMeta.tsx
-
 import React from 'react';
 import { Calendar } from 'lucide-react';
 import { CardDescription, CardTitle } from '@/components/ui/card';
@@ -36,10 +34,10 @@ const CampaignMeta: React.FC<CampaignMetaProps> = ({
         <span>•</span>
         <span>{industry}</span>
         <span>•</span>
-        <div className="flex items-center">
+        <span className="flex items-center">
           <Calendar className="h-3.5 w-3.5 mr-1" />
-          <span>{formatDate(timestamp)}</span>
-        </div>
+          {formatDate(timestamp)}
+        </span>
       </CardDescription>
     </div>
   );

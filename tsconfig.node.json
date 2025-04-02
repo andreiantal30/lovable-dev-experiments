@@ -14,6 +14,7 @@
     /* Required for project references */
     "composite": true,
     "outDir": "dist",
+    "noEmit": true, // ✅ Fixed here
 
     /* Linting */
     "strict": true,

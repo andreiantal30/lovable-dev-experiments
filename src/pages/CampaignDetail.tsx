@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
-  getSavedCampaignById,
+  getSavedCampaigns,
   removeSavedCampaign,
   toggleFavoriteStatus
 } from '@/lib/campaignStorage';
@@ -29,9 +29,11 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ id: propId }) => {
     if (!id) return;
 
     try {
-      const savedCampaign = getSavedCampaignById(id);
-      if (savedCampaign) {
-        setCampaign(savedCampaign);
+      const saved = getSavedCampaigns(); // returns object
+      const campaignData = saved[id];
+
+      if (campaignData) {
+        setCampaign(campaignData);
       } else {
         toast.error('Campaign not found');
         navigate('/library');
@@ -98,8 +100,8 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ id: propId }) => {
   if (!campaign) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
-        <p className="text-muted-foreground mb-4">Campaign not found</p>
-        <Button onClick={() => navigate('/library')}>Return to Library</Button>
+        <p className="text-muted-foreground mb-4">Failed to load campaign details. The data may be malformed or incomplete.</p>
+        <Button onClick={() => navigate('/library')}>Back to Library</Button>
       </div>
     );
   }
@@ -116,14 +118,13 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ id: propId }) => {
           Back to all campaigns
         </Button>
       )}
-      <CampaignDetailView
-        id={id || ''}
-        campaign={campaign.campaign}
-        isInSidebar={isInSidebar}
-        onDelete={handleDelete}
-        onToggleFavorite={handleToggleFavorite}
-        favorite={campaign.favorite}
-      />
+   <CampaignDetailView
+  id={id || ''}
+  campaign={campaign}
+  isInSidebar={isInSidebar}
+  onDelete={handleDelete}
+  onToggleFavorite={handleToggleFavorite}
+/>
     </>
   );
 

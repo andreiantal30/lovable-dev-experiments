@@ -49,13 +49,20 @@ const CampaignLibrary: React.FC = () => {
 
   const loadCampaigns = () => {
     try {
-      const saved = getSavedCampaigns();
-      setCampaigns(saved);
+      const savedObject = getSavedCampaigns(); // returns Record<string, SavedCampaign>
+      const savedArray = Object.values(savedObject); // convert to array
+      setCampaigns(savedArray);                     // ✅ FIXED
     } catch (error) {
       console.error('Load error:', error);
       toast.error('Failed to load saved campaigns');
     }
   };
+
+  useEffect(() => {
+    const handleUpdate = () => loadCampaigns();
+    window.addEventListener('campaign-updated', handleUpdate);
+    return () => window.removeEventListener('campaign-updated', handleUpdate);
+  }, []);
 
   const handleDelete = (id: string) => {
     if (window.confirm('Delete this campaign?')) {
@@ -195,16 +202,16 @@ const CampaignLibrary: React.FC = () => {
                       <Badge variant="outline">{item.industry}</Badge>
 
                       {insightScore !== null && insightScore > 0 && (
-  <div className="mt-3">
-    <div className="text-xs text-muted-foreground mb-1">CD Score</div>
-    <div className="h-2 bg-gray-300 rounded">
-      <div
-        className="h-2 bg-orange-500 rounded"
-        style={{ width: `${insightScore * 10}%` }}
-      />
-    </div>
-  </div>
-)}
+                        <div className="mt-3">
+                          <div className="text-xs text-muted-foreground mb-1">CD Score</div>
+                          <div className="h-2 bg-gray-300 rounded">
+                            <div
+                              className="h-2 bg-orange-500 rounded"
+                              style={{ width: `${insightScore * 10}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
                     </CardContent>
                     <CardFooter className="p-4 pt-0 flex justify-between">
                       <Button variant="outline" size="sm" onClick={() => handleCampaignSelect(item.id)}>View</Button>

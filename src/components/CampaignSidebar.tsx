@@ -1,21 +1,20 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { format, isToday, isYesterday, subDays, isAfter } from 'date-fns';
-import { 
-  FilePlus, 
-  MessageSquare, 
-  Settings, 
-  Star, 
+import {
+  FilePlus,
+  MessageSquare,
+  Settings,
+  Star,
   PlusCircle,
   Calendar,
   BookOpen,
   RefreshCcw
 } from 'lucide-react';
-import { 
-  Sidebar, 
-  SidebarHeader, 
-  SidebarContent, 
+import {
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
   SidebarFooter,
   SidebarMenu,
   SidebarMenuItem,
@@ -39,13 +38,12 @@ interface SidebarProps {
 }
 
 interface GroupedCampaigns {
-  today: Array<{id: string, name: string}>;
-  yesterday: Array<{id: string, name: string}>;
-  previousWeek: Array<{id: string, name: string}>;
-  older: Array<{id: string, name: string}>;
+  today: Array<{ id: string, name: string }>;
+  yesterday: Array<{ id: string, name: string }>;
+  previousWeek: Array<{ id: string, name: string }>;
+  older: Array<{ id: string, name: string }>;
 }
 
-// Create a global event bus for campaign updates
 export const campaignEvents = {
   subscribe: (callback: () => void) => {
     window.addEventListener('campaign-updated', callback);
@@ -69,15 +67,13 @@ const CampaignSidebar: React.FC<SidebarProps> = ({ onCampaignSelect, selectedCam
 
   useEffect(() => {
     loadCampaigns();
-    
-    // Subscribe to campaign update events
+
     const unsubscribe = campaignEvents.subscribe(() => {
       loadCampaigns();
     });
-    
-    // Refresh campaigns every 30 seconds
+
     const interval = setInterval(loadCampaigns, 30000);
-    
+
     return () => {
       clearInterval(interval);
       unsubscribe();
@@ -86,9 +82,9 @@ const CampaignSidebar: React.FC<SidebarProps> = ({ onCampaignSelect, selectedCam
 
   const loadCampaigns = () => {
     try {
-      const campaigns = getSavedCampaigns();
-      
-      // Group campaigns by date
+      const raw = getSavedCampaigns();
+      const campaigns = Array.isArray(raw) ? raw : Object.values(raw); // 🧠 PATCH: Handle object storage
+
       const grouped: GroupedCampaigns = {
         today: [],
         yesterday: [],
@@ -97,14 +93,14 @@ const CampaignSidebar: React.FC<SidebarProps> = ({ onCampaignSelect, selectedCam
       };
 
       const oneWeekAgo = subDays(new Date(), 7);
-      
-      campaigns.forEach(campaign => {
+
+      campaigns.forEach((campaign) => {
         const campaignDate = new Date(campaign.timestamp);
-        const campaignItem = { 
-          id: campaign.id, 
-          name: campaign.campaign.campaignName 
+        const campaignItem = {
+          id: campaign.id,
+          name: campaign.campaign?.campaignName ?? '(Untitled)'
         };
-        
+
         if (isToday(campaignDate)) {
           grouped.today.push(campaignItem);
         } else if (isYesterday(campaignDate)) {
@@ -115,7 +111,7 @@ const CampaignSidebar: React.FC<SidebarProps> = ({ onCampaignSelect, selectedCam
           grouped.older.push(campaignItem);
         }
       });
-      
+
       setGroupedCampaigns(grouped);
     } catch (error) {
       console.error('Error loading campaigns for sidebar:', error);
@@ -133,17 +129,17 @@ const CampaignSidebar: React.FC<SidebarProps> = ({ onCampaignSelect, selectedCam
     navigate('/');
   };
 
-  const filteredCampaigns = (campaigns: Array<{id: string, name: string}>) => {
+  const filteredCampaigns = (campaigns: Array<{ id: string, name: string }>) => {
     if (!searchTerm) return campaigns;
-    return campaigns.filter(c => 
+    return campaigns.filter(c =>
       c.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   };
 
-  const totalCampaigns = 
-    groupedCampaigns.today.length + 
-    groupedCampaigns.yesterday.length + 
-    groupedCampaigns.previousWeek.length + 
+  const totalCampaigns =
+    groupedCampaigns.today.length +
+    groupedCampaigns.yesterday.length +
+    groupedCampaigns.previousWeek.length +
     groupedCampaigns.older.length;
 
   return (
@@ -152,42 +148,42 @@ const CampaignSidebar: React.FC<SidebarProps> = ({ onCampaignSelect, selectedCam
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">My Campaigns</h2>
           <div className="flex items-center gap-1">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-8 w-8" 
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
               onClick={handleRefresh}
               disabled={isRefreshing}
             >
-              <RefreshCcw 
-                className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} 
+              <RefreshCcw
+                className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`}
               />
               <span className="sr-only">Refresh campaigns</span>
             </Button>
             <SidebarTrigger />
           </div>
         </div>
-        
-        <Button 
-          className="w-full justify-start gap-2" 
+
+        <Button
+          className="w-full justify-start gap-2"
           onClick={handleCreateNewCampaign}
         >
           <PlusCircle className="h-4 w-4" />
           New Campaign
         </Button>
-        
-        <SidebarInput 
-          type="search" 
-          placeholder="Search campaigns..." 
+
+        <SidebarInput
+          type="search"
+          placeholder="Search campaigns..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </SidebarHeader>
-      
+
       <SidebarContent>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton 
+            <SidebarMenuButton
               onClick={() => navigate('/library')}
               isActive={window.location.pathname === '/library'}
               tooltip="View all campaigns"
@@ -199,9 +195,9 @@ const CampaignSidebar: React.FC<SidebarProps> = ({ onCampaignSelect, selectedCam
               </Badge>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          
+
           <SidebarMenuItem>
-            <SidebarMenuButton 
+            <SidebarMenuButton
               onClick={() => navigate('/library?favorites=true')}
               isActive={window.location.search.includes('favorites=true')}
               tooltip="View favorite campaigns"
@@ -211,79 +207,37 @@ const CampaignSidebar: React.FC<SidebarProps> = ({ onCampaignSelect, selectedCam
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
-        
-        {filteredCampaigns(groupedCampaigns.today).length > 0 && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Today</SidebarGroupLabel>
-            <SidebarMenuSub>
-              {filteredCampaigns(groupedCampaigns.today).map((campaign) => (
-                <SidebarMenuSubItem key={campaign.id}>
-                  <SidebarMenuSubButton
-                    onClick={() => onCampaignSelect(campaign.id)}
-                    isActive={selectedCampaignId === campaign.id}
-                  >
-                    {campaign.name}
-                  </SidebarMenuSubButton>
-                </SidebarMenuSubItem>
-              ))}
-            </SidebarMenuSub>
-          </SidebarGroup>
-        )}
-        
-        {filteredCampaigns(groupedCampaigns.yesterday).length > 0 && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Yesterday</SidebarGroupLabel>
-            <SidebarMenuSub>
-              {filteredCampaigns(groupedCampaigns.yesterday).map((campaign) => (
-                <SidebarMenuSubItem key={campaign.id}>
-                  <SidebarMenuSubButton
-                    onClick={() => onCampaignSelect(campaign.id)}
-                    isActive={selectedCampaignId === campaign.id}
-                  >
-                    {campaign.name}
-                  </SidebarMenuSubButton>
-                </SidebarMenuSubItem>
-              ))}
-            </SidebarMenuSub>
-          </SidebarGroup>
-        )}
-        
-        {filteredCampaigns(groupedCampaigns.previousWeek).length > 0 && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Previous 7 Days</SidebarGroupLabel>
-            <SidebarMenuSub>
-              {filteredCampaigns(groupedCampaigns.previousWeek).map((campaign) => (
-                <SidebarMenuSubItem key={campaign.id}>
-                  <SidebarMenuSubButton
-                    onClick={() => onCampaignSelect(campaign.id)}
-                    isActive={selectedCampaignId === campaign.id}
-                  >
-                    {campaign.name}
-                  </SidebarMenuSubButton>
-                </SidebarMenuSubItem>
-              ))}
-            </SidebarMenuSub>
-          </SidebarGroup>
-        )}
-        
-        {filteredCampaigns(groupedCampaigns.older).length > 0 && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Older</SidebarGroupLabel>
-            <SidebarMenuSub>
-              {filteredCampaigns(groupedCampaigns.older).map((campaign) => (
-                <SidebarMenuSubItem key={campaign.id}>
-                  <SidebarMenuSubButton
-                    onClick={() => onCampaignSelect(campaign.id)}
-                    isActive={selectedCampaignId === campaign.id}
-                  >
-                    {campaign.name}
-                  </SidebarMenuSubButton>
-                </SidebarMenuSubItem>
-              ))}
-            </SidebarMenuSub>
-          </SidebarGroup>
-        )}
-        
+
+        {['today', 'yesterday', 'previousWeek', 'older'].map((groupKey) => {
+          const campaigns = filteredCampaigns(groupedCampaigns[groupKey as keyof GroupedCampaigns]);
+          if (campaigns.length === 0) return null;
+
+          const labelMap: Record<string, string> = {
+            today: "Today",
+            yesterday: "Yesterday",
+            previousWeek: "Previous 7 Days",
+            older: "Older"
+          };
+
+          return (
+            <SidebarGroup key={groupKey}>
+              <SidebarGroupLabel>{labelMap[groupKey]}</SidebarGroupLabel>
+              <SidebarMenuSub>
+                {campaigns.map((campaign) => (
+                  <SidebarMenuSubItem key={campaign.id}>
+                    <SidebarMenuSubButton
+                      onClick={() => onCampaignSelect(campaign.id)}
+                      isActive={selectedCampaignId === campaign.id}
+                    >
+                      {campaign.name}
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                ))}
+              </SidebarMenuSub>
+            </SidebarGroup>
+          );
+        })}
+
         {totalCampaigns === 0 && (
           <div className="px-4 py-8 text-center text-muted-foreground">
             <MessageSquare className="mx-auto h-8 w-8 mb-2 opacity-50" />
@@ -292,12 +246,12 @@ const CampaignSidebar: React.FC<SidebarProps> = ({ onCampaignSelect, selectedCam
           </div>
         )}
       </SidebarContent>
-      
+
       <SidebarFooter>
         <div className="p-4">
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             className="w-full justify-start"
             onClick={() => navigate('/manager')}
           >

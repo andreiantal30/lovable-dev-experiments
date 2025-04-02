@@ -24,6 +24,7 @@ app.use(cors({
 app.use('/api', newsApiRouter);   // → /api/news
 app.use('/api', cdPassRoute);     // → /api/cd-pass
 app.use('/api', disruptivePassRoute); // → /api/disruptive-pass
+app.use('/api/disruptive-pass', disruptivePassRoute); // or however you mounted it
 
 // Optional: Health check route
 app.get("/api/health", (_req, res) => {

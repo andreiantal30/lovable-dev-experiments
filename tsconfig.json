@@ -2,13 +2,13 @@
   "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
+    { "path": "./tsconfig.node.json" }  // ✅ This is fine now
   ],
-"compilerOptions": {
-  "baseUrl": "src",
-  "paths": {
-    "@/*": ["*"]
-  },
+  "compilerOptions": {
+    "baseUrl": "src",
+    "paths": {
+      "@/*": ["*"]
+    },
     "target": "es2020",
     "module": "commonjs",
     "moduleResolution": "node",

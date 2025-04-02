@@ -1,10 +1,8 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { GeneratedCampaign, CampaignEvaluation } from "@/lib/campaign/types";
-import { Badge } from "@/components/ui/badge";
-import { Award, Lightbulb } from "lucide-react";
+import { GeneratedCampaign } from "@/lib/campaign/types";
+import { Lightbulb } from "lucide-react";
 import { CampaignFeedback } from "@/components/CampaignResult";
 import { Button } from "@/components/ui/button";
 import CreativeDirectorFeedback from "./CampaignResult/CreativeDirectorFeedback";
@@ -22,6 +20,12 @@ const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({
   showFeedbackForm = false,
   onRefine 
 }) => {
+  const hasEvaluation = campaign?.evaluation &&
+    typeof campaign.evaluation.insightSharpness === 'number' &&
+    typeof campaign.evaluation.ideaOriginality === 'number' &&
+    typeof campaign.evaluation.executionPotential === 'number' &&
+    typeof campaign.evaluation.awardPotential === 'number';
+
   return (
     <Card className="border shadow-md overflow-hidden">
       <CardHeader className="bg-gradient-to-r from-amber-50 to-amber-100/50 dark:from-amber-950/30 dark:to-amber-900/20 border-b">
@@ -29,26 +33,22 @@ const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({
       </CardHeader>
       
       <CardContent className="p-6">
-        {/* Two-column Cannes Lions style layout */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-          {/* Left Column (40% width) */}
+          {/* Left Column */}
           <div className="md:col-span-5 space-y-6 border-r-0 md:border-r border-dashed border-gray-200 dark:border-gray-700 pr-0 md:pr-6">
-            {/* The Insight / Key Message */}
             <div className="space-y-2">
               <h3 className="text-lg font-semibold text-primary">The Insight</h3>
               <p className="text-md">{campaign.keyMessage}</p>
             </div>
-            
+
             <Separator className="my-4" />
-            
-            {/* The Idea / Campaign Name */}
+
             <div className="space-y-2">
               <h3 className="text-lg font-semibold text-primary">The Idea</h3>
               <p className="text-md font-medium">{campaign.campaignName}</p>
             </div>
-            
-            {/* Display Creative Insights if available */}
-            {campaign.creativeInsights && campaign.creativeInsights.length > 0 && (
+
+            {campaign.creativeInsights?.length > 0 && (
               <>
                 <Separator className="my-4" />
                 <div className="space-y-2">
@@ -64,9 +64,8 @@ const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({
                 </div>
               </>
             )}
-            
-            {/* Emotional Appeal / Strategic Hooks */}
-            {campaign.emotionalAppeal && campaign.emotionalAppeal.length > 0 && (
+
+            {campaign.emotionalAppeal?.length > 0 && (
               <>
                 <Separator className="my-4" />
                 <div className="space-y-2">
@@ -79,8 +78,7 @@ const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({
                 </div>
               </>
             )}
-            
-            {/* Call to Action */}
+
             {(campaign.callToAction || campaign.consumerInteraction) && (
               <>
                 <Separator className="my-4" />
@@ -90,11 +88,20 @@ const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({
                 </div>
               </>
             )}
+
+            {campaign.prHeadline && (
+              <>
+                <Separator className="my-4" />
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold text-primary">PR Headline</h3>
+                  <p className="text-md italic text-muted-foreground">{campaign.prHeadline}</p>
+                </div>
+              </>
+            )}
           </div>
-          
-          {/* Right Column (60% width) */}
+
+          {/* Right Column */}
           <div className="md:col-span-7 space-y-6 pl-0 md:pl-6">
-            {/* The How / Creative Strategy */}
             <div className="space-y-2">
               <h3 className="text-lg font-semibold text-primary">The How</h3>
               <div className="space-y-4">
@@ -106,10 +113,9 @@ const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({
                 </ul>
               </div>
             </div>
-            
+
             <Separator className="my-4" />
-            
-            {/* Execution Plan */}
+
             <div className="space-y-2">
               <h3 className="text-lg font-semibold text-primary">Execution Plan</h3>
               <ol className="list-decimal pl-5 space-y-2">
@@ -118,9 +124,8 @@ const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({
                 ))}
               </ol>
             </div>
-            
-            {/* Expected Outcomes */}
-            {campaign.expectedOutcomes && campaign.expectedOutcomes.length > 0 && (
+
+            {campaign.expectedOutcomes?.length > 0 && (
               <>
                 <Separator className="my-4" />
                 <div className="space-y-2">
@@ -133,9 +138,8 @@ const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({
                 </div>
               </>
             )}
-            
-            {/* Reference Campaigns */}
-            {campaign.referenceCampaigns && campaign.referenceCampaigns.length > 0 && (
+
+            {campaign.referenceCampaigns?.length > 0 && (
               <>
                 <Separator className="my-4" />
                 <div className="space-y-2">
@@ -146,12 +150,8 @@ const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({
                         <h4 className="font-medium text-sm">{refCampaign.name}</h4>
                         <p className="text-xs text-muted-foreground mt-1">
                           <span className="font-medium">{refCampaign.brand}</span>
-                          {refCampaign.year && (
-                            <> · {refCampaign.year}</>
-                          )}
-                          {refCampaign.industry && (
-                            <> · {refCampaign.industry}</>
-                          )}
+                          {refCampaign.year && <> · {refCampaign.year}</>}
+                          {refCampaign.industry && <> · {refCampaign.industry}</>}
                         </p>
                       </div>
                     ))}
@@ -161,14 +161,14 @@ const EnhancedCampaignResult: React.FC<EnhancedCampaignResultProps> = ({
             )}
           </div>
         </div>
-        
-        {/* Creative Director Feedback Section */}
-        {campaign.evaluation && (
+
+        {/* ✅ Creative Director Feedback */}
+        {hasEvaluation && (
           <div className="mt-6">
-            <CreativeDirectorFeedback feedback={campaign.evaluation as CampaignEvaluation} />
+            <CreativeDirectorFeedback feedback={campaign.evaluation} />
           </div>
         )}
-        
+
         {onGenerateAnother && (
           <div className="flex justify-center mt-8">
             <Button onClick={onGenerateAnother} variant="outline">

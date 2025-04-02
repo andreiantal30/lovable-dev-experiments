@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -33,21 +33,42 @@ const CampaignDetailView: React.FC<CampaignDetailViewProps> = ({
   const navigate = useNavigate();
 
   const handleRefine = async (feedback: CampaignFeedbackData): Promise<void> => {
-    // TODO: connect refinement logic when ready
-    return Promise.resolve();
+    return Promise.resolve(); // stub
   };
+
+  // 🧠 Log eval on mount for debugging
+  useEffect(() => {
+    if (campaign?.campaign?.evaluation) {
+      console.log("✅ Loaded Evaluation from Library:", campaign.campaign.evaluation);
+    } else {
+      console.warn("❌ Evaluation missing in saved campaign:", campaign);
+    }
+  }, [campaign]);
+
+  // Guard against malformed data
+  const isValid = campaign?.campaign && campaign.campaign.campaignName;
+
+  if (!isValid) {
+    console.warn('🛑 Invalid campaign object:', campaign);
+    return (
+      <div className="p-10 text-center text-muted-foreground">
+        <p>Failed to load campaign details. The data may be malformed or incomplete.</p>
+        <Button onClick={() => navigate('/library')} className="mt-4">Back to Library</Button>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
       {!isInSidebar && (
-        <CampaignHeader campaignName={campaign.campaign.campaignName} />
+        <CampaignHeader campaignName={campaign.campaign?.campaignName} />
       )}
-      
+
       <Card className="mb-8">
         <CardHeader>
           <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
             <CampaignMeta 
-              campaignName={campaign.campaign.campaignName}
+              campaignName={campaign.campaign?.campaignName}
               brand={campaign.brand}
               industry={campaign.industry}
               timestamp={campaign.timestamp}

@@ -85,8 +85,10 @@ export interface GeneratedCampaign {
   executionPlan?: string[];
   expectedOutcomes?: string[];
   viralElement?: string;
-  callToAction?: string;
   prHeadline?: string;
+  emotionalAppeal?: string[]; // ✅ Add this
+  callToAction?: string;      // ✅ Add this
+  consumerInteraction?: string; // ✅ Add this
   creativeInsights?: string[];
   referenceCampaigns?: ReferenceCampaign[];
   evaluation?: CampaignEvaluation;

@@ -9,15 +9,24 @@ interface EvaluationProps {
 }
 
 const CreativeDirectorEvaluation: React.FC<EvaluationProps> = ({ evaluation }) => {
-  const renderScore = (score: number) => {
+  const safeScore = (value: unknown): number => {
+    const num = Number(value);
+    return isNaN(num) || num < 0 ? 0 : Math.min(num, 10); // Clamp between 0–10
+  };
+
+  const renderScore = (label: string, score: unknown) => {
+    const numeric = safeScore(score);
     return (
-      <div className="flex items-center gap-2 text-sm">
-        <div className="w-24">{score}/10</div>
-        <div className="flex-1 h-2 bg-gray-300 dark:bg-gray-700 rounded">
-          <div
-            className="h-2 bg-orange-500 rounded"
-            style={{ width: `${(score / 10) * 100}%` }}
-          />
+      <div className="mb-3">
+        <h4 className="font-medium text-orange-800 dark:text-orange-200">{label}</h4>
+        <div className="flex items-center gap-2 text-sm">
+          <div className="w-10 text-right">{numeric}/10</div>
+          <div className="flex-1 h-2 bg-gray-300 dark:bg-gray-700 rounded">
+            <div
+              className="h-2 bg-orange-500 rounded"
+              style={{ width: `${(numeric / 10) * 100}%` }}
+            />
+          </div>
         </div>
       </div>
     );
@@ -30,30 +39,18 @@ const CreativeDirectorEvaluation: React.FC<EvaluationProps> = ({ evaluation }) =
         Creative Director Feedback
       </div>
 
-      <div className="space-y-4 text-sm text-muted-foreground">
-        <div>
-          <h4 className="font-medium text-orange-800 dark:text-orange-200">Insight Sharpness</h4>
-          {renderScore(evaluation.insightSharpness)}
-        </div>
-        <div>
-          <h4 className="font-medium text-orange-800 dark:text-orange-200">Originality of the Idea</h4>
-          {renderScore(evaluation.ideaOriginality)}
-        </div>
-        <div>
-          <h4 className="font-medium text-orange-800 dark:text-orange-200">Execution Potential</h4>
-          {renderScore(evaluation.executionPotential)}
-        </div>
-        <div>
-          <h4 className="font-medium text-orange-800 dark:text-orange-200">Award Potential</h4>
-          {renderScore(evaluation.awardPotential)}
-        </div>
+      <div className="space-y-2 text-sm text-muted-foreground">
+        {renderScore("Insight Sharpness", evaluation.insightSharpness)}
+        {renderScore("Originality of the Idea", evaluation.ideaOriginality)}
+        {renderScore("Execution Potential", evaluation.executionPotential)}
+        {renderScore("Award Potential", evaluation.awardPotential)}
       </div>
 
       <Separator className="my-4" />
 
       <div className="text-sm italic text-orange-900 dark:text-orange-200 flex items-center">
         <BadgeCheck className="w-4 h-4 mr-2" />
-        {evaluation.finalVerdict}
+        {evaluation.finalVerdict || "No verdict available."}
       </div>
     </div>
   );

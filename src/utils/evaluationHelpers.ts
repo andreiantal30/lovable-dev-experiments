@@ -7,7 +7,8 @@ export function getEvaluationScore(
   evalData: GeneratedCampaign['evaluation'],
   key: EvaluationKey
 ): number | null {
-  const raw = evalData?.[key];
+  const raw: unknown = evalData?.[key];
+
   if (
     raw &&
     typeof raw === 'object' &&

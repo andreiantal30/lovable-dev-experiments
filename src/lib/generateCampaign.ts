@@ -1,6 +1,7 @@
+// generateCampaign.ts
 import { toast } from "sonner";
 import { Campaign } from './campaignData';
-import { generateWithOpenAI, OpenAIConfig, defaultOpenAIConfig, evaluateCampaign } from './openai';
+import { generateWithOpenAI, OpenAIConfig, defaultOpenAIConfig } from './openai';
 import { generateStorytellingNarrative } from './storytellingGenerator';
 import { CampaignInput, GeneratedCampaign, CampaignEvaluation, CampaignVersion } from './campaign/types';
 import { findSimilarCampaigns } from './campaign/campaignMatcher';
@@ -9,7 +10,8 @@ import { createCampaignPrompt } from './campaign/campaignPromptBuilder';
 import { extractJsonFromResponse } from './campaign/utils';
 import { getCreativeDevicesForStyle } from '@/data/creativeDevices';
 import { getCachedCulturalTrends } from '@/data/culturalTrends';
-import { saveCampaignToLibrary } from './campaignStorage'; // ✅
+import { saveCampaignToLibrary } from './campaignStorage';
+import { evaluateCampaign } from './campaign/evaluateCampaign';
 
 const applyCreativeDirectorPass = async (rawOutput: any) => {
   try {
@@ -37,70 +39,54 @@ export const generateCampaign = async (
 ): Promise<GeneratedCampaign> => {
   try {
     const creativeInsights = await generateCreativeInsights(input, openAIConfig);
-    console.log("Generated Creative Insights:", creativeInsights);
-
     const referenceCampaigns = await findSimilarCampaigns(input, openAIConfig);
-    console.log("Matched Reference Campaigns:", referenceCampaigns.map(c => ({
-      name: c.name,
-      brand: c.brand,
-      industry: c.industry
-    })));
-
     const creativeDevices = getCreativeDevicesForStyle(input.campaignStyle, 3);
-    console.log("Selected Creative Devices:", creativeDevices.map(d => d.name));
-
     const culturalTrends = getCachedCulturalTrends();
+
     const prioritized = [
       ...culturalTrends.filter(t =>
-        !t.platformTags.some(tag => tag.toLowerCase().includes("ai") || tag.toLowerCase().includes("ar") || tag.toLowerCase().includes("vr") || tag.toLowerCase().includes("metaverse"))
+        !t.platformTags.some(tag =>
+          tag.toLowerCase().includes("ai") || tag.toLowerCase().includes("ar") || tag.toLowerCase().includes("vr") || tag.toLowerCase().includes("metaverse"))
       ),
       ...culturalTrends.filter(t =>
-        t.platformTags.some(tag => tag.toLowerCase().includes("ai") || tag.toLowerCase().includes("ar"))
+        t.platformTags.some(tag =>
+          tag.toLowerCase().includes("ai") || tag.toLowerCase().includes("ar"))
       )
     ];
+
     const relevantTrends = prioritized.sort(() => Math.random() - 0.5).slice(0, 3);
-    if (relevantTrends.length > 0) {
-      console.log("Incorporating Cultural Trends:", relevantTrends.map(t => t.title));
-    }
 
     const prompt = createCampaignPrompt(
       input, referenceCampaigns, creativeInsights, creativeDevices, relevantTrends
     );
-    console.log("Prompt Preview (first 200 chars):", prompt.substring(0, 200));
 
     const response = await generateWithOpenAI(prompt, openAIConfig);
     const cleanedResponse = extractJsonFromResponse(response);
     const generatedContent = JSON.parse(cleanedResponse);
 
-    // ✏️ Apply Creative Director feedback
-    let improvedContent = generatedContent;
-    try {
-      improvedContent = await applyCreativeDirectorPass(generatedContent);
-      console.log("✅ CD pass applied");
-    } catch (err) {
-      console.error("⚠️ CD pass failed:", err);
-    }
+    // 🧠 CD Feedback Layer
+    let improvedContent = await applyCreativeDirectorPass(generatedContent);
 
-    // 💥 Inject Disruptive Device twist
+    // 💥 Disruptive Twist Layer
     let finalContent = improvedContent;
-    const payload = { campaign: improvedContent };
-    console.log("📦 Payload sent to /api/disruptive-pass:", JSON.stringify(payload, null, 2));
-
     try {
       const res = await fetch('/api/disruptive-pass', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ campaign: improvedContent }),
       });
 
-      if (!res.ok) {
-        throw new Error(`Disruptive pass API error: ${res.status}`);
-      }
-
+      if (!res.ok) throw new Error(`Disruptive pass API error: ${res.status}`);
       const jsonResponse = await res.json();
+
       finalContent = {
         ...improvedContent,
-        ...jsonResponse
+        keyMessage: jsonResponse.keyMessage || improvedContent.keyMessage,
+        prHeadline: jsonResponse.prHeadline || improvedContent.prHeadline,
+        viralHook: jsonResponse.viralHook || improvedContent.viralHook,
+        viralElement: jsonResponse.viralElement || improvedContent.viralElement,
+        callToAction: jsonResponse.callToAction || improvedContent.callToAction,
+        consumerInteraction: jsonResponse.consumerInteraction || improvedContent.consumerInteraction,
       };
 
       console.log("🎯 Disruptive twist added");
@@ -109,14 +95,16 @@ export const generateCampaign = async (
       toast.error("Disruptive enhancement failed, using base campaign");
     }
 
+    // 🧱 Compose full campaign object
     const campaign: GeneratedCampaign = {
       ...finalContent,
       referenceCampaigns,
       creativeInsights,
-      evaluation: finalContent.evaluation
+      storytelling: "",
+      evaluation: finalContent.evaluation // Will be overwritten by next step
     };
 
-    // 📖 Generate storytelling section
+    // 🪄 Storytelling
     try {
       const storytelling = await generateStorytellingNarrative({
         brand: input.brand,
@@ -132,9 +120,13 @@ export const generateCampaign = async (
       toast.error("Error generating storytelling content");
     }
 
-    // 🧠 Run evaluation if not already injected
+    // 🧠 Evaluation (pass brand/industry as context)
     try {
-      const evaluation: CampaignEvaluation = await evaluateCampaign(campaign, openAIConfig);
+      const evaluation: CampaignEvaluation = await evaluateCampaign(
+        campaign,
+        { brand: input.brand, industry: input.industry },
+        openAIConfig
+      );
       campaign.evaluation = evaluation;
       console.log("🧠 CD Evaluation injected:", evaluation);
     } catch (error) {
@@ -148,31 +140,33 @@ export const generateCampaign = async (
       };
     }
 
-    // 💾 Save to localStorage
+    // 💾 Save to Library — including all critical fields
     try {
-      saveCampaignToLibrary({
+      console.log("📦 Saving campaign to Library:", campaign);
+      const saved = saveCampaignToLibrary({
         id: crypto.randomUUID(),
         timestamp: new Date().toISOString(),
-        campaign,
+        campaign: {
+          ...campaign,
+          evaluation: campaign.evaluation,
+          prHeadline: campaign.prHeadline || "",
+        },
         brand: input.brand,
         industry: input.industry,
         favorite: false,
       });
-      console.log("✅ Campaign saved to Library");
+
+      if (saved) {
+        console.log("✅ Campaign saved to Library");
+      } else {
+        console.warn("⚠️ Campaign not saved — possible duplicate?");
+      }
     } catch (error) {
       console.error("❌ Failed to save campaign:", error);
     }
 
-// ✅ Save to localStorage *after* everything is ready
-try {
-  saveCampaignToLibrary(campaign, input.brand, input.industry);
-  console.log("✅ Campaign saved to Library");
-} catch (error) {
-  console.error("❌ Failed to save campaign:", error);
-}
-
-console.log("🚀 Final campaign object being returned:", campaign);
-return campaign;
+    console.log("🚀 Final campaign object being returned:", campaign);
+    return campaign;
 
   } catch (error) {
     console.error("Error generating campaign:", error);

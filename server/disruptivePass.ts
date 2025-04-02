@@ -1,5 +1,5 @@
 import express from 'express';
-import { injectDisruptiveDevice } from './disruptiveDeviceInjector';  // Ensure the correct import path
+import { injectDisruptiveDevice } from './disruptiveDeviceInjector';
 import type { Request, Response } from 'express';
 
 const router = express.Router();
@@ -7,32 +7,26 @@ const router = express.Router();
 router.post('/disruptive-pass', async (req: Request, res: Response): Promise<void> => {
   try {
     const { campaign } = req.body;
-    
+
     if (!campaign) {
       res.status(400).json({ error: "Missing campaign data" });
       return;
     }
 
-    const updatedCampaign = await injectDisruptiveDevice(campaign) as any;
+    const injected = await injectDisruptiveDevice(campaign);
 
-    // Log to verify updated campaign data
-    console.log("✅ Updated campaign data after disruptive pass:", updatedCampaign);
+    if (!injected || typeof injected !== 'object') {
+      console.error("⚠️ Disruptive device injection returned invalid output");
+      res.status(500).json({ error: "Disruptive injection failed" });
+      return;
+    }
 
     const response = {
-      campaignName: updatedCampaign.campaignName,
-      keyMessage: updatedCampaign.keyMessage,
-      prHeadline: updatedCampaign.prHeadline,  // Ensure prHeadline is included here
-      viralHook: updatedCampaign.viralHook,
-      executionPlan: updatedCampaign.executionPlan,
-      creativeStrategy: updatedCampaign.creativeStrategy,
-      callToAction: updatedCampaign.callToAction,
-      expectedOutcomes: updatedCampaign.expectedOutcomes,
-      consumerInteraction: updatedCampaign.consumerInteraction,
-      viralElement: updatedCampaign.viralElement,
-      creativeInsights: updatedCampaign.creativeInsights,
-      evaluation: updatedCampaign.evaluation,
+      ...campaign,
+      ...injected, // ✅ Merge disruptiveDevice + twistDescription here
     };
 
+    console.log("✅ Updated campaign data after disruptive pass:", response);
     res.status(200).json(response);
   } catch (error) {
     console.error("❌ Disruptive pass failed:");

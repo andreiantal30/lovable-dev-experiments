@@ -118,11 +118,11 @@ Use this perspective to shape the campaign’s voice, concept, and cultural rele
   const provocationBlock = `
 ### Creative Provocation
 Ask yourself:
-- What would Gen Z screenshot?
-- What would spark comments or controversy?
-- What’s the twist, the meme, the moment?
+- What would make Gen Z *stop scrolling*?
+- What would brands be afraid to say — but should?
+- What’s the unexpected twist, uncomfortable truth, or cultural spike?
 
-Pressure-test your idea. It must break through.
+Push for tension, contradiction, or irony. The idea should spark instant conversation.
 `;
 
   return `### Generate a groundbreaking marketing campaign with the following:
@@ -176,5 +176,14 @@ ${awardPatterns}
 
 ---
 
-Make it unforgettable. Make it shareable. Make it win awards.`;
-};
+### Award Criteria Reminder
+Judges at top festivals reward:
+- Breakthrough originality, not safe or expected work
+- Strong cultural relevance, tension, or subversion
+- Emotional storytelling with staying power
+- Clever execution, not just clever strategy
+
+Your campaign should **challenge norms**, **ignite conversation**, and **feel inevitable in hindsight**. Don’t just meet the brief—**bend it into something iconic**.
+
+Now respond with a culturally powerful campaign that could headline Cannes Lions 2025.`;
+}
