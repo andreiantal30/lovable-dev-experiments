@@ -9,6 +9,7 @@ import { createCampaignPrompt } from './campaign/campaignPromptBuilder';
 import { extractJsonFromResponse } from './campaign/utils';
 import { getCreativeDevicesForStyle } from '@/data/creativeDevices';
 import { getCachedCulturalTrends } from '@/data/culturalTrends';
+import { saveCampaignToLibrary } from './campaignStorage'; // ✅
 
 const applyCreativeDirectorPass = async (rawOutput: any) => {
   try {
@@ -99,7 +100,7 @@ export const generateCampaign = async (
       const jsonResponse = await res.json();
       finalContent = {
         ...improvedContent,
-        ...jsonResponse // Inject disruptive device fields (e.g., prHeadline, viralHook)
+        ...jsonResponse
       };
 
       console.log("🎯 Disruptive twist added");
@@ -147,8 +148,31 @@ export const generateCampaign = async (
       };
     }
 
-    console.log("🚀 Final campaign object being returned:", campaign);
-    return campaign;
+    // 💾 Save to localStorage
+    try {
+      saveCampaignToLibrary({
+        id: crypto.randomUUID(),
+        timestamp: new Date().toISOString(),
+        campaign,
+        brand: input.brand,
+        industry: input.industry,
+        favorite: false,
+      });
+      console.log("✅ Campaign saved to Library");
+    } catch (error) {
+      console.error("❌ Failed to save campaign:", error);
+    }
+
+// ✅ Save to localStorage *after* everything is ready
+try {
+  saveCampaignToLibrary(campaign, input.brand, input.industry);
+  console.log("✅ Campaign saved to Library");
+} catch (error) {
+  console.error("❌ Failed to save campaign:", error);
+}
+
+console.log("🚀 Final campaign object being returned:", campaign);
+return campaign;
 
   } catch (error) {
     console.error("Error generating campaign:", error);

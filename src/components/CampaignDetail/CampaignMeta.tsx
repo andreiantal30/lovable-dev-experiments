@@ -1,3 +1,4 @@
+// src/components/CampaignDetail/CampaignMeta.tsx
 
 import React from 'react';
 import { Calendar } from 'lucide-react';
@@ -10,16 +11,16 @@ interface CampaignMetaProps {
   timestamp: string;
 }
 
-const CampaignMeta: React.FC<CampaignMetaProps> = ({ 
-  campaignName, 
-  brand, 
-  industry, 
-  timestamp 
+const CampaignMeta: React.FC<CampaignMetaProps> = ({
+  campaignName,
+  brand,
+  industry,
+  timestamp
 }) => {
   const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = { 
-      year: 'numeric', 
-      month: 'short', 
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'

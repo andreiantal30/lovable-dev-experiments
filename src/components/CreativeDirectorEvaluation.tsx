@@ -33,23 +33,19 @@ const CreativeDirectorEvaluation: React.FC<EvaluationProps> = ({ evaluation }) =
       <div className="space-y-4 text-sm text-muted-foreground">
         <div>
           <h4 className="font-medium text-orange-800 dark:text-orange-200">Insight Sharpness</h4>
-          <p>{evaluation.insightSharpness.comment}</p>
-          {renderScore(evaluation.insightSharpness.score)}
+          {renderScore(evaluation.insightSharpness)}
         </div>
         <div>
           <h4 className="font-medium text-orange-800 dark:text-orange-200">Originality of the Idea</h4>
-          <p>{evaluation.ideaOriginality.comment}</p>
-          {renderScore(evaluation.ideaOriginality.score)}
+          {renderScore(evaluation.ideaOriginality)}
         </div>
         <div>
           <h4 className="font-medium text-orange-800 dark:text-orange-200">Execution Potential</h4>
-          <p>{evaluation.executionPotential.comment}</p>
-          {renderScore(evaluation.executionPotential.score)}
+          {renderScore(evaluation.executionPotential)}
         </div>
         <div>
           <h4 className="font-medium text-orange-800 dark:text-orange-200">Award Potential</h4>
-          <p>{evaluation.awardPotential.comment}</p>
-          {renderScore(evaluation.awardPotential.score)}
+          {renderScore(evaluation.awardPotential)}
         </div>
       </div>
 

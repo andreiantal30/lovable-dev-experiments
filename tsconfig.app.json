@@ -8,11 +8,14 @@
 
     /* Bundler mode */
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "moduleDetection": "force",
-    "noEmit": true,
     "jsx": "react-jsx",
+
+    /* Project References Requirement */
+    "composite": true,
+    "outDir": "dist",
+    "noEmit": false,
 
     /* Linting */
     "strict": false,

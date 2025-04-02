@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
@@ -14,10 +13,11 @@ import CampaignHeader from './CampaignHeader';
 import CampaignActions from './CampaignActions';
 import CampaignMeta from './CampaignMeta';
 import { CampaignFeedbackData } from '@/components/FeedbackSystem';
+import { SavedCampaign } from '@/lib/campaignStorage';
 
 interface CampaignDetailViewProps {
   id: string;
-  campaign: any;
+  campaign: SavedCampaign;
   isInSidebar: boolean;
   onDelete: () => void;
   onToggleFavorite: () => void;
@@ -33,6 +33,7 @@ const CampaignDetailView: React.FC<CampaignDetailViewProps> = ({
   const navigate = useNavigate();
 
   const handleRefine = async (feedback: CampaignFeedbackData): Promise<void> => {
+    // TODO: connect refinement logic when ready
     return Promise.resolve();
   };
 

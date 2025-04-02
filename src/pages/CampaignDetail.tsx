@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -12,6 +11,7 @@ import { CampaignSidebarProvider } from '@/components/CampaignSidebarProvider';
 import CampaignSidebar from '@/components/CampaignSidebar';
 import { SidebarInset } from '@/components/ui/sidebar';
 import CampaignDetailView from '@/components/CampaignDetail/CampaignDetailView';
+import { ArrowLeft } from 'lucide-react';
 
 interface CampaignDetailProps {
   id?: string;
@@ -27,7 +27,7 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ id: propId }) => {
 
   useEffect(() => {
     if (!id) return;
-    
+
     try {
       const savedCampaign = getSavedCampaignById(id);
       if (savedCampaign) {
@@ -46,7 +46,7 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ id: propId }) => {
 
   const handleDelete = () => {
     if (!id) return;
-    
+
     if (window.confirm('Are you sure you want to delete this campaign?')) {
       try {
         const success = removeSavedCampaign(id);
@@ -65,7 +65,7 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ id: propId }) => {
 
   const handleToggleFavorite = () => {
     if (!id) return;
-    
+
     try {
       const success = toggleFavoriteStatus(id);
       if (success) {
@@ -105,21 +105,32 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ id: propId }) => {
   }
 
   const renderContent = () => (
-    <CampaignDetailView
-      id={id || ''}
-      campaign={campaign}
-      isInSidebar={isInSidebar}
-      onDelete={handleDelete}
-      onToggleFavorite={handleToggleFavorite}
-    />
+    <>
+      {!isInSidebar && (
+        <Button
+          variant="ghost"
+          onClick={() => navigate('/library')}
+          className="mb-4 text-sm text-muted-foreground hover:text-primary flex items-center"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to all campaigns
+        </Button>
+      )}
+      <CampaignDetailView
+        id={id || ''}
+        campaign={campaign.campaign}
+        isInSidebar={isInSidebar}
+        onDelete={handleDelete}
+        onToggleFavorite={handleToggleFavorite}
+        favorite={campaign.favorite}
+      />
+    </>
   );
 
-  // If component is used directly (not from router), render just the content
   if (isInSidebar) {
     return renderContent();
   }
 
-  // If accessed via route, wrap with sidebar
   return (
     <CampaignSidebarProvider>
       <CampaignSidebar onCampaignSelect={handleCampaignSelect} selectedCampaignId={id} />
