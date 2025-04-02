@@ -76,8 +76,17 @@ ${JSON.stringify(campaign, null, 2)}
 
     console.warn("⚠️ Could not extract valid disruptive content. Returning original campaign.");
     return campaign;
-  } catch (error) {
-    console.error("❌ Error in injectDisruptiveDevice:", error);
-    return campaign;
+
+ } catch (error: any) {
+  console.error("❌ Error in injectDisruptiveDevice:");
+
+  if (error.response) {
+    console.error("OpenAI error status:", error.response.status);
+    console.error("OpenAI error data:", error.response.data);
+  } else {
+    console.error(error.stack || error.message || error);
   }
+
+  return campaign;
+}
 }
