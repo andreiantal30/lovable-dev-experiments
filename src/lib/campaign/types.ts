@@ -1,8 +1,23 @@
-
 import { StorytellingOutput } from '../storytellingGenerator';
 import { Campaign } from '../campaignData';
 import { PersonaType } from '@/types/persona';
 import { CreativeLens } from '@/utils/creativeLenses';
+
+// ✅ Add ReferenceCampaign definition directly here
+export type ReferenceCampaign = {
+  id: string;
+  name: string;
+  brand: string;
+  year: number;
+  industry: string;
+  targetAudience: string[];
+  objectives: string[];
+  keyMessage: string;
+  strategy: string;
+  features: string[];
+  emotionalAppeal: string[];
+  outcomes: string[];
+};
 
 export interface CampaignInput {
   brand: string;
@@ -64,18 +79,16 @@ export interface CampaignVersion {
 export interface GeneratedCampaign {
   campaignName: string;
   keyMessage: string;
-  creativeStrategy: string[];
-  executionPlan: string[];
-  expectedOutcomes: string[];
-  viralHook?: string;
-  consumerInteraction?: string;
-  referenceCampaigns: Campaign[];
-  storytelling?: StorytellingOutput;
+  insight?: string;
+  idea?: string;
+  creativeStrategy?: string[];
+  executionPlan?: string[];
+  expectedOutcomes?: string[];
   viralElement?: string;
-  prHeadline?: string;
   callToAction?: string;
-  emotionalAppeal?: string[];
-  evaluation?: CampaignEvaluation;
+  prHeadline?: string;
   creativeInsights?: string[];
-  versionTag?: string; // Added for version tracking
+  referenceCampaigns?: ReferenceCampaign[];
+  evaluation?: CampaignEvaluation;
+  storytelling?: string;
 }

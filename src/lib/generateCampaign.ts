@@ -17,12 +17,12 @@ const applyCreativeDirectorPass = async (rawOutput: any) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(rawOutput),
     });
-    
+
     if (!res.ok) {
       console.error(`CD pass API error: ${res.status}`);
-      return rawOutput; // Return original if API fails
+      return rawOutput;
     }
-    
+
     return await res.json();
   } catch (err) {
     console.error("CD pass failed:", err);
@@ -31,7 +31,7 @@ const applyCreativeDirectorPass = async (rawOutput: any) => {
 };
 
 export const generateCampaign = async (
-  input: CampaignInput, 
+  input: CampaignInput,
   openAIConfig: OpenAIConfig = defaultOpenAIConfig
 ): Promise<GeneratedCampaign> => {
   try {
@@ -71,7 +71,7 @@ export const generateCampaign = async (
     const cleanedResponse = extractJsonFromResponse(response);
     const generatedContent = JSON.parse(cleanedResponse);
 
-    // ✏️ CD pass
+    // ✏️ Apply Creative Director feedback
     let improvedContent = generatedContent;
     try {
       improvedContent = await applyCreativeDirectorPass(generatedContent);
@@ -80,7 +80,7 @@ export const generateCampaign = async (
       console.error("⚠️ CD pass failed:", err);
     }
 
-    // 💥 Disruptive Device pass
+    // 💥 Inject Disruptive Device twist
     let finalContent = improvedContent;
     const payload = { campaign: improvedContent };
     console.log("📦 Payload sent to /api/disruptive-pass:", JSON.stringify(payload, null, 2));
@@ -97,7 +97,11 @@ export const generateCampaign = async (
       }
 
       const jsonResponse = await res.json();
-      finalContent = jsonResponse;
+      finalContent = {
+        ...improvedContent,
+        ...jsonResponse // Inject disruptive device fields (e.g., prHeadline, viralHook)
+      };
+
       console.log("🎯 Disruptive twist added");
     } catch (err) {
       console.error("⚠️ Disruptive device injection failed:", err);
@@ -106,13 +110,12 @@ export const generateCampaign = async (
 
     const campaign: GeneratedCampaign = {
       ...finalContent,
-      prHeadline: finalContent.prHeadline, // Make sure prHeadline is included here
       referenceCampaigns,
       creativeInsights,
-      evaluation: finalContent.evaluation // Ensuring the evaluation (CD feedback) is included in the final campaign
+      evaluation: finalContent.evaluation
     };
 
-    // 📖 Storytelling generation
+    // 📖 Generate storytelling section
     try {
       const storytelling = await generateStorytellingNarrative({
         brand: input.brand,
@@ -122,13 +125,13 @@ export const generateCampaign = async (
         campaignName: campaign.campaignName,
         keyMessage: campaign.keyMessage
       }, openAIConfig);
-      campaign.storytelling = storytelling;
+      campaign.storytelling = storytelling.narrative;
     } catch (error) {
       console.error("Error generating storytelling content:", error);
       toast.error("Error generating storytelling content");
     }
 
-    // 🧠 Evaluation
+    // 🧠 Run evaluation if not already injected
     try {
       const evaluation: CampaignEvaluation = await evaluateCampaign(campaign, openAIConfig);
       campaign.evaluation = evaluation;
@@ -145,8 +148,8 @@ export const generateCampaign = async (
     }
 
     console.log("🚀 Final campaign object being returned:", campaign);
-
     return campaign;
+
   } catch (error) {
     console.error("Error generating campaign:", error);
     throw error;

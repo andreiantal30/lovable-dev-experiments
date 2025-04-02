@@ -102,6 +102,14 @@ export const saveCampaignToLibrary = (
     }
     
     const savedCampaigns = getSavedCampaigns();
+
+    console.log("🧠 Saving campaign to library:", {
+      campaignName: campaign.campaignName,
+      prHeadline: campaign.prHeadline,
+      storytelling: campaign.storytelling,
+      evaluation: campaign.evaluation,
+      referenceCampaigns: campaign.referenceCampaigns?.length,
+    });
     
     const newSavedCampaign: SavedCampaign = {
       id: uuidv4(),

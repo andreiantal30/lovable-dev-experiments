@@ -1,4 +1,3 @@
-
 // server/index.ts
 import dotenv from "dotenv";
 dotenv.config();
@@ -8,7 +7,7 @@ import cors from "cors";
 
 import newsApiRouter from "./newsApi";     // ✅ NewsAPI route
 import cdPassRoute from "./cdPass";        // ✅ Creative Director Pass route
-import disruptivePassRoute from './disruptivePass'; // ✅ Disruptive Pass route
+import disruptivePassRoute from './disruptivePass'; // ✅ Disruptive Pass route (default import)
 
 const app = express();
 const port = 8090;

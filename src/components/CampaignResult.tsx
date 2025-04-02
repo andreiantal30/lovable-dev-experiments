@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+// src/components/CampaignResult.tsx
+import React, { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Separator } from './ui/separator';
@@ -31,7 +32,7 @@ const CampaignResult: React.FC<CampaignResultProps> = ({
   onGenerateAnother, 
   showFeedbackForm = false, 
   onRefine 
-}: CampaignResultProps) => {
+}) => {
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
 
@@ -71,8 +72,13 @@ const CampaignResult: React.FC<CampaignResultProps> = ({
     }
   };
 
-  // Log the campaign to check if prHeadline is included
-  console.log("Generated Campaign:", campaign);
+  useEffect(() => {
+    console.log("Generated Campaign:", campaign);
+  }, [campaign]);
+
+  if (!campaign || !campaign.campaignName || !campaign.keyMessage) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="space-y-6 mb-8">
@@ -81,42 +87,117 @@ const CampaignResult: React.FC<CampaignResultProps> = ({
           <CardTitle className="text-2xl md:text-3xl">{campaign.campaignName}</CardTitle>
           <CardDescription className="text-lg md:text-xl font-medium text-foreground/90">
             {campaign.keyMessage}
-            {/* Make prHeadline stand out more */}
-            {campaign.prHeadline && (
-              <div className="mt-2 text-xl font-bold text-primary">{campaign.prHeadline}</div>  {/* Render prHeadline here */}
-            )}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-            {/* Left and Right columns filled as per previous logic */}
-            {/* ... left column sections ... */}
-
-            {/* Right Column with Evaluation */}
-            <div className="md:col-span-7 space-y-6 pl-0 md:pl-6">
-              {/* Expected Outcomes Section */}
-              {campaign.expectedOutcomes && campaign.expectedOutcomes.length > 0 && (
-                <>
-                  <Separator />
-                  <div className="space-y-2">
-                    <h3 className="font-medium text-lg text-primary">Expected Outcomes</h3>
-                    <ul className="list-disc pl-5 space-y-2">
-                      {campaign.expectedOutcomes.map((outcome, index) => (
-                        <li key={index} className="pl-1">
-                          <span className="ml-1">{outcome}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </>
+            {/* Left Column */}
+            <div className="md:col-span-5 space-y-6">
+              {/* The Insight */}
+              {campaign.insight && (
+                <div>
+                  <h3 className="font-medium text-lg text-primary">The Insight</h3>
+                  <p className="text-foreground/90">{campaign.insight}</p>
+                </div>
               )}
 
-              {/* Creative Director Evaluation */}
+              {/* The Idea */}
+              {campaign.idea && (
+                <div>
+                  <h3 className="font-medium text-lg text-primary">The Idea</h3>
+                  <p className="text-foreground/90">{campaign.idea}</p>
+                </div>
+              )}
+
+              {/* Creative Insights */}
+              {campaign.creativeInsights && campaign.creativeInsights.length > 0 && (
+                <div>
+                  <h3 className="font-medium text-lg text-primary">💡 Creative Insights</h3>
+                  <ul className="list-disc pl-5 space-y-2">
+                    {campaign.creativeInsights.map((insight, index) => (
+                      <li key={index}>{insight}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Call to Action */}
+              {campaign.callToAction && (
+                <div>
+                  <h3 className="font-medium text-lg text-primary">Call to Action</h3>
+                  <p>{campaign.callToAction}</p>
+                </div>
+              )}
+
+              {/* Viral Element */}
+              {campaign.viralElement && (
+                <div>
+                  <h3 className="font-medium text-lg text-primary">Viral Element</h3>
+                  <p>{campaign.viralElement}</p>
+                </div>
+              )}
+
+              {/* 🔥 PR Headline */}
+              {campaign.prHeadline && (
+                <div>
+                  <h3 className="font-medium text-lg text-primary">PR Headline</h3>
+                  <p className="italic">{campaign.prHeadline}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Right Column */}
+            <div className="md:col-span-7 space-y-6 pl-0 md:pl-6">
+              {campaign.creativeStrategy && campaign.creativeStrategy.length > 0 && (
+                <div>
+                  <h3 className="font-medium text-lg text-primary">The How</h3>
+                  <ul className="list-disc pl-5 space-y-1">
+                    {campaign.creativeStrategy.map((strat, index) => (
+                      <li key={index}>{strat}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {campaign.executionPlan && campaign.executionPlan.length > 0 && (
+                <div>
+                  <h3 className="font-medium text-lg text-primary">Execution Plan</h3>
+                  <ul className="list-decimal pl-5 space-y-1">
+                    {campaign.executionPlan.map((step, index) => (
+                      <li key={index}>{step}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {campaign.expectedOutcomes && campaign.expectedOutcomes.length > 0 && (
+                <div>
+                  <h3 className="font-medium text-lg text-primary">Expected Outcomes</h3>
+                  <ul className="list-disc pl-5 space-y-1">
+                    {campaign.expectedOutcomes.map((item, index) => (
+                      <li key={index}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Reference Campaigns */}
+              {campaign.referenceCampaigns && campaign.referenceCampaigns.length > 0 && (
+                <div>
+                  <h3 className="font-medium text-lg text-primary">Reference Campaigns</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {campaign.referenceCampaigns.map((ref, index) => (
+                      <div key={index} className="text-sm bg-muted px-3 py-1 rounded-full">
+                        <strong>{ref.name}</strong> – {ref.brand}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* CD Evaluation */}
               {campaign.evaluation && (
-                <>
-                  <Separator />
-                  <CreativeDirectorEvaluation evaluation={campaign.evaluation} />
-                </>
+                <CreativeDirectorEvaluation evaluation={campaign.evaluation} />
               )}
             </div>
           </div>
@@ -146,7 +227,6 @@ const CampaignResult: React.FC<CampaignResultProps> = ({
           <Button onClick={onGenerateAnother} variant="outline" className="mr-4">
             Generate Another Campaign
           </Button>
-
           {onRefine && !feedbackSubmitted && (
             <Button onClick={() => {
               const defaultFeedback: CampaignFeedback = {

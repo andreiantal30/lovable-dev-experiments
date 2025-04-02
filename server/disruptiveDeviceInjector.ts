@@ -1,3 +1,6 @@
+// server/disruptiveDeviceInjector.ts
+
+import OpenAI from 'openai';
 
 type CampaignOutput = {
   campaignName: string;
@@ -10,9 +13,9 @@ type CampaignOutput = {
   viralElement: string;
   callToAction: string;
   creativeInsights: string[];
+  prHeadline?: string;
+  evaluation?: any;
 };
-
-import OpenAI from 'openai';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -46,29 +49,35 @@ ${JSON.stringify(campaign, null, 2)}
     });
 
     const raw = response.choices?.[0]?.message?.content || '{}';
-    
+
+    let parsed: any = null;
+
     try {
-      // Attempt to parse JSON directly
-      return JSON.parse(raw);
+      parsed = JSON.parse(raw);
     } catch (parseError) {
-      console.error("Error parsing OpenAI response as JSON, attempting to extract JSON:", parseError);
-      
-      // Fallback: Try to extract JSON from the response
-      const jsonMatch = raw.match(/```json\s*([\s\S]*?)\s*```/) || 
-                        raw.match(/\{[\s\S]*\}/);
-                        
-      if (jsonMatch && jsonMatch[1]) {
-        return JSON.parse(jsonMatch[1]);
-      } else if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]);
+      console.warn("Standard JSON parse failed, attempting fallback extraction...");
+      const fallbackMatch = raw.match(/```json\s*([\s\S]*?)```/) || raw.match(/\{[\s\S]*\}/);
+      if (fallbackMatch) {
+        try {
+          parsed = JSON.parse(fallbackMatch[1] || fallbackMatch[0]);
+        } catch (fallbackError) {
+          console.error("Fallback JSON parse failed:", fallbackError);
+        }
       }
-      
-      // If all else fails, return the original campaign
-      console.error("Could not extract valid JSON from response, returning original campaign");
-      return campaign;
     }
+
+    if (parsed && typeof parsed === 'object') {
+      console.log("✅ Disruptive device injected successfully.");
+      return {
+        ...campaign,
+        ...parsed
+      };
+    }
+
+    console.warn("⚠️ Could not extract valid disruptive content. Returning original campaign.");
+    return campaign;
   } catch (error) {
-    console.error("Error in injectDisruptiveDevice:", error);
-    return campaign; // Return the original campaign if there's an error
+    console.error("❌ Error in injectDisruptiveDevice:", error);
+    return campaign;
   }
 }
