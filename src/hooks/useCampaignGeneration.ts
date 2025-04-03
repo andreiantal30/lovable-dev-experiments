@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { CampaignInput, GeneratedCampaign, generateCampaign, CampaignVersion } from "@/lib/generateCampaign";
 import { OpenAIConfig } from "@/lib/openai";
@@ -21,8 +20,7 @@ export function useCampaignGeneration(openAIConfig: OpenAIConfig) {
   const campaignResultRef = useRef<HTMLDivElement | null>(null);
   const [campaignVersions, setCampaignVersions] = useState<CampaignVersion[]>([]);
 
-  // Import functionality from the separated hooks
-  const { 
+  const {
     messages,
     setMessages,
     isChatActive,
@@ -34,22 +32,21 @@ export function useCampaignGeneration(openAIConfig: OpenAIConfig) {
 
   const scrollToCampaign = () => {
     if (campaignResultRef.current) {
-      campaignResultRef.current.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'start' 
+      campaignResultRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
       });
     } else {
       const campaignElement = document.getElementById('generated-campaign');
       if (campaignElement) {
-        campaignElement.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'start' 
+        campaignElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
         });
       }
     }
   };
 
-  // Import refinement functionality
   const { handleRefineCampaign } = useCampaignRefinement(
     openAIConfig,
     lastInput,
@@ -59,7 +56,6 @@ export function useCampaignGeneration(openAIConfig: OpenAIConfig) {
     scrollToCampaign
   );
 
-  // Import regeneration functionality 
   const { handleRegenerateCampaign } = useCampaignRegeneration(
     openAIConfig,
     lastInput,
@@ -70,10 +66,9 @@ export function useCampaignGeneration(openAIConfig: OpenAIConfig) {
     scrollToCampaign
   );
 
-  // Import chat refinement functionality
-  const { 
+  const {
     isApplyingChanges,
-    applyChangesAndRegenerateCampaign 
+    applyChangesAndRegenerateCampaign
   } = useCampaignChatRefinement(
     openAIConfig,
     lastInput,
@@ -83,7 +78,6 @@ export function useCampaignGeneration(openAIConfig: OpenAIConfig) {
     scrollToCampaign
   );
 
-  // Save a version of the current campaign
   const saveCampaignVersion = (tag: string) => {
     if (!generatedCampaign) return;
 
@@ -97,7 +91,6 @@ export function useCampaignGeneration(openAIConfig: OpenAIConfig) {
     setCampaignVersions(prev => [...prev, newVersion]);
   };
 
-  // Load a saved campaign version
   const loadCampaignVersion = (version: CampaignVersion) => {
     setGeneratedCampaign({ ...version.campaign });
   };
@@ -110,13 +103,11 @@ export function useCampaignGeneration(openAIConfig: OpenAIConfig) {
 
     setIsGenerating(true);
     setLastInput(input);
-    
+
     try {
       const campaign = await generateCampaign(input, openAIConfig);
-      
-      // Save the initial campaign as a version
+
       if (campaign) {
-        // Clear previous versions when generating a completely new campaign
         setCampaignVersions([{
           id: uuidv4(),
           versionTag: "original",
@@ -124,16 +115,24 @@ export function useCampaignGeneration(openAIConfig: OpenAIConfig) {
           campaign: { ...campaign }
         }]);
       }
-      
+
       setGeneratedCampaign(campaign);
-      
+
       if (campaign && input.brand && input.industry) {
-        const savedCampaign = saveCampaignToLibrary(campaign, input.brand, input.industry);
+        const savedCampaign = saveCampaignToLibrary({
+          id: uuidv4(),
+          timestamp: new Date().toISOString(),
+          campaign,
+          brand: input.brand,
+          industry: input.industry,
+          favorite: false
+        });
+
         if (savedCampaign) {
           toast.success("Campaign automatically saved to your library");
         }
       }
-      
+
       initializeChat(campaign, input);
       return true;
     } catch (error) {

@@ -1,17 +1,12 @@
 {
-  "files": [],
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }  // ✅ This is fine now
-  ],
   "compilerOptions": {
     "baseUrl": "src",
+    "jsx": "react-jsx",
     "paths": {
       "@/*": ["*"]
     },
-    "target": "es2020",
+    "target": "ES2020",
     "module": "commonjs",
-    "moduleResolution": "node",
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "outDir": "dist",

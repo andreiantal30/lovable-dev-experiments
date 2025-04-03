@@ -135,11 +135,12 @@ ${creativeInsights.map((insight, index) => {
   }).join('\n\n')}
 Use at least one insight. Ground your story in emotion.` : '';
 
-  const culturalTrendsBlock = culturalTrends.length > 0 ? `
-#### **Cultural Trends (Use for Flavor Only)**
-These are not campaign themes. Do NOT use them as the core idea.
-They're just cultural backdrops—like set design for your story.
-${culturalTrends.slice(0, 3).map((trend, index) => `${index + 1}. "${trend.title}": ${trend.description}`).join('\n')}` : '';
+const culturalTrendsBlock = culturalTrends.length > 0 ? `
+#### ⚡ Cultural Trends (Optional Inspiration)
+Below are recent cultural signals. Use them only if they add flavor, tension, or relevance to your idea. You can reference, subvert, or riff off them — but **only if they naturally support your insight or emotional angle**.
+
+${culturalTrends.map((trend, index) => `${index + 1}. "${trend.title}": ${trend.description}`).join('\n')}
+` : '';
 
   const referencePrompt = `
 Use these real-world awarded campaigns for inspiration. Study their emotional appeal, cultural angle, and structure—but do not copy:
@@ -197,15 +198,17 @@ Push for tension, contradiction, or irony. The idea should spark instant convers
 `;
 
   const executionReminder = `
-### Execution Spike Reminder
-Your execution plan must include at least one:
-- Brave or controversial move
-- Genre-defying medium
-- Wild cultural twist
-- Bold channel hack
-- Unexpected tension or friction point
+### Execution Rules of the Game
+You must deliver 4–5 execution ideas. At least one must be:
 
-This is what earns metal at Cannes. At least one execution must punch above the brief.
+- Uncomfortable
+- Public-facing
+- Unexpected in format or channel
+- Controversial or emotional
+- Culturally provocative
+
+Avoid: generic digital activations, safe social challenges, or corporate fluff.
+Include at least one tactic that would make the client nervous — but would earn a Cannes Lion.
 `;
 
   return `### Generate a groundbreaking marketing campaign with the following:

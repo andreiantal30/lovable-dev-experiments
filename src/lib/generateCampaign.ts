@@ -1,9 +1,8 @@
-// generateCampaign.ts
 import { toast } from "sonner";
 import { Campaign } from './campaignData';
 import { generateWithOpenAI, OpenAIConfig, defaultOpenAIConfig } from './openai';
 import { generateStorytellingNarrative } from './storytellingGenerator';
-import { CampaignInput, GeneratedCampaign, CampaignEvaluation, CampaignVersion } from './campaign/types';
+import { CampaignInput, GeneratedCampaign, CampaignEvaluation, CampaignVersion, MultiLayeredInsight } from './campaign/types';
 import { findSimilarCampaigns } from './campaign/campaignMatcher';
 import { generateCreativeInsights } from './campaign/creativeInsightGenerator';
 import { createCampaignPrompt } from './campaign/campaignPromptBuilder';
@@ -13,53 +12,101 @@ import { getCachedCulturalTrends } from '@/data/culturalTrends';
 import { saveCampaignToLibrary } from './campaignStorage';
 import { evaluateCampaign } from './campaign/evaluateCampaign';
 
-// 🔥 Bravery Enhancer
-const ensureOneBraveExecution = (executions: string[]): string[] => {
-  const safeWords = ['docuseries', 'AR experience', 'pop-up', 'co-creation', 'TikTok challenge'];
-  const safe = executions.some(e =>
-    safeWords.some(s => e.toLowerCase().includes(s))
-  );
-  if (safe) {
-    console.warn("🛑 Execution too safe. Injecting braver fallback.");
-    return [...executions, "Create an experience that forces people to confront a personal truth in a public way."];
-  }
-  return executions;
-};
+// 🌍 Replace this with your Codespace 8090 address
+const BACKEND_URL = 'https://animated-capybara-jj9qrx9r77pwc5qwj-8090.app.github.dev';
 
-// 🧠 Cannes Execution Scorer
+// 🧠 Brave Execution Scoring
 const scoreExecution = (idea: string): number => {
   let score = 0;
-  if (/delete|burn|sacrifice|confront|risk|forced/i.test(idea)) score += 3; // Behavioral provocation
-  if (/public|unexpected|hack|glitch|confession|live stream/i.test(idea)) score += 2; // Shock factor
-  if (/bus stop|receipt|fridge|toilet|mirror|door|drone|ad blocker/i.test(idea)) score += 2; // Format subversion
+  if (/delete|burn|sacrifice|confront|risk|forced/i.test(idea)) score += 3;
+  if (/public|unexpected|hack|glitch|confession|live stream/i.test(idea)) score += 2;
+  if (/bus stop|receipt|fridge|toilet|mirror|door|drone|ad blocker/i.test(idea)) score += 2;
   return score;
 };
 
-const getCannesSpikeExecution = (): string => {
-  const spikeExamples = [
-    "Turn receipts into breakup letters printed at checkout, based on abandoned carts.",
-    "Let users burn a digital wishlist to unlock a limited drop.",
-    "Set up a one-day ‘Regret Museum’ inside IKEA — showcasing returned items and their breakup stories.",
-    "Launch a hotline where users confess their worst adulting fail — and get a room makeover inspired by it.",
-  ];
-  return spikeExamples[Math.floor(Math.random() * spikeExamples.length)];
+// 🎯 Dynamic Cannes Spike Generation
+const getCannesSpikeExecution = (brand: string): string => {
+  const spikeExamples = {
+    coffee: [
+      "Host a coffee art competition in a public space where people create their own coffee art with fresh ingredients.",
+      "Launch a ‘Coffee Taste Test’ street activation where strangers try blindfolded coffee challenges and share their reactions.",
+      "Create a 'Coffee Lover’s Confession' challenge where people share their most embarrassing coffee moments for prizes."
+    ],
+    tech: [
+      "Create a ‘Tech Throwback’ event where people bring their oldest tech items and compare them with the latest products.",
+      "Run a ‘Tech Time Capsule’ challenge where users bury their tech predictions for the future and dig them up after five years.",
+      "Set up a ‘Tech Fanatics’ museum showcasing iconic tech and their unique stories."
+    ],
+  };
+
+  return spikeExamples[brand]?.[Math.floor(Math.random() * spikeExamples[brand].length)] ??
+    'Let users create and share their wildest product ideas in a social media challenge.';
 };
 
+// 🧠 Ensure at least one brave execution
+const ensureOneBraveExecution = (executions: string[], brand: string): string[] => {
+  const safeWords = ['docuseries', 'AR experience', 'pop-up', 'co-creation', 'TikTok challenge'];
+  const isSafe = executions.some(e =>
+    safeWords.some(s => e.toLowerCase().includes(s))
+  );
+
+  if (isSafe) {
+    console.warn("🛑 Execution too safe. Injecting a Cannes Spike based on brand:", brand);
+    const spike = getCannesSpikeExecution(brand);
+    return [...executions, spike];
+  }
+
+  return executions;
+};
+
+// 🧠 Creative Director Pass
 const applyCreativeDirectorPass = async (rawOutput: any) => {
   try {
-    const res = await fetch('/api/cd-pass', {
+    const res = await fetch(`${BACKEND_URL}/api/cd-pass`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(rawOutput),
     });
-    if (!res.ok) {
-      console.error(`CD pass API error: ${res.status}`);
-      return rawOutput;
-    }
+    if (!res.ok) throw new Error(`CD pass API error: ${res.status}`);
     return await res.json();
   } catch (err) {
     console.error("CD pass failed:", err);
     return rawOutput;
+  }
+};
+
+// 💥 Disruptive Device Injection
+const injectDisruptivePass = async (input: any) => {
+  try {
+    console.log("Sending request to disruptive-pass route:", input);
+
+    const res = await fetch(`${BACKEND_URL}/api/disruptive-pass`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ campaign: input }),
+    });
+
+    if (!res.ok) {
+      console.error(`Disruptive pass API error: ${res.status}`);
+      toast.error(`Disruptive pass failed with status: ${res.status}`);
+      return input;
+    }
+
+    const json = await res.json();
+    console.log("Disruptive pass response:", json);
+    return {
+      ...input,
+      keyMessage: json.keyMessage || input.keyMessage,
+      prHeadline: json.prHeadline || input.prHeadline,
+      viralHook: json.viralHook || input.viralHook,
+      viralElement: json.viralElement || input.viralElement,
+      callToAction: json.callToAction || input.callToAction,
+      consumerInteraction: json.consumerInteraction || input.consumerInteraction,
+    };
+  } catch (err) {
+    console.error("⚠️ Disruptive device injection failed:", err);
+    toast.error("Disruptive enhancement failed.");
+    return input;
   }
 };
 
@@ -72,144 +119,82 @@ export const generateCampaign = async (
     const referenceCampaigns = await findSimilarCampaigns(input, openAIConfig);
     const creativeDevices = getCreativeDevicesForStyle(input.campaignStyle, 3);
     const culturalTrends = getCachedCulturalTrends();
+    const relevantTrends = culturalTrends.sort(() => Math.random() - 0.5).slice(0, 3);
 
-    const prioritized = [
-      ...culturalTrends.filter(t =>
-        !t.platformTags.some(tag =>
-          tag.toLowerCase().includes("ai") || tag.toLowerCase().includes("ar") || tag.toLowerCase().includes("vr") || tag.toLowerCase().includes("metaverse"))
-      ),
-      ...culturalTrends.filter(t =>
-        t.platformTags.some(tag =>
-          tag.toLowerCase().includes("ai") || tag.toLowerCase().includes("ar"))
-      )
-    ];
-    const relevantTrends = prioritized.sort(() => Math.random() - 0.5).slice(0, 3);
+    console.log("🧠 Cultural Trends Injected:", relevantTrends.map(t => t.title));
 
-    const prompt = createCampaignPrompt(
-      input, referenceCampaigns, creativeInsights, creativeDevices, relevantTrends
-    );
+    const prompt = createCampaignPrompt(input, referenceCampaigns, creativeInsights, creativeDevices, relevantTrends);
+    const raw = await generateWithOpenAI(prompt, openAIConfig);
 
-    const response = await generateWithOpenAI(prompt, openAIConfig);
-    const cleanedResponse = extractJsonFromResponse(response);
-    const generatedContent = JSON.parse(cleanedResponse);
-
-    // 🧠 CD Feedback Layer
-    let improvedContent = await applyCreativeDirectorPass(generatedContent);
-
-    // 💥 Disruptive Twist Layer
-    let finalContent = improvedContent;
+    let parsed;
     try {
-      const res = await fetch('/api/disruptive-pass', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ campaign: improvedContent }),
-      });
-
-      if (!res.ok) throw new Error(`Disruptive pass API error: ${res.status}`);
-      const jsonResponse = await res.json();
-
-      finalContent = {
-        ...improvedContent,
-        keyMessage: jsonResponse.keyMessage || improvedContent.keyMessage,
-        prHeadline: jsonResponse.prHeadline || improvedContent.prHeadline,
-        viralHook: jsonResponse.viralHook || improvedContent.viralHook,
-        viralElement: jsonResponse.viralElement || improvedContent.viralElement,
-        callToAction: jsonResponse.callToAction || improvedContent.callToAction,
-        consumerInteraction: jsonResponse.consumerInteraction || improvedContent.consumerInteraction,
-      };
-
-      console.log("🎯 Disruptive twist added");
+      parsed = JSON.parse(extractJsonFromResponse(raw));
+      console.log("🔍 Parsed OpenAI Response:", parsed);
     } catch (err) {
-      console.error("⚠️ Disruptive device injection failed:", err);
-      toast.error("Disruptive enhancement failed, using base campaign");
+      console.error("❌ Failed to parse OpenAI response:", err);
+      console.debug("🔍 Raw OpenAI Output:\n", raw);
+      throw new Error("Failed to parse OpenAI response. Try simplifying the prompt.");
     }
 
-    // ✅ Bravery + Cannes Spike Scoring
-    const executionScores = finalContent.executionPlan.map(scoreExecution);
-    const avgScore = executionScores.reduce((a, b) => a + b, 0) / executionScores.length;
+    const improved = await applyCreativeDirectorPass(parsed);
+    console.log("🧠 After CD Pass:", improved);
 
-    if (avgScore < 4) {
-      const spike = getCannesSpikeExecution();
-      finalContent.executionPlan.push(spike);
-      console.warn("💥 Execution ideas were too flat. Injected Cannes Spike:", spike);
+    const withTwist = await injectDisruptivePass(improved);
+    console.log("💥 After Disruptive Pass:", withTwist);
+
+    // Execution bravery check
+    const executionScores = withTwist.executionPlan.map(scoreExecution);
+    const spikeWorthy = executionScores.every(score => score < 5);
+    if (spikeWorthy) {
+      const spike = getCannesSpikeExecution(input.brand);
+      withTwist.executionPlan.push(spike);
+      console.warn("💥 All execution ideas were too safe. Injected Cannes Spike:", spike);
     }
 
-    finalContent.executionPlan = ensureOneBraveExecution(finalContent.executionPlan);
+    withTwist.executionPlan = ensureOneBraveExecution(withTwist.executionPlan, input.brand);
 
-    // 🧱 Compose full campaign object
+    // Validate required fields
+    if (!withTwist.campaignName || !withTwist.keyMessage || !withTwist.executionPlan) {
+      console.error("❌ Campaign missing essential properties:", withTwist);
+      throw new Error("Campaign is missing essential properties.");
+    }
+
+    console.log("📝 Saving campaign with the following properties:", withTwist);
+
     const campaign: GeneratedCampaign = {
-      ...finalContent,
+      ...withTwist,
       referenceCampaigns,
       creativeInsights,
       storytelling: "",
-      evaluation: finalContent.evaluation
+      evaluation: withTwist.evaluation,
     };
 
-    // 🪄 Storytelling
-    try {
-      const storytelling = await generateStorytellingNarrative({
-        brand: input.brand,
-        industry: input.industry,
-        targetAudience: input.targetAudience,
-        emotionalAppeal: input.emotionalAppeal,
-        campaignName: campaign.campaignName,
-        keyMessage: campaign.keyMessage
-      }, openAIConfig);
-      campaign.storytelling = storytelling.narrative;
-    } catch (error) {
-      console.error("Error generating storytelling content:", error);
-      toast.error("Error generating storytelling content");
-    }
+    const storytelling = await generateStorytellingNarrative({
+      brand: input.brand,
+      industry: input.industry,
+      targetAudience: input.targetAudience,
+      emotionalAppeal: input.emotionalAppeal,
+      campaignName: campaign.campaignName,
+      keyMessage: campaign.keyMessage,
+    }, openAIConfig);
+    campaign.storytelling = storytelling.narrative;
 
-    // 🧠 Evaluation (pass brand/industry as context)
-    try {
-      const evaluation: CampaignEvaluation = await evaluateCampaign(
-        campaign,
-        { brand: input.brand, industry: input.industry },
-        openAIConfig
-      );
-      campaign.evaluation = evaluation;
-      console.log("🧠 CD Evaluation injected:", evaluation);
-    } catch (error) {
-      console.error("❌ Campaign evaluation failed:", error);
-      campaign.evaluation = {
-        insightSharpness: 5,
-        ideaOriginality: 5,
-        executionPotential: 5,
-        awardPotential: 5,
-        finalVerdict: "Evaluation could not be processed correctly."
-      };
-    }
+    const evaluation = await evaluateCampaign(campaign, { brand: input.brand, industry: input.industry }, openAIConfig);
+    campaign.evaluation = evaluation;
 
-    // 💾 Save to Library
-    try {
-      const saved = saveCampaignToLibrary({
-        id: crypto.randomUUID(),
-        timestamp: new Date().toISOString(),
-        campaign: {
-          ...campaign,
-          evaluation: campaign.evaluation,
-          prHeadline: campaign.prHeadline || "",
-        },
-        brand: input.brand,
-        industry: input.industry,
-        favorite: false,
-      });
+    saveCampaignToLibrary({
+      id: crypto.randomUUID(),
+      timestamp: new Date().toISOString(),
+      campaign,
+      brand: input.brand,
+      industry: input.industry,
+      favorite: false,
+    });
 
-      if (saved) {
-        console.log("✅ Campaign saved to Library");
-      } else {
-        console.warn("⚠️ Campaign not saved — possible duplicate?");
-      }
-    } catch (error) {
-      console.error("❌ Failed to save campaign:", error);
-    }
-
-    console.log("🚀 Final campaign object being returned:", campaign);
     return campaign;
-
   } catch (error) {
-    console.error("Error generating campaign:", error);
+    console.error("❌ Error generating campaign:", error);
+    toast.error(`Error generating campaign: ${error.message}`);
     throw error;
   }
 };

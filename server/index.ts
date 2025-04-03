@@ -1,4 +1,3 @@
-// server/index.ts
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -7,18 +6,23 @@ import cors from "cors";
 
 import newsApiRouter from "./newsApi";
 import cdPassRoute from "./cdPass";
-import disruptivePassRoute from './disruptivePass';
+import disruptivePassRoute from "./disruptivePass";
 
 const app = express();
 const port = 8090;
 
-app.use(express.json());
-
+// ✅ Set CORS for your frontend Codespace URL
 app.use(cors({
-  origin: '*',
+  origin: 'https://animated-capybara-jj9qrx9r77pwc5qwj-8080.app.github.dev',
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true, // only needed if you're using cookies or auth headers
 }));
+
+// ✅ Preflight support
+app.options('*', cors());
+
+app.use(express.json());
 
 app.use('/api', newsApiRouter);       // → /api/news
 app.use('/api', cdPassRoute);         // → /api/cd-pass

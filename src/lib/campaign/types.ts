@@ -1,9 +1,10 @@
+// ✅ Revised types.ts with corrected naming
+
 import { StorytellingOutput } from '../storytellingGenerator';
 import { Campaign } from '../campaignData';
 import { PersonaType } from '@/types/persona';
 import { CreativeLens } from '@/utils/creativeLenses';
 
-// ✅ Add ReferenceCampaign definition directly here
 export type ReferenceCampaign = {
   id: string;
   name: string;
@@ -76,6 +77,12 @@ export interface CampaignVersion {
   campaign: GeneratedCampaign;
 }
 
+export interface MultiLayeredInsight {
+  surfaceInsight: string;
+  emotionalUndercurrent: string;
+  creativeUnlock: string;
+}
+
 export interface GeneratedCampaign {
   campaignName: string;
   keyMessage: string;
@@ -86,10 +93,10 @@ export interface GeneratedCampaign {
   expectedOutcomes?: string[];
   viralElement?: string;
   prHeadline?: string;
-  emotionalAppeal?: string[]; // ✅ Add this
-  callToAction?: string;      // ✅ Add this
-  consumerInteraction?: string; // ✅ Add this
-  creativeInsights?: string[];
+  emotionalAppeal?: string[];
+  callToAction?: string;
+  consumerInteraction?: string;
+  creativeInsights?: MultiLayeredInsight[];
   referenceCampaigns?: ReferenceCampaign[];
   evaluation?: CampaignEvaluation;
   storytelling?: string;
