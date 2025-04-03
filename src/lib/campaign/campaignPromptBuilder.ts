@@ -6,9 +6,32 @@ import { getCreativeLensById } from '@/utils/creativeLenses';
 import { CreativeDevice, formatCreativeDevicesForPrompt } from '@/data/creativeDevices';
 import { CulturalTrend } from '@/data/culturalTrends';
 import { PersonaType } from '@/types/persona';
+import { MultiLayeredInsight } from './creativeInsightGenerator';
+
+// ✅ Auto-persona inference logic (fully typed)
+function inferPersona(input: CampaignInput): PersonaType {
+  const emotion = input.emotionalAppeal.map(e => e.toLowerCase()).join(' ');
+  const objective = input.objectives.map(o => o.toLowerCase()).join(' ');
+  const industry = input.industry.toLowerCase();
+
+  if (industry.includes('tech') || industry.includes('ai')) {
+    return 'tech-innovator' as PersonaType;
+  }
+  if (emotion.includes('rebellion') || emotion.includes('urgency') || objective.includes('break rules')) {
+    return 'unfiltered-director' as PersonaType;
+  }
+  if (objective.includes('movement') || objective.includes('culture') || emotion.includes('belonging')) {
+    return 'culture-hacker' as PersonaType;
+  }
+  if (objective.includes('conversion') || objective.includes('data') || emotion.includes('trust')) {
+    return 'strategic-planner' as PersonaType;
+  }
+
+  return 'unfiltered-director' as PersonaType; // fallback
+}
 
 function getPersonaInstructions(persona: PersonaType): string {
-  const personaMap: Record<string, string> = {
+  const personaMap: Record<PersonaType, string> = {
     "unfiltered-director": `
 ### Strategist Persona: Unfiltered Creative Director
 As an award-winning creative director, your job is not to play it safe.
@@ -47,13 +70,13 @@ As a tech innovator, your job is to use emerging technologies to solve brand pro
 `
   };
 
-  return personaMap[persona] || personaMap["unfiltered-director"];
+  return personaMap[persona];
 }
 
 export const createCampaignPrompt = (
   input: CampaignInput,
   referenceCampaigns: Campaign[],
-  creativeInsights: string[] = [],
+  creativeInsights: MultiLayeredInsight[] = [],
   creativeDevices: CreativeDevice[] = [],
   culturalTrends: CulturalTrend[] = []
 ): string => {
@@ -67,36 +90,36 @@ export const createCampaignPrompt = (
 Use these to name the campaign or spark a unique structure.
 `;
 
-const wildcardCampaigns: Campaign[] = [
-  {
-    id: '999-wild',
-    name: 'The Breakaway',
-    brand: 'Decathlon',
-    year: 2021,
-    industry: 'Retail',
-    targetAudience: ['Sports fans', 'Cycling enthusiasts', 'Rehabilitation advocates'],
-    objectives: ['Brand Reappraisal', 'Social Awareness'],
-    keyMessage: 'A virtual cycling team made up of prisoners',
-    strategy: 'Unexpected empathy storytelling in a virtual cycling context',
-    features: [],
-    emotionalAppeal: ['Empathy', 'Liberation'],
-    outcomes: ['Global media buzz', 'Increased awareness for prison rehabilitation']
-  },
-  {
-    id: '998-wild',
-    name: 'Backup Ukraine',
-    brand: 'UNESCO x Polycam',
-    year: 2022,
-    industry: 'Culture/Heritage',
-    targetAudience: ['Cultural preservationists', 'Tech-savvy youth', 'Global citizens'],
-    objectives: ['Cultural Protection', 'Tech-Driven Participation'],
-    keyMessage: 'Digitally preserve endangered heritage sites in war zones',
-    strategy: 'Crowdsourced digital preservation via AR',
-    features: [],
-    emotionalAppeal: ['Urgency', 'Cultural Protection'],
-    outcomes: ['Millions of 3D scans submitted', 'International collaboration sparked']
-  }
-];
+  const wildcardCampaigns: Campaign[] = [
+    {
+      id: '999-wild',
+      name: 'The Breakaway',
+      brand: 'Decathlon',
+      year: 2021,
+      industry: 'Retail',
+      targetAudience: ['Sports fans', 'Cycling enthusiasts', 'Rehabilitation advocates'],
+      objectives: ['Brand Reappraisal', 'Social Awareness'],
+      keyMessage: 'A virtual cycling team made up of prisoners',
+      strategy: 'Unexpected empathy storytelling in a virtual cycling context',
+      features: [],
+      emotionalAppeal: ['Empathy', 'Liberation'],
+      outcomes: ['Global media buzz', 'Increased awareness for prison rehabilitation']
+    },
+    {
+      id: '998-wild',
+      name: 'Backup Ukraine',
+      brand: 'UNESCO x Polycam',
+      year: 2022,
+      industry: 'Culture/Heritage',
+      targetAudience: ['Cultural preservationists', 'Tech-savvy youth', 'Global citizens'],
+      objectives: ['Cultural Protection', 'Tech-Driven Participation'],
+      keyMessage: 'Digitally preserve endangered heritage sites in war zones',
+      strategy: 'Crowdsourced digital preservation via AR',
+      features: [],
+      emotionalAppeal: ['Urgency', 'Cultural Protection'],
+      outcomes: ['Millions of 3D scans submitted', 'International collaboration sparked']
+    }
+  ];
 
   const fullReferences = [...referenceCampaigns, ...wildcardCampaigns];
   const referenceCampaignsText = fullReferences.map(c => formatCampaignForPrompt(c)).join('\n');
@@ -104,7 +127,12 @@ const wildcardCampaigns: Campaign[] = [
   const insightsBlock = creativeInsights.length > 0 ? `
 #### **Creative Insights**
 These human truths should shape your concept:
-${creativeInsights.map((insight, index) => `${index + 1}. "${insight}"`).join('\n')}
+${creativeInsights.map((insight, index) => {
+    return `${index + 1}.
+- Surface Insight: "${insight.surfaceInsight}"
+- Emotional Undercurrent: "${insight.emotionalUndercurrent}"
+- Creative Unlock: "${insight.creativeUnlock}"`;
+  }).join('\n\n')}
 Use at least one insight. Ground your story in emotion.` : '';
 
   const culturalTrendsBlock = culturalTrends.length > 0 ? `
@@ -119,8 +147,8 @@ ${referenceCampaignsText}
 `;
 
   const awardPatterns = getCreativePatternGuidance();
-
   const campaignStyleDescription = input.campaignStyle || 'Any';
+
   const styleDescriptions: Record<string, string> = {
     'digital': 'Digital-first approach with highly shareable, interactive content',
     'experiential': 'Experiential marketing focused on real-world brand immersion',
@@ -146,15 +174,15 @@ ${referenceCampaignsText}
   };
 
   const campaignStyle = styleDescriptions[input.campaignStyle || ''] || campaignStyleDescription;
-  const personaInstructions = getPersonaInstructions(input.persona || "unfiltered-director" as PersonaType);
+  const inferredPersona = inferPersona(input);
+  const personaInstructions = getPersonaInstructions(inferredPersona);
+
   const creativeLens = input.creativeLens ? getCreativeLensById(input.creativeLens) : null;
   const creativeLensInstructions = creativeLens ? `
 ### Creative Lens: ${creativeLens.name}
 ${creativeLens.description}
 Use this perspective to shape the campaign’s voice, concept, and cultural relevance.
 ` : '';
-
-  // ... [unchanged imports and helper functions remain above]
 
   const creativeDevicesBlock = formatCreativeDevicesForPrompt(creativeDevices);
 

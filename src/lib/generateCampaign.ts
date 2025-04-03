@@ -26,6 +26,25 @@ const ensureOneBraveExecution = (executions: string[]): string[] => {
   return executions;
 };
 
+// 🧠 Cannes Execution Scorer
+const scoreExecution = (idea: string): number => {
+  let score = 0;
+  if (/delete|burn|sacrifice|confront|risk|forced/i.test(idea)) score += 3; // Behavioral provocation
+  if (/public|unexpected|hack|glitch|confession|live stream/i.test(idea)) score += 2; // Shock factor
+  if (/bus stop|receipt|fridge|toilet|mirror|door|drone|ad blocker/i.test(idea)) score += 2; // Format subversion
+  return score;
+};
+
+const getCannesSpikeExecution = (): string => {
+  const spikeExamples = [
+    "Turn receipts into breakup letters printed at checkout, based on abandoned carts.",
+    "Let users burn a digital wishlist to unlock a limited drop.",
+    "Set up a one-day ‘Regret Museum’ inside IKEA — showcasing returned items and their breakup stories.",
+    "Launch a hotline where users confess their worst adulting fail — and get a room makeover inspired by it.",
+  ];
+  return spikeExamples[Math.floor(Math.random() * spikeExamples.length)];
+};
+
 const applyCreativeDirectorPass = async (rawOutput: any) => {
   try {
     const res = await fetch('/api/cd-pass', {
@@ -105,7 +124,16 @@ export const generateCampaign = async (
       toast.error("Disruptive enhancement failed, using base campaign");
     }
 
-    // ✅ Bravery Check
+    // ✅ Bravery + Cannes Spike Scoring
+    const executionScores = finalContent.executionPlan.map(scoreExecution);
+    const avgScore = executionScores.reduce((a, b) => a + b, 0) / executionScores.length;
+
+    if (avgScore < 4) {
+      const spike = getCannesSpikeExecution();
+      finalContent.executionPlan.push(spike);
+      console.warn("💥 Execution ideas were too flat. Injected Cannes Spike:", spike);
+    }
+
     finalContent.executionPlan = ensureOneBraveExecution(finalContent.executionPlan);
 
     // 🧱 Compose full campaign object

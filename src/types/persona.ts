@@ -1,10 +1,8 @@
-
 export type PersonaType = 
-  | "bold-risk-taker" 
-  | "safe-brand-builder" 
-  | "viral-trend-expert" 
-  | "storytelling-artist" 
-  | "data-driven-strategist";
+  | "unfiltered-director"
+  | "strategic-planner"
+  | "culture-hacker"
+  | "tech-innovator";
 
 export interface Persona {
   id: PersonaType;
@@ -16,64 +14,52 @@ export interface Persona {
 
 export const personas: Persona[] = [
   {
-    id: "bold-risk-taker",
-    name: "Bold Risk-Taker",
-    description: "Creates attention-grabbing campaigns that push boundaries and challenge conventions",
+    id: "unfiltered-director",
+    name: "Unfiltered Creative Director",
+    description: "Pushes creative boundaries with raw, emotional, and subversive ideas that win juries and audiences.",
     characteristics: [
-      "Disruptive ideas",
-      "Unexpected twists",
-      "Conversation starters",
-      "Boundary-pushing concepts"
+      "Tension-rich insights",
+      "Creative rebellion",
+      "Unapologetic tone",
+      "Genre-breaking execution"
     ],
     icon: "zap"
   },
   {
-    id: "safe-brand-builder",
-    name: "Safe Brand Builder",
-    description: "Focuses on long-term brand equity with reliable, proven campaign approaches",
+    id: "strategic-planner",
+    name: "Strategic Planner",
+    description: "Builds insight-driven campaigns with measurable objectives, tight logic, and consumer journeys.",
     characteristics: [
-      "Consistent messaging",
-      "Proven strategies",
-      "Brand integrity",
-      "Sustainable growth"
+      "Data-backed thinking",
+      "Tightly scoped strategy",
+      "Conversion clarity",
+      "Audience segmentation"
     ],
-    icon: "shield"
+    icon: "bar-chart-2"
   },
   {
-    id: "viral-trend-expert",
-    name: "Viral Trend Expert",
-    description: "Specializes in campaigns designed to spread rapidly through social networks",
+    id: "culture-hacker",
+    name: "Culture Hacker",
+    description: "Creates culturally contagious ideas by hijacking memes, rituals, and behaviors.",
     characteristics: [
-      "Shareable content",
+      "Internet-native mindset",
       "Cultural relevance",
-      "Platform optimization",
-      "Engagement triggers"
+      "Movement mechanics",
+      "Participation-first thinking"
     ],
     icon: "trending-up"
   },
   {
-    id: "storytelling-artist",
-    name: "Storytelling Artist",
-    description: "Crafts emotionally resonant narratives that connect deeply with audiences",
+    id: "tech-innovator",
+    name: "Tech Innovator",
+    description: "Applies technology meaningfully to solve brand problems, not just for novelty.",
     characteristics: [
-      "Emotional narratives",
-      "Character development",
-      "Memorable journeys",
-      "Authentic connections"
+      "AR/AI utility",
+      "Future-first formats",
+      "Connected ecosystems",
+      "Tech with purpose"
     ],
-    icon: "book-open"
-  },
-  {
-    id: "data-driven-strategist",
-    name: "Data-Driven Strategist",
-    description: "Leverages insights and metrics to create highly targeted, effective campaigns",
-    characteristics: [
-      "Audience targeting",
-      "Performance metrics",
-      "Conversion optimization",
-      "A/B testing elements"
-    ],
-    icon: "bar-chart-2"
+    icon: "cpu"
   }
 ];
 
