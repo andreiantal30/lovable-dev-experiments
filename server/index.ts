@@ -5,9 +5,9 @@ dotenv.config();
 import express from "express";
 import cors from "cors";
 
-import newsApiRouter from "./newsApi";     // ✅ NewsAPI route
-import cdPassRoute from "./cdPass";        // ✅ Creative Director Pass route
-import disruptivePassRoute from './disruptivePass'; // ✅ Disruptive Pass route (default import)
+import newsApiRouter from "./newsApi";
+import cdPassRoute from "./cdPass";
+import disruptivePassRoute from './disruptivePass';
 
 const app = express();
 const port = 8090;
@@ -20,13 +20,10 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// ✅ Mount API routes
-app.use('/api', newsApiRouter);   // → /api/news
-app.use('/api', cdPassRoute);     // → /api/cd-pass
+app.use('/api', newsApiRouter);       // → /api/news
+app.use('/api', cdPassRoute);         // → /api/cd-pass
 app.use('/api', disruptivePassRoute); // → /api/disruptive-pass
-app.use('/api/disruptive-pass', disruptivePassRoute); // or however you mounted it
 
-// Optional: Health check route
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
 });

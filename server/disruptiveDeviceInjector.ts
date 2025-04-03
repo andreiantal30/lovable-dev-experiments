@@ -48,45 +48,46 @@ ${JSON.stringify(campaign, null, 2)}
       temperature: 0.8,
     });
 
-    const raw = response.choices?.[0]?.message?.content || '{}';
+    const raw = response.choices?.[0]?.message?.content || '';
 
-    let parsed: any = null;
+    let cleaned = '';
+    const markdownMatch = raw.match(/```json\s*([\s\S]*?)```/);
+    if (markdownMatch) {
+      cleaned = markdownMatch[1];
+    } else {
+      const braceMatch = raw.match(/\{[\s\S]*\}/);
+      if (braceMatch) cleaned = braceMatch[0];
+    }
 
+    let parsed: Partial<CampaignOutput> = {};
     try {
-      parsed = JSON.parse(raw);
-    } catch (parseError) {
-      console.warn("Standard JSON parse failed, attempting fallback extraction...");
-      const fallbackMatch = raw.match(/```json\s*([\s\S]*?)```/) || raw.match(/\{[\s\S]*\}/);
-      if (fallbackMatch) {
-        try {
-          parsed = JSON.parse(fallbackMatch[1] || fallbackMatch[0]);
-        } catch (fallbackError) {
-          console.error("Fallback JSON parse failed:", fallbackError);
-        }
-      }
+      parsed = JSON.parse(cleaned);
+    } catch (err) {
+      console.error("❌ Failed to parse disruptive response JSON:", err);
+      return campaign;
     }
 
-    if (parsed && typeof parsed === 'object') {
-      console.log("🔥 Twist successfully injected.");
-      return {
-        ...campaign,
-        ...parsed
-      };
+    if (typeof parsed !== 'object' || Array.isArray(parsed)) {
+      console.warn("⚠️ Invalid disruptive format. Returning original campaign.");
+      return campaign;
     }
 
-    console.warn("⚠️ Could not extract valid disruptive content. Returning original campaign.");
-    return campaign;
+    const updated = {
+      ...campaign,
+      ...parsed
+    };
+
+    console.log("✅ Disruptive twist injected.");
+    return updated;
 
   } catch (error: any) {
     console.error("❌ Error in injectDisruptiveDevice:");
-
     if (error.response) {
       console.error("OpenAI error status:", error.response.status);
       console.error("OpenAI error data:", error.response.data);
     } else {
       console.error(error.stack || error.message || error);
     }
-
     return campaign;
   }
 }

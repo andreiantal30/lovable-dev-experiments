@@ -2,8 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Separator } from './ui/separator';
-import { ArrowUpRight, RefreshCw, Sparkles, ThumbsDown as ThumbsDownIcon, ThumbsUp as ThumbsUpIcon } from 'lucide-react';
+import { RefreshCw, Sparkles } from 'lucide-react';
 import { GeneratedCampaign } from '@/lib/generateCampaign';
 import FeedbackSystem, { CampaignFeedbackData } from './FeedbackSystem';
 import CreativeDirectorEvaluation from './CreativeDirectorEvaluation';
@@ -26,6 +25,12 @@ export interface CampaignResultProps {
   showFeedbackForm?: boolean;
   onRefine?: (feedback: CampaignFeedback) => Promise<void>;
 }
+
+type MultiLayeredInsight = {
+  surfaceInsight: string;
+  emotionalUndercurrent: string;
+  creativeUnlock: string;
+};
 
 const CampaignResult: React.FC<CampaignResultProps> = ({ 
   campaign, 
@@ -52,9 +57,7 @@ const CampaignResult: React.FC<CampaignResultProps> = ({
 
   const handleSubmitFeedback = async (feedback: CampaignFeedbackData) => {
     if (!onRefine) return;
-
     setIsSubmittingFeedback(true);
-
     try {
       const campaignFeedback: CampaignFeedback = {
         overallRating: feedback.overallRating,
@@ -62,7 +65,6 @@ const CampaignResult: React.FC<CampaignResultProps> = ({
         elementRatings: feedback.elementRatings,
         timestamp: feedback.timestamp
       };
-
       await onRefine(campaignFeedback);
       setFeedbackSubmitted(true);
     } catch (error) {
@@ -80,6 +82,9 @@ const CampaignResult: React.FC<CampaignResultProps> = ({
     return <div>Loading...</div>;
   }
 
+  const isMultiLayeredInsight = (insight: any): insight is MultiLayeredInsight =>
+    insight && typeof insight === 'object' && 'surfaceInsight' in insight;
+
   return (
     <div className="space-y-6 mb-8">
       <Card className="overflow-hidden">
@@ -93,7 +98,6 @@ const CampaignResult: React.FC<CampaignResultProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
             {/* Left Column */}
             <div className="md:col-span-5 space-y-6">
-              {/* The Insight */}
               {campaign.insight && (
                 <div>
                   <h3 className="font-medium text-lg text-primary">The Insight</h3>
@@ -101,7 +105,6 @@ const CampaignResult: React.FC<CampaignResultProps> = ({
                 </div>
               )}
 
-              {/* The Idea */}
               {campaign.idea && (
                 <div>
                   <h3 className="font-medium text-lg text-primary">The Idea</h3>
@@ -110,18 +113,27 @@ const CampaignResult: React.FC<CampaignResultProps> = ({
               )}
 
               {/* Creative Insights */}
-              {campaign.creativeInsights && campaign.creativeInsights.length > 0 && (
+              {Array.isArray(campaign.creativeInsights) && campaign.creativeInsights.length > 0 && (
                 <div>
                   <h3 className="font-medium text-lg text-primary">💡 Creative Insights</h3>
-                  <ul className="list-disc pl-5 space-y-2">
+                  <ul className="pl-1 space-y-4">
                     {campaign.creativeInsights.map((insight, index) => (
-                      <li key={index}>{insight}</li>
+                      <li key={index} className="bg-muted/40 p-3 rounded-md border">
+                        {isMultiLayeredInsight(insight) ? (
+                          <>
+                            <p><strong>Surface Insight:</strong> {insight.surfaceInsight}</p>
+                            <p><strong>Emotional Undercurrent:</strong> {insight.emotionalUndercurrent}</p>
+                            <p><strong>Creative Unlock:</strong> {insight.creativeUnlock}</p>
+                          </>
+                        ) : (
+                          <p>{insight}</p>
+                        )}
+                      </li>
                     ))}
                   </ul>
                 </div>
               )}
 
-              {/* Call to Action */}
               {campaign.callToAction && (
                 <div>
                   <h3 className="font-medium text-lg text-primary">Call to Action</h3>
@@ -129,7 +141,6 @@ const CampaignResult: React.FC<CampaignResultProps> = ({
                 </div>
               )}
 
-              {/* Viral Element */}
               {campaign.viralElement && (
                 <div>
                   <h3 className="font-medium text-lg text-primary">Viral Element</h3>
@@ -137,7 +148,6 @@ const CampaignResult: React.FC<CampaignResultProps> = ({
                 </div>
               )}
 
-              {/* 🔥 PR Headline */}
               {campaign.prHeadline && (
                 <div>
                   <h3 className="font-medium text-lg text-primary">PR Headline</h3>
@@ -148,7 +158,7 @@ const CampaignResult: React.FC<CampaignResultProps> = ({
 
             {/* Right Column */}
             <div className="md:col-span-7 space-y-6 pl-0 md:pl-6">
-              {campaign.creativeStrategy && campaign.creativeStrategy.length > 0 && (
+              {campaign.creativeStrategy?.length > 0 && (
                 <div>
                   <h3 className="font-medium text-lg text-primary">The How</h3>
                   <ul className="list-disc pl-5 space-y-1">
@@ -159,7 +169,7 @@ const CampaignResult: React.FC<CampaignResultProps> = ({
                 </div>
               )}
 
-              {campaign.executionPlan && campaign.executionPlan.length > 0 && (
+              {campaign.executionPlan?.length > 0 && (
                 <div>
                   <h3 className="font-medium text-lg text-primary">Execution Plan</h3>
                   <ul className="list-decimal pl-5 space-y-1">
@@ -170,7 +180,7 @@ const CampaignResult: React.FC<CampaignResultProps> = ({
                 </div>
               )}
 
-              {campaign.expectedOutcomes && campaign.expectedOutcomes.length > 0 && (
+              {campaign.expectedOutcomes?.length > 0 && (
                 <div>
                   <h3 className="font-medium text-lg text-primary">Expected Outcomes</h3>
                   <ul className="list-disc pl-5 space-y-1">
@@ -181,8 +191,7 @@ const CampaignResult: React.FC<CampaignResultProps> = ({
                 </div>
               )}
 
-              {/* Reference Campaigns */}
-              {campaign.referenceCampaigns && campaign.referenceCampaigns.length > 0 && (
+              {campaign.referenceCampaigns?.length > 0 && (
                 <div>
                   <h3 className="font-medium text-lg text-primary">Reference Campaigns</h3>
                   <div className="flex flex-wrap gap-2">
@@ -195,7 +204,6 @@ const CampaignResult: React.FC<CampaignResultProps> = ({
                 </div>
               )}
 
-              {/* CD Evaluation */}
               {campaign.evaluation && (
                 <CreativeDirectorEvaluation evaluation={campaign.evaluation} />
               )}

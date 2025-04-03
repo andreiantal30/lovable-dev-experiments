@@ -8,8 +8,8 @@ router.post('/disruptive-pass', async (req: Request, res: Response): Promise<voi
   try {
     const { campaign } = req.body;
 
-    if (!campaign) {
-      res.status(400).json({ error: "Missing campaign data" });
+    if (!campaign || typeof campaign !== 'object') {
+      res.status(400).json({ error: "Missing or invalid campaign data" });
       return;
     }
 
@@ -23,10 +23,10 @@ router.post('/disruptive-pass', async (req: Request, res: Response): Promise<voi
 
     const response = {
       ...campaign,
-      ...injected, // ✅ Merge disruptiveDevice + twistDescription here
+      ...injected, // ✅ Merge enhanced output
     };
 
-    console.log("✅ Updated campaign data after disruptive pass:", response);
+    console.log("✅ Disruptive device injected successfully.");
     res.status(200).json(response);
   } catch (error) {
     console.error("❌ Disruptive pass failed:");
