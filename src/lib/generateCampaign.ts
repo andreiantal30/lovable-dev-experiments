@@ -23,7 +23,7 @@ const scoreExecution = (idea: string): number => {
   return score;
 };
 
-// 🎯 Dynamic Cannes Spike Generation
+// 🎯 Cannes Spike Generator
 const getCannesSpikeExecution = (brand: string): string | null => {
   const spikeExamples = {
     coffee: [
@@ -44,34 +44,33 @@ const getCannesSpikeExecution = (brand: string): string | null => {
   };
 
   const options = spikeExamples[brand.toLowerCase()];
-  if (options && options.length > 0) {
+  if (options?.length) {
     return options[Math.floor(Math.random() * options.length)];
   }
-
   return null;
 };
 
-// ✅ Rewritten: Bravery filter + no filler lines
+// ✅ Brave Execution Enforcement
 const ensureOneBraveExecution = (executions: string[], brand: string): string[] => {
-  const fallbackLines = [
+  const fillerLines = [
     'Let users create and share their wildest product ideas',
     'Trigger a real-world dare campaign that spills into social media and real life'
   ];
 
-  // Remove filler lines and duplicates
+  // Clean list: remove filler lines and duplicates
   const filtered = executions.filter(
     (e, idx, arr) =>
-      !fallbackLines.some(fb => e.toLowerCase().includes(fb.toLowerCase())) &&
+      !fillerLines.some(fb => e.toLowerCase().includes(fb.toLowerCase())) &&
       arr.findIndex(other => other.trim() === e.trim()) === idx
   );
 
   const safeWords = ['docuseries', 'AR experience', 'pop-up', 'co-creation', 'TikTok challenge'];
-  const isSafe = filtered.some(e => safeWords.some(s => e.toLowerCase().includes(s)));
+  const isSafe = filtered.every(e => safeWords.some(s => e.toLowerCase().includes(s)));
 
   if (filtered.length === 0 || isSafe) {
     const spike = getCannesSpikeExecution(brand);
     if (spike && !filtered.includes(spike)) {
-      console.warn("🛑 Execution too safe or generic. Injecting a Cannes Spike:", spike);
+      console.warn("💥 All executions were too safe — injecting Cannes Spike:", spike);
       return [...filtered, spike];
     }
   }
@@ -79,7 +78,7 @@ const ensureOneBraveExecution = (executions: string[], brand: string): string[] 
   return filtered;
 };
 
-// 🧠 Creative Director Pass
+// 🧠 CD Feedback
 const applyCreativeDirectorPass = async (rawOutput: any) => {
   try {
     const res = await fetch(`${BACKEND_URL}/api/cd-pass`, {
@@ -95,10 +94,9 @@ const applyCreativeDirectorPass = async (rawOutput: any) => {
   }
 };
 
-// 💥 Disruptive Device Injection
+// 💥 Disruptive Device Injector
 const injectDisruptivePass = async (input: any) => {
   try {
-    console.log("Sending request to disruptive-pass route:", input);
     const res = await fetch(`${BACKEND_URL}/api/disruptive-pass`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -112,7 +110,6 @@ const injectDisruptivePass = async (input: any) => {
     }
 
     const json = await res.json();
-    console.log("Disruptive pass response:", json);
     return {
       ...input,
       keyMessage: json.keyMessage || input.keyMessage,
@@ -129,6 +126,7 @@ const injectDisruptivePass = async (input: any) => {
   }
 };
 
+// 🔁 Main Generator
 export const generateCampaign = async (
   input: CampaignInput,
   openAIConfig: OpenAIConfig = defaultOpenAIConfig
@@ -140,26 +138,19 @@ export const generateCampaign = async (
     const culturalTrends = getCachedCulturalTrends();
     const relevantTrends = culturalTrends.sort(() => Math.random() - 0.5).slice(0, 3);
 
-    console.log("🧠 Cultural Trends Injected:", relevantTrends.map(t => t.title));
-
     const prompt = createCampaignPrompt(input, referenceCampaigns, creativeInsights, creativeDevices, relevantTrends);
     const raw = await generateWithOpenAI(prompt, openAIConfig);
 
     let parsed;
     try {
       parsed = JSON.parse(extractJsonFromResponse(raw));
-      console.log("🔍 Parsed OpenAI Response:", parsed);
     } catch (err) {
       console.error("❌ Failed to parse OpenAI response:", err);
-      console.debug("🔍 Raw OpenAI Output:\n", raw);
       throw new Error("Failed to parse OpenAI response. Try simplifying the prompt.");
     }
 
     const improved = await applyCreativeDirectorPass(parsed);
-    console.log("🧠 After CD Pass:", improved);
-
     const withTwist = await injectDisruptivePass(improved);
-    console.log("💥 After Disruptive Pass:", withTwist);
 
     const executionScores = withTwist.executionPlan.map(scoreExecution);
     const spikeWorthy = executionScores.every(score => score < 5);
@@ -167,18 +158,14 @@ export const generateCampaign = async (
       const spike = getCannesSpikeExecution(input.brand);
       if (spike && !withTwist.executionPlan.includes(spike)) {
         withTwist.executionPlan.push(spike);
-        console.warn("💥 All execution ideas were too safe. Injected Cannes Spike:", spike);
       }
     }
 
     withTwist.executionPlan = ensureOneBraveExecution(withTwist.executionPlan, input.brand);
 
     if (!withTwist.campaignName || !withTwist.keyMessage || !withTwist.executionPlan) {
-      console.error("❌ Campaign missing essential properties:", withTwist);
       throw new Error("Campaign is missing essential properties.");
     }
-
-    console.log("📝 Saving campaign with the following properties:", withTwist);
 
     const campaign: GeneratedCampaign = {
       ...withTwist,
@@ -212,7 +199,6 @@ export const generateCampaign = async (
 
     return campaign;
   } catch (error) {
-    console.error("❌ Error generating campaign:", error);
     toast.error(`Error generating campaign: ${error.message}`);
     throw error;
   }
