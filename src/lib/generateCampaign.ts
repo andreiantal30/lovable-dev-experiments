@@ -6,15 +6,13 @@ import { CampaignInput, GeneratedCampaign, CampaignEvaluation, CampaignVersion, 
 import { findSimilarCampaigns } from './campaign/campaignMatcher';
 import { generateCreativeInsights } from './campaign/creativeInsightGenerator';
 import { createCampaignPrompt } from './campaign/campaignPromptBuilder';
-import { extractJsonFromResponse } from './campaign/utils';
+import { extractJsonFromResponse, cleanExecutionSteps } from './campaign/utils';
 import { getCreativeDevicesForStyle } from '@/data/creativeDevices';
 import { getCachedCulturalTrends } from '@/data/culturalTrends';
 import { saveCampaignToLibrary } from './campaignStorage';
 import { evaluateCampaign } from './campaign/evaluateCampaign';
 
 const BACKEND_URL = 'https://animated-capybara-jj9qrx9r77pwc5qwj-8090.app.github.dev';
-
-// ... imports remain unchanged
 
 // 🔥 Enhanced bravery scoring
 const scoreBravery = (idea: string): { score: number; reasons: string[] } => {
@@ -60,9 +58,21 @@ const enhanceWithBravery = (executions: string[]): string[] => {
 
 const getCannesSpikeExecution = (brand: string): string | null => {
   const spikeExamples = {
-    coffee: [/* ... */],
-    tech: [/* ... */],
-    fashion: [/* ... */]
+    coffee: [
+      "Host a coffee art competition in a public space where people create their own coffee art with fresh ingredients.",
+      "Launch a ‘Coffee Taste Test’ street activation where strangers try blindfolded coffee challenges and share their reactions.",
+      "Create a 'Coffee Lover’s Confession' challenge where people share their most embarrassing coffee moments for prizes."
+    ],
+    tech: [
+      "Create a ‘Tech Throwback’ event where people bring their oldest tech items and compare them with the latest products.",
+      "Run a ‘Tech Time Capsule’ challenge where users bury their tech predictions for the future and dig them up after five years.",
+      "Set up a ‘Tech Fanatics’ museum showcasing iconic tech and their unique stories."
+    ],
+    fashion: [
+      "Create a citywide thrift hunt where hidden garments hold QR-coded fashion stories.",
+      "Hijack mannequins in fast fashion stores with protest couture made from upcycled clothes.",
+      "Launch a public 'Style Swap Booth' where strangers exchange statement pieces anonymously."
+    ]
   };
 
   const options = spikeExamples[brand.toLowerCase()];
@@ -124,13 +134,27 @@ const auditCampaignSafety = (campaign: any) => {
   );
 
   const weakestElement = isSafeInsight ? "safeInsight" : isSafeExecution ? "safeExecution" : null;
-  return { weakestElement };
+  return { weakestElement, content: isSafeInsight ? insight : executions.join('\n') };
 };
 
-const buildDisruptionPrompt = (weakest: string, templates: Record<string, string[]>) => {
+const buildDisruptionPrompt = (weakest: string, templates: Record<string, string[]>, content: string) => {
   const templateOptions = templates[weakest] || [];
   const selected = templateOptions[Math.floor(Math.random() * templateOptions.length)];
-  return `You’re a creative disruptor. ${selected}\nReturn a revised version of the campaign with bold, strategic tweaks. Respond in JSON.`;
+  return `
+The campaign element below is too safe:
+Type: ${weakest}
+Content: "${content}"
+
+${templateOptions.join('\n')}
+
+Use these to create a braver version.
+
+Return ONLY a valid JSON object in this format:
+{
+  "disruptedElement": "New, sharper version of the insight or execution line",
+  "rationale": "Why this disruption breaks convention or provokes tension"
+}
+`;
 };
 
 const injectStrategicDisruption = async (campaign: any) => {
@@ -149,13 +173,22 @@ const injectStrategicDisruption = async (campaign: any) => {
     ]
   };
 
-  const disruptionPrompt = buildDisruptionPrompt(safetyAudit.weakestElement, disruptionTemplates);
-
   try {
-    const raw = await generateWithOpenAI(disruptionPrompt);
-    return JSON.parse(extractJsonFromResponse(raw));
+    const prompt = buildDisruptionPrompt(safetyAudit.weakestElement, disruptionTemplates, safetyAudit.content);
+    const raw = await generateWithOpenAI(prompt);
+    const clean = extractJsonFromResponse(raw);
+    const parsed = JSON.parse(clean);
+
+    if (safetyAudit.weakestElement === 'safeInsight') {
+      campaign.creativeInsights[0].surfaceInsight = parsed.disruptedElement;
+    } else if (safetyAudit.weakestElement === 'safeExecution') {
+      campaign.executionPlan.push(parsed.disruptedElement);
+    }
+
+    return campaign;
   } catch (error) {
     console.error("⚠️ Strategic disruption failed:", error);
+    toast.error("Strategic disruption failed.");
     return campaign;
   }
 };
@@ -187,6 +220,7 @@ export const generateCampaign = async (
 
     withTwist.executionPlan = ensureOneBraveExecution(withTwist.executionPlan, input.brand);
     withTwist.executionPlan = enhanceWithBravery(withTwist.executionPlan);
+    withTwist.executionPlan = cleanExecutionSteps(withTwist.executionPlan);
 
     if (!withTwist.campaignName || !withTwist.keyMessage || !withTwist.executionPlan) {
       throw new Error("Campaign is missing essential properties.");
