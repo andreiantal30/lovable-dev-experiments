@@ -9,7 +9,7 @@ export interface MultiLayeredInsight {
 }
 
 /**
- * Generate multi-layered creative insights for campaign generation
+ * Generate a single sharp creative insight using the strongest tension
  */
 export async function generateCreativeInsights(
   input: CampaignInput,
@@ -21,20 +21,18 @@ export async function generateCreativeInsights(
     const objectivesString = input.objectives.join(', ');
 
     const prompt = `
-### Cultural Tension Mapper – Insight Depth Booster
+### Cultural Tension Mapper – Focused Insight Builder
 
-You're a strategist working on a campaign in ${currentYear}.
+You're a top strategist writing in ${currentYear}. Your job is to uncover ONE tension-based insight worth building a campaign around.
 
-Step 1: Identify a cultural tension affecting this audience.
-Step 2: Turn it into 3 layered insights using this format:
-
+Return a single JSON object in this format:
 {
   "surfaceInsight": "What the audience visibly experiences or does",
-  "emotionalUndercurrent": "The unspoken feeling, fear, or desire beneath it",
-  "creativeUnlock": "How the brand can flip that tension into power or participation"
+  "emotionalUndercurrent": "The surprising or unspoken emotional drive underneath it",
+  "creativeUnlock": "How the brand can flip that tension into something culturally bold or empowering"
 }
 
-Avoid clichés. Make it sharp and campaign-worthy.
+Make it specific, tension-rich, and useful for a bold campaign idea. Avoid clichés.
 
 — Audience Context —
 Target Audience: ${audienceString}
@@ -42,20 +40,18 @@ Brand: ${input.brand}
 Industry: ${input.industry}
 Campaign Objectives: ${objectivesString}
 Emotional Appeal: ${input.emotionalAppeal.join(', ')}
-
-Return ONLY a JSON array of 3 objects with this structure.
 `;
 
     const response = await generateWithOpenAI(prompt, config);
     const cleanedResponse = extractJsonFromResponse(response);
-
     const parsed = JSON.parse(cleanedResponse);
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      return parsed.slice(0, 3);
+
+    if (parsed && parsed.surfaceInsight && parsed.emotionalUndercurrent && parsed.creativeUnlock) {
+      return [parsed]; // Return as array for compatibility
     }
-    throw new Error("Invalid or empty parsed insights");
+    throw new Error("Invalid or missing insight fields in response");
   } catch (error) {
-    console.error("⚠️ Error generating multi-layered insights:", error);
+    console.error("⚠️ Error generating focused insight:", error);
     return [
       {
         surfaceInsight: "Young adults are overwhelmed by ‘optimized’ self-improvement culture.",

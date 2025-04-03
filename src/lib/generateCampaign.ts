@@ -12,7 +12,6 @@ import { getCachedCulturalTrends } from '@/data/culturalTrends';
 import { saveCampaignToLibrary } from './campaignStorage';
 import { evaluateCampaign } from './campaign/evaluateCampaign';
 
-// 🌍 Replace this with your Codespace 8090 address
 const BACKEND_URL = 'https://animated-capybara-jj9qrx9r77pwc5qwj-8090.app.github.dev';
 
 // 🧠 Brave Execution Scoring
@@ -25,7 +24,7 @@ const scoreExecution = (idea: string): number => {
 };
 
 // 🎯 Dynamic Cannes Spike Generation
-const getCannesSpikeExecution = (brand: string): string => {
+const getCannesSpikeExecution = (brand: string): string | null => {
   const spikeExamples = {
     coffee: [
       "Host a coffee art competition in a public space where people create their own coffee art with fresh ingredients.",
@@ -37,26 +36,47 @@ const getCannesSpikeExecution = (brand: string): string => {
       "Run a ‘Tech Time Capsule’ challenge where users bury their tech predictions for the future and dig them up after five years.",
       "Set up a ‘Tech Fanatics’ museum showcasing iconic tech and their unique stories."
     ],
+    fashion: [
+      "Create a citywide thrift hunt where hidden garments hold QR-coded fashion stories.",
+      "Hijack mannequins in fast fashion stores with protest couture made from upcycled clothes.",
+      "Launch a public 'Style Swap Booth' where strangers exchange statement pieces anonymously."
+    ]
   };
 
-  return spikeExamples[brand]?.[Math.floor(Math.random() * spikeExamples[brand].length)] ??
-    'Let users create and share their wildest product ideas in a social media challenge.';
-};
-
-// 🧠 Ensure at least one brave execution
-const ensureOneBraveExecution = (executions: string[], brand: string): string[] => {
-  const safeWords = ['docuseries', 'AR experience', 'pop-up', 'co-creation', 'TikTok challenge'];
-  const isSafe = executions.some(e =>
-    safeWords.some(s => e.toLowerCase().includes(s))
-  );
-
-  if (isSafe) {
-    console.warn("🛑 Execution too safe. Injecting a Cannes Spike based on brand:", brand);
-    const spike = getCannesSpikeExecution(brand);
-    return [...executions, spike];
+  const options = spikeExamples[brand.toLowerCase()];
+  if (options && options.length > 0) {
+    return options[Math.floor(Math.random() * options.length)];
   }
 
-  return executions;
+  return null;
+};
+
+// ✅ Rewritten: Bravery filter + no filler lines
+const ensureOneBraveExecution = (executions: string[], brand: string): string[] => {
+  const fallbackLines = [
+    'Let users create and share their wildest product ideas',
+    'Trigger a real-world dare campaign that spills into social media and real life'
+  ];
+
+  // Remove filler lines and duplicates
+  const filtered = executions.filter(
+    (e, idx, arr) =>
+      !fallbackLines.some(fb => e.toLowerCase().includes(fb.toLowerCase())) &&
+      arr.findIndex(other => other.trim() === e.trim()) === idx
+  );
+
+  const safeWords = ['docuseries', 'AR experience', 'pop-up', 'co-creation', 'TikTok challenge'];
+  const isSafe = filtered.some(e => safeWords.some(s => e.toLowerCase().includes(s)));
+
+  if (filtered.length === 0 || isSafe) {
+    const spike = getCannesSpikeExecution(brand);
+    if (spike && !filtered.includes(spike)) {
+      console.warn("🛑 Execution too safe or generic. Injecting a Cannes Spike:", spike);
+      return [...filtered, spike];
+    }
+  }
+
+  return filtered;
 };
 
 // 🧠 Creative Director Pass
@@ -79,7 +99,6 @@ const applyCreativeDirectorPass = async (rawOutput: any) => {
 const injectDisruptivePass = async (input: any) => {
   try {
     console.log("Sending request to disruptive-pass route:", input);
-
     const res = await fetch(`${BACKEND_URL}/api/disruptive-pass`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -142,18 +161,18 @@ export const generateCampaign = async (
     const withTwist = await injectDisruptivePass(improved);
     console.log("💥 After Disruptive Pass:", withTwist);
 
-    // Execution bravery check
     const executionScores = withTwist.executionPlan.map(scoreExecution);
     const spikeWorthy = executionScores.every(score => score < 5);
     if (spikeWorthy) {
       const spike = getCannesSpikeExecution(input.brand);
-      withTwist.executionPlan.push(spike);
-      console.warn("💥 All execution ideas were too safe. Injected Cannes Spike:", spike);
+      if (spike && !withTwist.executionPlan.includes(spike)) {
+        withTwist.executionPlan.push(spike);
+        console.warn("💥 All execution ideas were too safe. Injected Cannes Spike:", spike);
+      }
     }
 
     withTwist.executionPlan = ensureOneBraveExecution(withTwist.executionPlan, input.brand);
 
-    // Validate required fields
     if (!withTwist.campaignName || !withTwist.keyMessage || !withTwist.executionPlan) {
       console.error("❌ Campaign missing essential properties:", withTwist);
       throw new Error("Campaign is missing essential properties.");
