@@ -2,9 +2,9 @@ import { toast } from "sonner";
 import { Campaign } from './campaignData';
 import { generateWithOpenAI, OpenAIConfig, defaultOpenAIConfig } from './openai';
 import { generateStorytellingNarrative } from './storytellingGenerator';
-import { CampaignInput, GeneratedCampaign, CampaignEvaluation, CampaignVersion, MultiLayeredInsight } from './campaign/types';
+import { CampaignInput, GeneratedCampaign, CampaignVersion } from './campaign/types';
 import { findSimilarCampaigns } from './campaign/campaignMatcher';
-import { generateCreativeInsights } from './campaign/creativeInsightGenerator';
+import { generatePenetratingInsights } from './campaign/creativeInsightGenerator';
 import { createCampaignPrompt } from './campaign/campaignPromptBuilder';
 import { extractJsonFromResponse, cleanExecutionSteps } from './campaign/utils';
 import { getCreativeDevicesForStyle } from '@/data/creativeDevices';
@@ -139,7 +139,6 @@ const auditCampaignSafety = (campaign: any) => {
 
 const buildDisruptionPrompt = (weakest: string, templates: Record<string, string[]>, content: string) => {
   const templateOptions = templates[weakest] || [];
-  const selected = templateOptions[Math.floor(Math.random() * templateOptions.length)];
   return `
 The campaign element below is too safe:
 Type: ${weakest}
@@ -180,7 +179,16 @@ const injectStrategicDisruption = async (campaign: any) => {
     const parsed = JSON.parse(clean);
 
     if (safetyAudit.weakestElement === 'safeInsight') {
-      campaign.creativeInsights[0].surfaceInsight = parsed.disruptedElement;
+      const existing = campaign.creativeInsights?.[0];
+      if (typeof existing === 'object') {
+        campaign.creativeInsights[0].surfaceInsight = parsed.disruptedElement;
+      } else {
+        campaign.creativeInsights[0] = {
+          surfaceInsight: parsed.disruptedElement,
+          emotionalUndercurrent: '',
+          creativeUnlock: ''
+        };
+      }
     } else if (safetyAudit.weakestElement === 'safeExecution') {
       campaign.executionPlan.push(parsed.disruptedElement);
     }
@@ -198,7 +206,7 @@ export const generateCampaign = async (
   openAIConfig: OpenAIConfig = defaultOpenAIConfig
 ): Promise<GeneratedCampaign> => {
   try {
-    const creativeInsights = await generateCreativeInsights(input, openAIConfig);
+    const creativeInsights = await generatePenetratingInsights(input, openAIConfig);
     const referenceCampaigns = await findSimilarCampaigns(input, openAIConfig);
     const creativeDevices = getCreativeDevicesForStyle(input.campaignStyle, 3);
     const culturalTrends = getCachedCulturalTrends();
