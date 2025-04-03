@@ -8,9 +8,23 @@ export interface MultiLayeredInsight {
   creativeUnlock: string;
 }
 
-/**
- * Generate a single sharp creative insight using the strongest tension
- */
+// 🧠 Insight scoring logic – prioritize sharpness
+const scoreInsight = (insight: MultiLayeredInsight): number => {
+  let score = 0;
+
+  // Contradiction
+  if (/but|however|yet|although|paradox/i.test(insight.surfaceInsight)) score += 3;
+
+  // Cultural relevance
+  if (/gen [a-z]|post-pandemic|climate [a-z]|digital [a-z]/i.test(insight.surfaceInsight)) score += 2;
+
+  // Emotional charge
+  if (/guilt|shame|fear|longing|belonging|identity/i.test(insight.emotionalUndercurrent)) score += 2;
+
+  return score;
+};
+
+// 🧠 Focused prompt for primary insight
 export async function generateCreativeInsights(
   input: CampaignInput,
   config: OpenAIConfig = { apiKey: '', model: 'gpt-4o' }
@@ -47,7 +61,7 @@ Emotional Appeal: ${input.emotionalAppeal.join(', ')}
     const parsed = JSON.parse(cleanedResponse);
 
     if (parsed && parsed.surfaceInsight && parsed.emotionalUndercurrent && parsed.creativeUnlock) {
-      return [parsed]; // Return as array for compatibility
+      return [parsed];
     }
     throw new Error("Invalid or missing insight fields in response");
   } catch (error) {
@@ -57,6 +71,50 @@ Emotional Appeal: ${input.emotionalAppeal.join(', ')}
         surfaceInsight: "Young adults are overwhelmed by ‘optimized’ self-improvement culture.",
         emotionalUndercurrent: "They quietly feel like failures for not always being productive.",
         creativeUnlock: "Let the brand celebrate real rest as rebellion."
+      }
+    ];
+  }
+}
+
+// 🧠 Generate sharper, more provocative contradictions
+export async function generatePenetratingInsights(
+  input: CampaignInput,
+  config: OpenAIConfig = { apiKey: '', model: 'gpt-4o' }
+): Promise<MultiLayeredInsight[]> {
+  try {
+    const [base] = await generateCreativeInsights(input, config);
+
+    const contradictionPrompt = `
+Take this insight:
+Surface Insight: "${base.surfaceInsight}"
+Emotional Undercurrent: "${base.emotionalUndercurrent}"
+
+Now give me 3 alternative contradictory insights that challenge this worldview, and push the cultural tension deeper.
+
+Respond ONLY with a JSON array using this format:
+[
+  {
+    "surfaceInsight": "...",
+    "emotionalUndercurrent": "...",
+    "creativeUnlock": "..."
+  }
+]
+`;
+
+    const contradictionResponse = await generateWithOpenAI(contradictionPrompt, config);
+    const cleaned = extractJsonFromResponse(contradictionResponse);
+    const contradictions = JSON.parse(cleaned);
+
+    const all = [base, ...(Array.isArray(contradictions) ? contradictions : [])];
+    const sorted = all.sort((a, b) => scoreInsight(b) - scoreInsight(a));
+    return sorted.slice(0, 3);
+  } catch (error) {
+    console.error("⚠️ Error generating penetrating insights:", error);
+    return [
+      {
+        surfaceInsight: "People crave transformation, but fear losing what makes them feel safe.",
+        emotionalUndercurrent: "They want change without chaos.",
+        creativeUnlock: "Let the brand become a guide that respects their past while opening new doors."
       }
     ];
   }

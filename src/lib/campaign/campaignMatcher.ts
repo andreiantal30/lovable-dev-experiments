@@ -1,4 +1,3 @@
-
 import { Campaign } from '../campaignData';
 import { CampaignInput } from './types';
 import {
@@ -13,9 +12,6 @@ import { findSimilarCampaignsWithEmbeddings } from '@/lib/embeddingsUtil';
 import { campaigns } from '@/data/campaigns';
 import { OpenAIConfig } from '../openai';
 
-/**
- * Find similar campaigns using different matching strategies
- */
 export const findSimilarCampaigns = async (
   input: CampaignInput,
   openAIConfig: OpenAIConfig = { apiKey: '', model: 'gpt-4o' }
@@ -54,14 +50,40 @@ export const findSimilarCampaigns = async (
   return diversifyCampaignSelection(findSimilarCampaignsTraditional(input));
 };
 
-/**
- * Traditional campaign matching algorithm with improved diversity
- */
+export const findThematicMatches = async (input: CampaignInput): Promise<Campaign[]> => {
+  const similar = await findSimilarCampaigns(input);
+  const thematicGroups = groupByThemes(similar);
+  const oppositeIndustry = selectRandomWildcardCampaigns(similar, 2);
+  return [...thematicGroups["institutional rebellion"], ...oppositeIndustry];
+};
+
+const groupByThemes = (campaigns: Campaign[]) => {
+  const themes: Record<string, Campaign[]> = {
+    "institutional rebellion": [],
+    "personal vulnerability": [],
+    "cultural tension": [],
+    "system hacking": []
+  };
+
+  campaigns.forEach(c => {
+    if (/protest|activism|petition/i.test(c.keyMessage)) {
+      themes["institutional rebellion"].push(c);
+    } else if (/confess|vulnerable|truth/i.test(c.strategy)) {
+      themes["personal vulnerability"].push(c);
+    } else if (/culture|society|inequality|privilege/i.test(c.strategy)) {
+      themes["cultural tension"].push(c);
+    } else if (/subvert|glitch|hack/i.test(c.strategy)) {
+      themes["system hacking"].push(c);
+    }
+  });
+
+  return themes;
+};
+
 export function findSimilarCampaignsTraditional(input: CampaignInput): Campaign[] {
   const inputSentiment = determineSentiment(input.emotionalAppeal);
   const inputTone = determineTone(input.objectives, input.emotionalAppeal);
 
-  // Score all campaigns based on relevance criteria
   const scoredCampaigns: EnhancedSimilarityScore[] = (campaigns as Campaign[]).map(campaign => {
     const dimensionScores = {
       industry: 0,
@@ -133,27 +155,19 @@ export function findSimilarCampaignsTraditional(input: CampaignInput): Campaign[
     };
   });
 
-  // Get a wider range of top campaigns for diversity
   const topScoring = scoredCampaigns.sort((a, b) => b.totalScore - a.totalScore).slice(0, 20);
-  
-  // Select campaigns with diverse characteristics
+
   return selectDiverseCampaigns(topScoring, 5).map(s => s.campaign);
 }
 
-/**
- * Select diverse campaigns from the top-scoring ones
- */
 function selectDiverseCampaigns(scoredCampaigns: EnhancedSimilarityScore[], count: number): EnhancedSimilarityScore[] {
   const selected: EnhancedSimilarityScore[] = [];
-  
-  // Always include the top scoring campaign
+
   if (scoredCampaigns.length > 0) {
     selected.push(scoredCampaigns[0]);
   }
 
-  // Then add diverse campaigns
   while (selected.length < count && selected.length < scoredCampaigns.length) {
-    // Calculate the average dimension scores of already selected campaigns
     const avgDimensionScores: Record<string, number> = {};
     Object.keys(scoredCampaigns[0].dimensionScores).forEach(dimension => {
       avgDimensionScores[dimension] = selected.reduce(
@@ -165,86 +179,72 @@ function selectDiverseCampaigns(scoredCampaigns: EnhancedSimilarityScore[], coun
     let bestComplement: EnhancedSimilarityScore | null = null;
     let bestComplementScore = -1;
 
-    // Find campaigns that complement the already selected ones
     for (const candidate of scoredCampaigns) {
       if (selected.some(s => s.campaign.id === candidate.campaign.id)) continue;
 
       let complementScore = 0;
       let diversityScore = 0;
-      
-      // Check if this campaign adds diversity in dimensions where current selection is weak
+
       Object.entries(avgDimensionScores).forEach(([dimension, avgScore]) => {
         const dimensionKey = dimension as keyof typeof candidate.dimensionScores;
         if (avgScore < 7 && candidate.dimensionScores[dimensionKey] > avgScore) {
           complementScore += candidate.dimensionScores[dimensionKey] - avgScore;
         }
       });
-      
-      // Additional diversity bonus if industry or emotional appeal is different
+
       const uniqueIndustry = !selected.some(s => s.campaign.industry === candidate.campaign.industry);
       const uniqueEmotion = !selected.some(s => 
         s.campaign.emotionalAppeal.some(e => 
           candidate.campaign.emotionalAppeal.includes(e)
         )
       );
-      
+
       if (uniqueIndustry) diversityScore += 5;
       if (uniqueEmotion) diversityScore += 5;
-      
+
       const totalComplementScore = complementScore + diversityScore;
-      
+
       if (totalComplementScore > bestComplementScore) {
         bestComplementScore = totalComplementScore;
         bestComplement = candidate;
       }
     }
 
-    // Add the best complementary campaign
     if (bestComplement) {
       selected.push(bestComplement);
     } else {
-      // If no good complement found, add next best scoring campaign
       const nextBest = scoredCampaigns.find(
         candidate => !selected.some(s => s.campaign.id === candidate.campaign.id)
       );
       if (nextBest) selected.push(nextBest);
-      else break; // No more campaigns to add
+      else break;
     }
   }
 
-  // Limit to the requested count
   return selected.slice(0, count);
 }
 
-/**
- * Ensure diversity in the final campaign selection
- */
 function diversifyCampaignSelection(campaignsToInclude: Campaign[]): Campaign[] {
-  const MAX_RESULTS = 5; // Increased from 3 to get more diverse examples
+  const MAX_RESULTS = 5;
   const finalSelection: Campaign[] = [];
-  
-  // Include the top matches but make sure they're diverse
   const industries = new Set<string>();
   const emotionalAppeals = new Set<string>();
 
-  // First pass: add campaigns that have unique industries or emotional appeals
   for (const campaign of campaignsToInclude) {
-    // Check if this campaign adds diversity
     const newIndustry = !industries.has(campaign.industry);
     const newEmotion = campaign.emotionalAppeal.some(emotion => 
       !Array.from(emotionalAppeals).some(e => e.toLowerCase() === emotion.toLowerCase())
     );
-    
+
     if (newIndustry || newEmotion) {
       finalSelection.push(campaign);
       industries.add(campaign.industry);
       campaign.emotionalAppeal.forEach(e => emotionalAppeals.add(e));
     }
-    
+
     if (finalSelection.length >= MAX_RESULTS) break;
   }
-  
-  // Second pass: add remaining campaigns if we need more
+
   for (const campaign of campaignsToInclude) {
     if (!finalSelection.includes(campaign)) {
       finalSelection.push(campaign);
@@ -252,28 +252,23 @@ function diversifyCampaignSelection(campaignsToInclude: Campaign[]): Campaign[] 
     if (finalSelection.length >= MAX_RESULTS) break;
   }
 
-  // Add wildcard campaigns from the full dataset for more diversity
   if (finalSelection.length < MAX_RESULTS) {
     const remainingCount = MAX_RESULTS - finalSelection.length;
     const wildcards = selectRandomWildcardCampaigns(finalSelection, remainingCount);
     finalSelection.push(...wildcards);
   }
-  
+
   return finalSelection.slice(0, MAX_RESULTS);
 }
 
-/**
- * Select random wildcard campaigns that differ from those already selected
- */
 function selectRandomWildcardCampaigns(selectedCampaigns: Campaign[], count: number): Campaign[] {
   const selectedIds = new Set(selectedCampaigns.map(c => c.id));
   const selectedIndustries = new Set(selectedCampaigns.map(c => c.industry));
-  
+
   const eligibleCampaigns = (campaigns as Campaign[])
     .filter(c => !selectedIds.has(c.id) && !selectedIndustries.has(c.industry));
-    
-  // Shuffle eligible campaigns
+
   const shuffled = [...eligibleCampaigns].sort(() => 0.5 - Math.random());
-  
+
   return shuffled.slice(0, count);
 }

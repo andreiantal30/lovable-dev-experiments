@@ -14,63 +14,83 @@ import { evaluateCampaign } from './campaign/evaluateCampaign';
 
 const BACKEND_URL = 'https://animated-capybara-jj9qrx9r77pwc5qwj-8090.app.github.dev';
 
-// 🧠 Brave Execution Scoring
-const scoreExecution = (idea: string): number => {
+// ... imports remain unchanged
+
+// 🔥 Enhanced bravery scoring
+const scoreBravery = (idea: string): { score: number; reasons: string[] } => {
+  const reasons = [];
   let score = 0;
-  if (/delete|burn|sacrifice|confront|risk|forced/i.test(idea)) score += 3;
-  if (/public|unexpected|hack|glitch|confession|live stream/i.test(idea)) score += 2;
-  if (/bus stop|receipt|fridge|toilet|mirror|door|drone|ad blocker/i.test(idea)) score += 2;
-  return score;
+
+  if (/(interrupt|hijack|vandal|graffiti|takeover|occup|block|barricade)/i.test(idea)) {
+    score += 3;
+    reasons.push("Physical world intervention");
+  }
+
+  if (/(government|police|school|university|hospital|city council)/i.test(idea)) {
+    score += 3;
+    reasons.push("Challenges authority");
+  }
+
+  if (/(embarrass|confess|vulnerable|expose|naked truth)/i.test(idea)) {
+    score += 2;
+    reasons.push("Personal vulnerability");
+  }
+
+  if (/(gender|race|class|privilege|inequality|climate denial)/i.test(idea)) {
+    score += 4;
+    reasons.push("Touches cultural tension");
+  }
+
+  return { score, reasons };
 };
 
-// 🎯 Cannes Spike Generator
+const applyBraveryTemplate = (idea: string, reasons: string[]): string => {
+  return `${idea} (🔥 Elevated for bravery: ${reasons.join(', ')})`;
+};
+
+const enhanceWithBravery = (executions: string[]): string[] => {
+  return executions.map(e => {
+    const { score, reasons } = scoreBravery(e);
+    if (score < 5 && reasons.length) {
+      return applyBraveryTemplate(e, reasons);
+    }
+    return e;
+  });
+};
+
 const getCannesSpikeExecution = (brand: string): string | null => {
   const spikeExamples = {
-    coffee: [
-      "Host a coffee art competition in a public space where people create their own coffee art with fresh ingredients.",
-      "Launch a ‘Coffee Taste Test’ street activation where strangers try blindfolded coffee challenges and share their reactions.",
-      "Create a 'Coffee Lover’s Confession' challenge where people share their most embarrassing coffee moments for prizes."
-    ],
-    tech: [
-      "Create a ‘Tech Throwback’ event where people bring their oldest tech items and compare them with the latest products.",
-      "Run a ‘Tech Time Capsule’ challenge where users bury their tech predictions for the future and dig them up after five years.",
-      "Set up a ‘Tech Fanatics’ museum showcasing iconic tech and their unique stories."
-    ],
-    fashion: [
-      "Create a citywide thrift hunt where hidden garments hold QR-coded fashion stories.",
-      "Hijack mannequins in fast fashion stores with protest couture made from upcycled clothes.",
-      "Launch a public 'Style Swap Booth' where strangers exchange statement pieces anonymously."
-    ]
+    coffee: [/* ... */],
+    tech: [/* ... */],
+    fashion: [/* ... */]
   };
 
   const options = spikeExamples[brand.toLowerCase()];
-  if (options?.length) {
+  if (options && options.length > 0) {
     return options[Math.floor(Math.random() * options.length)];
   }
   return null;
 };
 
-// ✅ Brave Execution Enforcement
 const ensureOneBraveExecution = (executions: string[], brand: string): string[] => {
-  const fillerLines = [
+  const fallbackLines = [
     'Let users create and share their wildest product ideas',
     'Trigger a real-world dare campaign that spills into social media and real life'
   ];
 
-  // Clean list: remove filler lines and duplicates
   const filtered = executions.filter(
     (e, idx, arr) =>
-      !fillerLines.some(fb => e.toLowerCase().includes(fb.toLowerCase())) &&
+      !fallbackLines.some(fb => e.toLowerCase().includes(fb.toLowerCase())) &&
       arr.findIndex(other => other.trim() === e.trim()) === idx
   );
 
   const safeWords = ['docuseries', 'AR experience', 'pop-up', 'co-creation', 'TikTok challenge'];
-  const isSafe = filtered.every(e => safeWords.some(s => e.toLowerCase().includes(s)));
+  const isSafe = filtered.some(e => safeWords.some(s => e.toLowerCase().includes(s)));
 
   if (filtered.length === 0 || isSafe) {
     const spike = getCannesSpikeExecution(brand);
     if (spike && !filtered.includes(spike)) {
-      console.warn("💥 All executions were too safe — injecting Cannes Spike:", spike);
+      console.warn("🛑 Execution too safe or generic. Injecting a Cannes Spike:", spike);
       return [...filtered, spike];
     }
   }
@@ -78,7 +98,6 @@ const ensureOneBraveExecution = (executions: string[], brand: string): string[] 
   return filtered;
 };
 
-// 🧠 CD Feedback
 const applyCreativeDirectorPass = async (rawOutput: any) => {
   try {
     const res = await fetch(`${BACKEND_URL}/api/cd-pass`, {
@@ -94,39 +113,53 @@ const applyCreativeDirectorPass = async (rawOutput: any) => {
   }
 };
 
-// 💥 Disruptive Device Injector
-const injectDisruptivePass = async (input: any) => {
+// 🧠 Strategic Disruption Logic
+const auditCampaignSafety = (campaign: any) => {
+  const insight = campaign.creativeInsights?.[0]?.surfaceInsight || "";
+  const executions = campaign.executionPlan || [];
+
+  const isSafeInsight = !/(but|yet|however|although)/i.test(insight);
+  const isSafeExecution = executions.every(ex =>
+    !/(risk|interrupt|vulnerable|confess|graffiti|takeover|protest)/i.test(ex)
+  );
+
+  const weakestElement = isSafeInsight ? "safeInsight" : isSafeExecution ? "safeExecution" : null;
+  return { weakestElement };
+};
+
+const buildDisruptionPrompt = (weakest: string, templates: Record<string, string[]>) => {
+  const templateOptions = templates[weakest] || [];
+  const selected = templateOptions[Math.floor(Math.random() * templateOptions.length)];
+  return `You’re a creative disruptor. ${selected}\nReturn a revised version of the campaign with bold, strategic tweaks. Respond in JSON.`;
+};
+
+const injectStrategicDisruption = async (campaign: any) => {
+  const safetyAudit = auditCampaignSafety(campaign);
+
+  const disruptionTemplates = {
+    safeInsight: [
+      "What if we said the OPPOSITE of this insight?",
+      "How can we make this insight physically manifest?",
+      "What institution does this insight threaten?"
+    ],
+    safeExecution: [
+      "Instead of digital, how would this work as physical protest?",
+      "What if we forced participation rather than invited it?",
+      "How could this idea break a social norm?"
+    ]
+  };
+
+  const disruptionPrompt = buildDisruptionPrompt(safetyAudit.weakestElement, disruptionTemplates);
+
   try {
-    const res = await fetch(`${BACKEND_URL}/api/disruptive-pass`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ campaign: input }),
-    });
-
-    if (!res.ok) {
-      console.error(`Disruptive pass API error: ${res.status}`);
-      toast.error(`Disruptive pass failed with status: ${res.status}`);
-      return input;
-    }
-
-    const json = await res.json();
-    return {
-      ...input,
-      keyMessage: json.keyMessage || input.keyMessage,
-      prHeadline: json.prHeadline || input.prHeadline,
-      viralHook: json.viralHook || input.viralHook,
-      viralElement: json.viralElement || input.viralElement,
-      callToAction: json.callToAction || input.callToAction,
-      consumerInteraction: json.consumerInteraction || input.consumerInteraction,
-    };
-  } catch (err) {
-    console.error("⚠️ Disruptive device injection failed:", err);
-    toast.error("Disruptive enhancement failed.");
-    return input;
+    const raw = await generateWithOpenAI(disruptionPrompt);
+    return JSON.parse(extractJsonFromResponse(raw));
+  } catch (error) {
+    console.error("⚠️ Strategic disruption failed:", error);
+    return campaign;
   }
 };
 
-// 🔁 Main Generator
 export const generateCampaign = async (
   input: CampaignInput,
   openAIConfig: OpenAIConfig = defaultOpenAIConfig
@@ -146,22 +179,14 @@ export const generateCampaign = async (
       parsed = JSON.parse(extractJsonFromResponse(raw));
     } catch (err) {
       console.error("❌ Failed to parse OpenAI response:", err);
-      throw new Error("Failed to parse OpenAI response. Try simplifying the prompt.");
+      throw new Error("Failed to parse OpenAI response.");
     }
 
     const improved = await applyCreativeDirectorPass(parsed);
-    const withTwist = await injectDisruptivePass(improved);
-
-    const executionScores = withTwist.executionPlan.map(scoreExecution);
-    const spikeWorthy = executionScores.every(score => score < 5);
-    if (spikeWorthy) {
-      const spike = getCannesSpikeExecution(input.brand);
-      if (spike && !withTwist.executionPlan.includes(spike)) {
-        withTwist.executionPlan.push(spike);
-      }
-    }
+    const withTwist = await injectStrategicDisruption(improved);
 
     withTwist.executionPlan = ensureOneBraveExecution(withTwist.executionPlan, input.brand);
+    withTwist.executionPlan = enhanceWithBravery(withTwist.executionPlan);
 
     if (!withTwist.campaignName || !withTwist.keyMessage || !withTwist.executionPlan) {
       throw new Error("Campaign is missing essential properties.");
@@ -199,6 +224,7 @@ export const generateCampaign = async (
 
     return campaign;
   } catch (error) {
+    console.error("❌ Error generating campaign:", error);
     toast.error(`Error generating campaign: ${error.message}`);
     throw error;
   }
