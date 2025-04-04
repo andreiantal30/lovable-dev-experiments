@@ -14,6 +14,12 @@ import { evaluateCampaign } from './campaign/evaluateCampaign';
 
 const BACKEND_URL = 'https://animated-capybara-jj9qrx9r77pwc5qwj-8090.app.github.dev';
 
+interface CreativeInsight {
+  surfaceInsight: string;
+  emotionalUndercurrent?: string;
+  creativeUnlock?: string;
+}
+
 // 🔥 Enhanced bravery scoring
 const scoreBravery = (idea: string): { score: number; reasons: string[] } => {
   const reasons = [];
@@ -75,7 +81,7 @@ const getCannesSpikeExecution = (brand: string): string | null => {
     ]
   };
 
-  const options = spikeExamples[brand.toLowerCase()];
+  const options = spikeExamples[brand.toLowerCase() as keyof typeof spikeExamples];
   if (options && options.length > 0) {
     return options[Math.floor(Math.random() * options.length)];
   }
@@ -108,7 +114,7 @@ const ensureOneBraveExecution = (executions: string[], brand: string): string[] 
   return filtered;
 };
 
-const applyCreativeDirectorPass = async (rawOutput: any) => {
+const applyCreativeDirectorPass = async (rawOutput: any): Promise<any> => {
   try {
     const res = await fetch(`${BACKEND_URL}/api/cd-pass`, {
       method: 'POST',
@@ -129,7 +135,7 @@ const auditCampaignSafety = (campaign: any) => {
   const executions = campaign.executionPlan || [];
 
   const isSafeInsight = !/(but|yet|however|although)/i.test(insight);
-  const isSafeExecution = executions.every(ex =>
+  const isSafeExecution = executions.every((ex: string) =>
     !/(risk|interrupt|vulnerable|confess|graffiti|takeover|protest)/i.test(ex)
   );
 
@@ -156,7 +162,7 @@ Return ONLY a valid JSON object in this format:
 `;
 };
 
-const injectStrategicDisruption = async (campaign: any) => {
+const injectStrategicDisruption = async (campaign: any): Promise<any> => {
   const safetyAudit = auditCampaignSafety(campaign);
 
   const disruptionTemplates = {
@@ -173,7 +179,7 @@ const injectStrategicDisruption = async (campaign: any) => {
   };
 
   try {
-    const prompt = buildDisruptionPrompt(safetyAudit.weakestElement, disruptionTemplates, safetyAudit.content);
+    const prompt = buildDisruptionPrompt(safetyAudit.weakestElement || '', disruptionTemplates, safetyAudit.content);
     const raw = await generateWithOpenAI(prompt);
     const clean = extractJsonFromResponse(raw);
     const parsed = JSON.parse(clean);
@@ -201,18 +207,37 @@ const injectStrategicDisruption = async (campaign: any) => {
   }
 };
 
+const normalizeCreativeInsights = (insights: any[]): CreativeInsight[] => {
+  return insights.map(insight => {
+    if (typeof insight === 'string') {
+      return { surfaceInsight: insight };
+    }
+    return {
+      surfaceInsight: insight.surfaceInsight || '',
+      emotionalUndercurrent: insight.emotionalUndercurrent,
+      creativeUnlock: insight.creativeUnlock
+    };
+  });
+};
+
 export const generateCampaign = async (
   input: CampaignInput,
   openAIConfig: OpenAIConfig = defaultOpenAIConfig
 ): Promise<GeneratedCampaign> => {
   try {
-    const creativeInsights = await generatePenetratingInsights(input, openAIConfig);
+    const rawInsights = await generatePenetratingInsights(input, openAIConfig);
+    const creativeInsights = normalizeCreativeInsights(rawInsights);
     const referenceCampaigns = await findSimilarCampaigns(input, openAIConfig);
     const creativeDevices = getCreativeDevicesForStyle(input.campaignStyle, 3);
     const culturalTrends = getCachedCulturalTrends();
     const relevantTrends = culturalTrends.sort(() => Math.random() - 0.5).slice(0, 3);
 
-    const prompt = createCampaignPrompt(input, referenceCampaigns, creativeInsights, creativeDevices, relevantTrends);
+    const multiLayeredInsights = creativeInsights.map(insight => ({
+      ...insight,
+      emotionalUndercurrent: insight.emotionalUndercurrent || '',
+      creativeUnlock: insight.creativeUnlock || ''
+    }));
+    const prompt = createCampaignPrompt(input, referenceCampaigns, multiLayeredInsights, creativeDevices, relevantTrends);
     const raw = await generateWithOpenAI(prompt, openAIConfig);
 
     let parsed;
@@ -226,7 +251,7 @@ export const generateCampaign = async (
     const improved = await applyCreativeDirectorPass(parsed);
     const withTwist = await injectStrategicDisruption(improved);
 
-    withTwist.executionPlan = ensureOneBraveExecution(withTwist.executionPlan, input.brand);
+    withTwist.executionPlan = ensureOneBraveExecution(withTwist.executionPlan || [], input.brand);
     withTwist.executionPlan = enhanceWithBravery(withTwist.executionPlan);
     withTwist.executionPlan = cleanExecutionSteps(withTwist.executionPlan);
 
@@ -239,7 +264,10 @@ export const generateCampaign = async (
       referenceCampaigns,
       creativeInsights,
       storytelling: "",
-      evaluation: withTwist.evaluation,
+      emotionalAppeal: withTwist.emotionalAppeal || [],
+      creativeStrategy: withTwist.creativeStrategy || [],
+      expectedOutcomes: withTwist.expectedOutcomes || [],
+      evaluation: withTwist.evaluation || undefined
     };
 
     const storytelling = await generateStorytellingNarrative({
@@ -253,7 +281,14 @@ export const generateCampaign = async (
     campaign.storytelling = storytelling.narrative;
 
     const evaluation = await evaluateCampaign(campaign, { brand: input.brand, industry: input.industry }, openAIConfig);
-    campaign.evaluation = evaluation;
+    campaign.evaluation = {
+      insightSharpness: evaluation.insightSharpness || 0,
+      ideaOriginality: evaluation.ideaOriginality || 0,
+      executionPotential: evaluation.executionPotential || 0,
+      awardPotential: evaluation.awardPotential || 0,
+      finalVerdict: evaluation.finalVerdict || 'No evaluation available.',
+      ...evaluation
+    };
 
     saveCampaignToLibrary({
       id: crypto.randomUUID(),
@@ -265,7 +300,7 @@ export const generateCampaign = async (
     });
 
     return campaign;
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ Error generating campaign:", error);
     toast.error(`Error generating campaign: ${error.message}`);
     throw error;
