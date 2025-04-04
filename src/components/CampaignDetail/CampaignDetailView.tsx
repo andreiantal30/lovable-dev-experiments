@@ -38,30 +38,28 @@ const CampaignDetailView: React.FC<CampaignDetailViewProps> = ({
 
   // 🧠 Log eval on mount for debugging
   useEffect(() => {
-    if (campaign?.campaign?.evaluation) {
-      console.log("✅ Loaded Evaluation from Library:", campaign.campaign.evaluation);
-    } else {
+    if (!campaign?.campaign?.evaluation) {
       console.warn("❌ Evaluation missing in saved campaign:", campaign);
+      campaign.campaign.evaluation = {
+        insightSharpness: 0,
+        ideaOriginality: 0,
+        executionPotential: 0,
+        awardPotential: 0,
+        finalVerdict: 'No evaluation available.'
+      };
+    } else {
+      console.log("✅ Loaded Evaluation from Library:", campaign.campaign.evaluation);
     }
   }, [campaign]);
 
   // Guard against malformed data
-  const isValid =
-    campaign?.campaign &&
-    typeof campaign.campaign === 'object' &&
-    typeof campaign.campaign.campaignName === 'string' &&
-    Array.isArray(campaign.campaign.executionPlan) &&
-    Array.isArray(campaign.campaign.referenceCampaigns) &&
-    campaign.campaign.evaluation && typeof campaign.campaign.evaluation === 'object';
+  const isValid = campaign?.campaign && campaign.campaign.campaignName;
 
   if (!isValid) {
     console.warn('🛑 Invalid campaign object:', campaign);
     return (
       <div className="p-10 text-center text-muted-foreground">
         <p>Failed to load campaign details. The data may be malformed or incomplete.</p>
-        <pre className="mt-4 text-xs text-left max-w-2xl overflow-x-auto bg-muted p-4 rounded">
-          {JSON.stringify(campaign, null, 2)}
-        </pre>
         <Button onClick={() => navigate('/library')} className="mt-4">Back to Library</Button>
       </div>
     );
