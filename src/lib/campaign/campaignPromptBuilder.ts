@@ -8,26 +8,17 @@ import { CulturalTrend } from '@/data/culturalTrends';
 import { PersonaType } from '@/types/persona';
 import { MultiLayeredInsight } from './creativeInsightGenerator';
 
-// ✅ Auto-persona inference logic (fully typed)
 function inferPersona(input: CampaignInput): PersonaType {
   const emotion = input.emotionalAppeal.map(e => e.toLowerCase()).join(' ');
   const objective = input.objectives.map(o => o.toLowerCase()).join(' ');
   const industry = input.industry.toLowerCase();
 
-  if (industry.includes('tech') || industry.includes('ai')) {
-    return 'tech-innovator' as PersonaType;
-  }
-  if (emotion.includes('rebellion') || emotion.includes('urgency') || objective.includes('break rules')) {
-    return 'unfiltered-director' as PersonaType;
-  }
-  if (objective.includes('movement') || objective.includes('culture') || emotion.includes('belonging')) {
-    return 'culture-hacker' as PersonaType;
-  }
-  if (objective.includes('conversion') || objective.includes('data') || emotion.includes('trust')) {
-    return 'strategic-planner' as PersonaType;
-  }
+  if (industry.includes('tech') || industry.includes('ai')) return 'tech-innovator';
+  if (emotion.includes('rebellion') || emotion.includes('urgency') || objective.includes('break rules')) return 'unfiltered-director';
+  if (objective.includes('movement') || objective.includes('culture') || emotion.includes('belonging')) return 'culture-hacker';
+  if (objective.includes('conversion') || objective.includes('data') || emotion.includes('trust')) return 'strategic-planner';
 
-  return 'unfiltered-director' as PersonaType; // fallback
+  return 'unfiltered-director';
 }
 
 function getPersonaInstructions(persona: PersonaType): string {
@@ -80,16 +71,6 @@ export const createCampaignPrompt = (
   creativeDevices: CreativeDevice[] = [],
   culturalTrends: CulturalTrend[] = []
 ): string => {
-  const awardHeadlinePatterns = `
-### Award-Winning Headline Patterns to Inspire Naming
-- “The [Unexpected Mechanism] That [Human Outcome]”  
-- “We Didn’t [Do X], We [Did Y Instead]”  
-- “Turning [Problem] Into [Cultural Power]”  
-- “When [Group] Meets [World/Context]”  
-- “The Campaign That [Media Reaction]”  
-Use these to name the campaign or spark a unique structure.
-`;
-
   const wildcardCampaigns: Campaign[] = [
     {
       id: '999-wild',
@@ -121,6 +102,16 @@ Use these to name the campaign or spark a unique structure.
     }
   ];
 
+  const awardHeadlinePatterns = `
+### Award-Winning Headline Patterns to Inspire Naming
+- “The [Unexpected Mechanism] That [Human Outcome]”  
+- “We Didn’t [Do X], We [Did Y Instead]”  
+- “Turning [Problem] Into [Cultural Power]”  
+- “When [Group] Meets [World/Context]”  
+- “The Campaign That [Media Reaction]”  
+Use these to name the campaign or spark a unique structure.
+`;
+
   const fullReferences = [...referenceCampaigns, ...wildcardCampaigns];
   const referenceCampaignsText = fullReferences.map(c => formatCampaignForPrompt(c)).join('\n');
 
@@ -135,7 +126,7 @@ ${creativeInsights.map((insight, index) => {
   }).join('\n\n')}
 Use at least one insight. Ground your story in emotion.` : '';
 
-const culturalTrendsBlock = culturalTrends.length > 0 ? `
+  const culturalTrendsBlock = culturalTrends.length > 0 ? `
 #### ⚡ Cultural Trends (Optional Inspiration)
 Below are recent cultural signals. Use them only if they add flavor, tension, or relevance to your idea. You can reference, subvert, or riff off them — but **only if they naturally support your insight or emotional angle**.
 
@@ -148,33 +139,7 @@ ${referenceCampaignsText}
 `;
 
   const awardPatterns = getCreativePatternGuidance();
-  const campaignStyleDescription = input.campaignStyle || 'Any';
-
-  const styleDescriptions: Record<string, string> = {
-    'digital': 'Digital-first approach with highly shareable, interactive content',
-    'experiential': 'Experiential marketing focused on real-world brand immersion',
-    'social': 'Social-led approach optimized for engagement and virality',
-    'influencer': 'Influencer-driven marketing leveraging creators & personalities',
-    'guerrilla': 'Unexpected, disruptive guerrilla marketing activation',
-    'stunt': 'Attention-grabbing PR stunt designed to generate buzz',
-    'UGC': 'User-generated content strategy encouraging consumer participation',
-    'brand-activism': 'Brand Activism – Focused on social or environmental causes',
-    'branded-entertainment': 'Branded Entertainment – Storytelling through content',
-    'retail-activation': 'Retail Activation – In-store experiences, pop-ups, and interactive retail moments',
-    'product-placement': 'Product Placement & Integration – Subtle advertising in media',
-    'data-personalization': 'Data-Driven Personalization – Tailored messaging based on user data',
-    'real-time': 'Real-Time & Reactive Marketing – Capitalizing on trending topics',
-    'event-based': 'Event-Based – Tied to concerts, sports, cultural events, etc.',
-    'ooh-ambient': 'OOH & Ambient – Billboards, murals, and unexpected placements',
-    'ai-generated': 'AI-Generated – Campaign created or enhanced by AI tools',
-    'co-creation': 'Co-Creation & Collabs – Brand partnerships with artists, designers, or other brands',
-    'stunt-marketing': 'Stunt Marketing – One-time, bold activations to grab attention',
-    'ar-vr': 'AR/VR-Driven – Interactive digital experiences using augmented or virtual reality',
-    'performance': 'Performance-Driven – Focused on measurable conversions & ROI',
-    'loyalty-community': 'Loyalty & Community-Building – Built around exclusivity and brand affinity'
-  };
-
-  const campaignStyle = styleDescriptions[input.campaignStyle || ''] || campaignStyleDescription;
+  const campaignStyle = input.campaignStyle || 'Any';
   const inferredPersona = inferPersona(input);
   const personaInstructions = getPersonaInstructions(inferredPersona);
 
@@ -209,6 +174,7 @@ You must deliver 4–5 execution ideas. At least one must be:
 
 Avoid: generic digital activations, safe social challenges, or corporate fluff.
 Include at least one tactic that would make the client nervous — but would earn a Cannes Lion.
+Add genre-bending, emotionally bold, or tension-rich tactics whenever possible.
 `;
 
   return `### Generate a groundbreaking marketing campaign with the following:

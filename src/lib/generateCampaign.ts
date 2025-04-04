@@ -62,6 +62,12 @@ const enhanceWithBravery = (executions: string[]): string[] => {
   });
 };
 
+const selectTopBraveExecutions = (executions: string[], max = 5): string[] => {
+  const scored = executions.map(ex => ({ ex, ...scoreBravery(ex) }));
+  const sorted = scored.sort((a, b) => b.score - a.score);
+  return sorted.slice(0, max).map(s => s.ex);
+};
+
 const getCannesSpikeExecution = (brand: string): string | null => {
   const spikeExamples = {
     coffee: [
@@ -86,6 +92,26 @@ const getCannesSpikeExecution = (brand: string): string | null => {
     return options[Math.floor(Math.random() * options.length)];
   }
   return null;
+};
+
+const filterWeakExecutions = (executions: string[]): string[] => {
+  const bannedPatterns = [
+    /tiktok challenge/i,
+    /pop-up/i,
+    /docuseries/i,
+    /limited edition/i,
+    /co[- ]?creation/i,
+    /interactive website/i,
+    /brand ambassador/i,
+    /influencer/i,
+    /web3/i,
+    /AR experience/i,
+    /immersive installation/i,
+  ];
+
+  return executions.filter(ex =>
+    !bannedPatterns.some(pattern => pattern.test(ex))
+  );
 };
 
 const ensureOneBraveExecution = (executions: string[], brand: string): string[] => {
@@ -129,7 +155,6 @@ const applyCreativeDirectorPass = async (rawOutput: any) => {
   }
 };
 
-// 🧠 Strategic Disruption Logic
 const auditCampaignSafety = (campaign: any) => {
   const insight = campaign.creativeInsights?.[0]?.surfaceInsight || "";
   const executions = campaign.executionPlan || [];
@@ -158,8 +183,7 @@ Return ONLY a valid JSON object in this format:
 {
   "disruptedElement": "New, sharper version of the insight or execution line",
   "rationale": "Why this disruption breaks convention or provokes tension"
-}
-`;
+}`;
 };
 
 const injectStrategicDisruption = async (campaign: any) => {
@@ -232,9 +256,14 @@ export const generateCampaign = async (
     const improved = await applyCreativeDirectorPass(parsed);
     const withTwist = await injectStrategicDisruption(improved);
 
-    withTwist.executionPlan = ensureOneBraveExecution(withTwist.executionPlan, input.brand);
-    withTwist.executionPlan = enhanceWithBravery(withTwist.executionPlan);
-    withTwist.executionPlan = cleanExecutionSteps(withTwist.executionPlan);
+    let executions = withTwist.executionPlan || [];
+    executions = filterWeakExecutions(executions);
+    executions = ensureOneBraveExecution(executions, input.brand);
+    executions = enhanceWithBravery(executions);
+    executions = selectTopBraveExecutions(executions);
+    executions = cleanExecutionSteps(executions);
+
+    withTwist.executionPlan = executions;
 
     if (!withTwist.campaignName || !withTwist.keyMessage || !withTwist.executionPlan) {
       throw new Error("Campaign is missing essential properties.");
