@@ -1,3 +1,12 @@
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import path from 'path';
+
+// Load root-level .env regardless of current working directory
+dotenv.config({
+  path: path.resolve(__dirname, '../.env')
+});
+
 import OpenAI from 'openai';
 import { extractJsonFromResponse } from '../src/lib/campaign/utils';
 
@@ -15,7 +24,7 @@ type CampaignOutput = {
 };
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY!, // <- patched here
 });
 
 /**
