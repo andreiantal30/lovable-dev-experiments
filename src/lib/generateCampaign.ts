@@ -10,6 +10,7 @@ import { getCreativeDevicesForStyle } from '@/data/creativeDevices';
 import { getCachedCulturalTrends } from '@/data/culturalTrends';
 import { saveCampaignToLibrary } from './campaignStorage';
 import { evaluateCampaign } from './campaign/evaluateCampaign';
+import { normalizeExecutionNumbers } from './campaign/utils';
 
 const BACKEND_URL = 'https://animated-capybara-jj9qrx9r77pwc5qwj-8090.app.github.dev';
 
@@ -229,7 +230,7 @@ export const generateCampaign = async (
 ): Promise<GeneratedCampaign> => {
   try {
     // 1. Generate foundational elements with enhanced insights
-    const rawInsights = await generatePenetratingInsights(input, openAIConfig);
+    const rawInsights = (await generatePenetratingInsights(input, openAIConfig)).slice(0, 1);
     const creativeInsights = (await deepenInsights(rawInsights, openAIConfig))
       .map(insight => ({
         ...insight,
@@ -284,12 +285,16 @@ export const generateCampaign = async (
 
     // 4. Execution plan refinement
     let executions = improved.executionPlan || [];
-    executions = [
+
+    const upgradedExecutions = [
       ...upgradeWeakExecutions(executions),
       getStrategicSpike(input.brand, creativeInsights[0])
     ];
-    executions = cleanExecutionSteps(
-      selectTopBraveExecutions(executions)
+    
+    executions = normalizeExecutionNumbers(
+      cleanExecutionSteps(
+        selectTopBraveExecutions(upgradedExecutions)
+      )
     );
 
     // 5. Final assembly with proper typing

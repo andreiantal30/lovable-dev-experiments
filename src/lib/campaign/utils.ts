@@ -98,6 +98,15 @@ export function cleanExecutionSteps(executions: string[]): string[] {
 }
 
 /**
+ * Patch: Replace leading numbers like 1.1, 2.2, 3.4 with 1., 2., etc
+ */
+export const normalizeExecutionNumbers = (steps: string[]): string[] => {
+  return steps.map((step, index) =>
+    step.replace(/^\d+(\.\d+)*\s*[:.-]?\s*/, `${index + 1}. `)
+  );
+};
+
+/**
  * Capitalizes first letter of a string
  */
 export function capitalizeFirstLetter(str: string): string {
