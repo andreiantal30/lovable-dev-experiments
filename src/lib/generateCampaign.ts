@@ -132,18 +132,6 @@ interface DisruptionAxis {
   fix: string;
 }
 
-// Skip disruption logic for conservative brands or legacy audiences
-const shouldSkipDisruption = (campaign: GeneratedCampaign) => {
-  const brand = campaign.campaignName.toLowerCase();
-  const audienceHints = JSON.stringify(campaign).toLowerCase();
-
-  const sensitiveBrands = ["allianz", "axa", "prudential"];
-  const nonDisruptiveAudiences = ["retirees", "legacy", "older adults", "intergenerational"];
-
-  return sensitiveBrands.some(b => brand.includes(b)) ||
-         nonDisruptiveAudiences.some(keyword => audienceHints.includes(keyword));
-};
-
 const disruptOnAllAxes = async (
   campaign: GeneratedCampaign,
   config: OpenAIConfig
@@ -161,7 +149,7 @@ const disruptOnAllAxes = async (
     },
     {
       name: "Agency",
-      test: /user|participant|player|viewer|spectator/i,
+      test: /user|participant|player|viewer|spectator|community/i,
       fix: "Force institutional response through collective action"
     },
     {
@@ -172,15 +160,25 @@ const disruptOnAllAxes = async (
   ];
 
   let modifiedCampaign = { ...campaign };
-  const triggeredAxes: string[] = [];
+  let wasDisrupted = false;
 
   for (const axis of disruptionAxes) {
     if (axis.test.test(JSON.stringify(modifiedCampaign).toLowerCase())) {
       try {
-        const prompt = `Take this ${axis.name} axis from safe to brave:\nCurrent Campaign: ${JSON.stringify({
+        const prompt = `Take this ${axis.name} axis from safe to brave:
+Current Campaign: ${JSON.stringify({
           strategy: modifiedCampaign.creativeStrategy,
           executions: modifiedCampaign.executionPlan
-        }, null, 2)}\n\nAxis Being Disrupted: ${axis.name}\nDisruption Requirement: ${axis.fix}\n\nReturn ONLY the modified campaign JSON in this exact format:\n{\n  "creativeStrategy": string[],\n  "executionPlan": string[]\n}`;
+        }, null, 2)}
+
+Axis Being Disrupted: ${axis.name}
+Disruption Requirement: ${axis.fix}
+
+Return ONLY the modified campaign JSON in this exact format:
+{
+  "creativeStrategy": string[],
+  "executionPlan": string[]
+}`;
 
         const response = await generateWithOpenAI(prompt, config);
         const disruptionResult = JSON.parse(extractJsonFromResponse(response));
@@ -195,40 +193,40 @@ const disruptOnAllAxes = async (
           ]
         };
 
-        triggeredAxes.push(axis.name);
+        wasDisrupted = true;
       } catch (error) {
         console.error(`Disruption on ${axis.name} axis failed:`, error);
       }
     }
   }
 
-  // 🔥 If no axes triggered, apply fallback storytelling disruption
-  if (triggeredAxes.length === 0) {
+  // Fallback polish if no disruption occurred
+  if (!wasDisrupted) {
     try {
-      const fallbackPrompt = `This campaign is emotionally warm but lacks cultural friction.\nAdd a disruptive storytelling twist that introduces conflict, contradiction, or risk — while preserving the original intent.\n\nCampaign:\n${JSON.stringify({
-        strategy: modifiedCampaign.creativeStrategy,
-        executions: modifiedCampaign.executionPlan
-      }, null, 2)}\n\nReturn updated JSON with format:\n{\n  "creativeStrategy": string[],\n  "executionPlan": string[]\n}`;
+      const polishPrompt = `Polish the tone, metaphor, and storytelling of this campaign to make it emotionally richer and more Cannes-worthy. Do not change the core idea, just rewrite the language to elevate it.
 
-      const response = await generateWithOpenAI(fallbackPrompt, config);
-      const fallback = JSON.parse(extractJsonFromResponse(response));
+Campaign: ${JSON.stringify(modifiedCampaign, null, 2)}
+
+Return JSON:`;
+      const polishResponse = await generateWithOpenAI(polishPrompt, config);
+      const polished = JSON.parse(extractJsonFromResponse(polishResponse));
 
       modifiedCampaign = {
         ...modifiedCampaign,
-        creativeStrategy: fallback.creativeStrategy || modifiedCampaign.creativeStrategy,
-        executionPlan: fallback.executionPlan || modifiedCampaign.executionPlan,
+        ...polished,
         _cdModifications: [
           ...(modifiedCampaign._cdModifications || []),
-          "Fallback CD disruption applied for low-friction narrative"
+          "Fallback storytelling polish applied"
         ]
       };
-    } catch (error) {
-      console.warn("Fallback disruption failed:", error);
+    } catch (e) {
+      console.error("Fallback storytelling polish failed:", e);
     }
   }
 
   return modifiedCampaign;
 };
+
 
 // ================== EXECUTION POLISH ================== //
 const upgradeWeakExecutions = (executions: string[]): string[] => {
@@ -304,12 +302,25 @@ export const generateCampaign = async (
     }
 
     // 3. Creative Director pass
-    console.group('🎭 Creative Director Pass');
-    const improved = await disruptOnAllAxes(parsed, openAIConfig);
-    console.log('🟠 Pre-CD:', JSON.stringify(parsed, null, 2));
-    console.log('🔵 Post-CD:', JSON.stringify(improved, null, 2));
-    logDifferences(parsed, improved);
-    console.groupEnd();
+console.group('🎭 Creative Director Pass');
+const improved = await disruptOnAllAxes(parsed, openAIConfig);
+
+// ✅ NEW: Apply narrative polish to restore emotional resonance
+const polished = await generateStorytellingNarrative({
+  brand: input.brand,
+  industry: input.industry,
+  targetAudience: input.targetAudience,
+  emotionalAppeal: input.emotionalAppeal,
+  campaignName: improved.campaignName,
+  keyMessage: improved.keyMessage,
+}, openAIConfig);
+
+improved.storytelling = polished.narrative;
+
+console.log('🟠 Pre-CD:', JSON.stringify(parsed, null, 2));
+console.log('🔵 Post-CD:', JSON.stringify(improved, null, 2));
+logDifferences(parsed, improved);
+console.groupEnd();
 
 
     // 4. Execution plan refinement
