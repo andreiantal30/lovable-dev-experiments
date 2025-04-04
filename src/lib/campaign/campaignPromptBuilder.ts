@@ -8,6 +8,8 @@ import { CulturalTrend } from '@/data/culturalTrends';
 import { PersonaType } from '@/types/persona';
 import { MultiLayeredInsight } from './creativeInsightGenerator';
 
+const BRAVERY_THRESHOLD = 6; // Minimum bravery requirement
+
 function inferPersona(input: CampaignInput): PersonaType {
   const emotion = input.emotionalAppeal.map(e => e.toLowerCase()).join(' ');
   const objective = input.objectives.map(o => o.toLowerCase()).join(' ');
@@ -102,18 +104,9 @@ export const createCampaignPrompt = (
     }
   ];
 
-  const awardHeadlinePatterns = `
-### Award-Winning Headline Patterns to Inspire Naming
-- “The [Unexpected Mechanism] That [Human Outcome]”  
-- “We Didn’t [Do X], We [Did Y Instead]”  
-- “Turning [Problem] Into [Cultural Power]”  
-- “When [Group] Meets [World/Context]”  
-- “The Campaign That [Media Reaction]”  
-Use these to name the campaign or spark a unique structure.
-`;
-
   const fullReferences = [...referenceCampaigns, ...wildcardCampaigns];
   const referenceCampaignsText = fullReferences.map(c => formatCampaignForPrompt(c)).join('\n');
+  const braveReferences = fullReferences.filter(r => (r as any).braveryScore > BRAVERY_THRESHOLD);
 
   const insightsBlock = creativeInsights.length > 0 ? `
 #### **Creative Insights**
@@ -136,6 +129,24 @@ ${culturalTrends.map((trend, index) => `${index + 1}. "${trend.title}": ${trend.
   const referencePrompt = `
 Use these real-world awarded campaigns for inspiration. Study their emotional appeal, cultural angle, and structure—but do not copy:
 ${referenceCampaignsText}
+`;
+
+  const braveryBlock = `
+### Bravery Requirements
+Your campaign must meet these standards:
+- Score ≥${BRAVERY_THRESHOLD}/10 on the provocation scale
+- Include at least one:
+  * Physical world intervention
+  * Institutional challenge
+  * Culturally tense topic
+
+Avoid:
+- "AR experience" (overused)
+- "TikTok challenge" (generic)
+- "Pop-up event" (predictable)
+
+Brave reference moves to emulate:
+${braveReferences.map(r => `- ${r.name}: ${(r as any).keyMessage || 'N/A'}`).join('\n')}
 `;
 
   const awardPatterns = getCreativePatternGuidance();
@@ -164,17 +175,14 @@ Push for tension, contradiction, or irony. The idea should spark instant convers
 
   const executionReminder = `
 ### Execution Rules of the Game
-You must deliver 4–5 execution ideas. At least one must be:
+You must deliver exactly 4–5 execution ideas. Each one should be:
+- Brave or unconventional
+- Emotionally charged or culturally specific
+- Unexpected in format, media, or tone
+- Something a client might initially hesitate on — but jurors would reward
 
-- Uncomfortable
-- Public-facing
-- Unexpected in format or channel
-- Controversial or emotional
-- Culturally provocative
-
-Avoid: generic digital activations, safe social challenges, or corporate fluff.
-Include at least one tactic that would make the client nervous — but would earn a Cannes Lion.
-Add genre-bending, emotionally bold, or tension-rich tactics whenever possible.
+⚠️ Avoid: safe digital challenges, docuseries, AR/VR stunts, brand collabs, pop-ups, or influencer campaigns — unless they’re radically subverted.
+Include at least one that reclaims public space, challenges norms, or invites vulnerability.
 `;
 
   return `### Generate a groundbreaking marketing campaign with the following:
@@ -194,8 +202,8 @@ ${creativeLensInstructions}
 ${insightsBlock}
 ${culturalTrendsBlock}
 ${creativeDevicesBlock}
-${awardHeadlinePatterns}
 ${provocationBlock}
+${braveryBlock}
 ${executionReminder}
 
 #### Campaign Format

@@ -138,11 +138,18 @@ Respond with **only** this JSON (no backticks or formatting):
       ideaOriginality: 5,
       executionPotential: 5,
       awardPotential: 5,
-      finalVerdict: "Evaluation could not be processed correctly.",
+      creativeBravery: 5,
+      braveryBreakdown: {
+        physicalIntervention: false,
+        challengesAuthority: false,
+        culturalTension: false,
+        personalRisk: false
+      },
+      braverySuggestions: [],
+      finalVerdict: "Default fallback."
     };
   }
 }
-
 
 export function saveApiKeyToStorage(apiKey: string): void {
   if (isBrowser) {

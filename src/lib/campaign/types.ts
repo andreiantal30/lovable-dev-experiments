@@ -67,7 +67,15 @@ export interface CampaignEvaluation {
   ideaOriginality: number;
   executionPotential: number;
   awardPotential: number;
+  creativeBravery: number;
   finalVerdict: string;
+  braveryBreakdown: {
+    physicalIntervention: boolean;
+    challengesAuthority: boolean;
+    culturalTension: boolean;
+    personalRisk: boolean;
+  };
+  braverySuggestions: string[];
 }
 
 export interface CampaignVersion {

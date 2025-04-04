@@ -7,6 +7,67 @@ interface EvaluationContext {
   industry: string;
 }
 
+interface BraveryScore {
+  score: number;
+  breakdown: {
+    physicalIntervention: boolean;
+    challengesAuthority: boolean;
+    culturalTension: boolean;
+    personalRisk: boolean;
+  };
+  suggestions: string[];
+}
+
+const BRAVERY_PATTERNS = [
+  {
+    regex: /(interrupt|hijack|vandal|takeover|occup|block|barricade)/i,
+    points: 3,
+    type: 'physicalIntervention',
+    suggestion: 'Add real-world physical intervention'
+  },
+  {
+    regex: /(government|police|school|university|hospital|city council)/i,
+    points: 3,
+    type: 'challengesAuthority',
+    suggestion: 'Make the challenge to authority more explicit'
+  },
+  {
+    regex: /(gender|race|class|privilege|inequality|climate denial)/i,
+    points: 4,
+    type: 'culturalTension',
+    suggestion: 'Highlight the cultural or societal tension more boldly'
+  },
+  {
+    regex: /(embarrass|confess|vulnerable|expose|naked truth)/i,
+    points: 2,
+    type: 'personalRisk',
+    suggestion: 'Include more personal or emotional vulnerability'
+  },
+];
+
+const calculateBraveryScore = (campaign: any): BraveryScore => {
+  let score = 0;
+  const breakdown = {
+    physicalIntervention: false,
+    challengesAuthority: false,
+    culturalTension: false,
+    personalRisk: false
+  };
+  const suggestions: string[] = [];
+
+  const campaignText = JSON.stringify(campaign).toLowerCase();
+
+  BRAVERY_PATTERNS.forEach(pattern => {
+    if (pattern.regex.test(campaignText)) {
+      score += pattern.points;
+      breakdown[pattern.type] = true;
+      suggestions.push(pattern.suggestion);
+    }
+  });
+
+  return { score, breakdown, suggestions };
+};
+
 export const evaluateCampaign = async (
   campaign: GeneratedCampaign,
   context: EvaluationContext,
@@ -14,6 +75,7 @@ export const evaluateCampaign = async (
 ): Promise<CampaignEvaluation> => {
   try {
     const referenceCampaigns = campaign.referenceCampaigns || [];
+    const braveryScore = calculateBraveryScore(campaign);
 
     const referenceBrief = referenceCampaigns.slice(0, 3).map(ref => {
       return `- ${ref.name} (${ref.brand}, ${ref.year}) – ${ref.keyMessage}`;
@@ -33,16 +95,16 @@ Do NOT reward:
 - Safe or familiar formats
 - Gimmicky tech without depth
 - Overused influencer or UGC tropes
-- Generic “feel good” messaging without insight
+- Generic "feel good" messaging without insight
 
 — CAMPAIGN TO EVALUATE —
 Name: ${campaign.campaignName}
 Brand: ${context.brand}
 Industry: ${context.industry}
 Key Message: ${campaign.keyMessage}
-Creative Strategy: ${campaign.creativeStrategy.join("; ")}
-Execution Plan: ${campaign.executionPlan.join("; ")}
-Creative Insights: ${campaign.creativeInsights?.join("; ") || "None"}
+Creative Strategy: ${campaign.creativeStrategy?.join("; ") || "None"}
+Execution Plan: ${campaign.executionPlan?.join("; ") || "None"}
+Creative Insights: ${campaign.creativeInsights?.map(ci => ci.surfaceInsight).join("; ") || "None"}
 Emotional Appeal: ${campaign.emotionalAppeal?.join(", ") || "None"}
 Call to Action: ${campaign.callToAction || campaign.consumerInteraction || "None"}
 
@@ -66,7 +128,12 @@ Return a JSON object like this:
     const cleaned = extractJsonFromResponse(response);
     const parsed = JSON.parse(cleaned);
 
-    return parsed;
+    return {
+      ...parsed,
+      creativeBravery: Math.min(10, Math.max(1, Math.round(braveryScore.score / 1.2))),
+      braveryBreakdown: braveryScore.breakdown,
+      braverySuggestions: braveryScore.suggestions
+    };
   } catch (err) {
     console.error("🧠 Evaluation error:", err);
     return {
@@ -74,7 +141,16 @@ Return a JSON object like this:
       ideaOriginality: 5,
       executionPotential: 5,
       awardPotential: 5,
-      finalVerdict: "Evaluation failed. Default scores applied."
+      creativeBravery: 5,
+      finalVerdict: "Evaluation failed. Default scores applied.",
+      braveryBreakdown: {
+        physicalIntervention: false,
+        challengesAuthority: false,
+        culturalTension: false,
+        personalRisk: false
+      },
+      braverySuggestions: []
     };
   }
 };
+export { BRAVERY_PATTERNS, calculateBraveryScore };

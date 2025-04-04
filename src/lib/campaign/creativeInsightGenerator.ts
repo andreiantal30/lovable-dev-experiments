@@ -8,23 +8,23 @@ export interface MultiLayeredInsight {
   creativeUnlock: string;
 }
 
-// 🧠 Insight scoring logic – prioritize sharpness
+// 🔍 Insight scoring logic – prioritize contradiction, cultural tension, and emotional sharpness
 const scoreInsight = (insight: MultiLayeredInsight): number => {
   let score = 0;
 
-  // Contradiction
+  // Contradiction indicator
   if (/but|however|yet|although|paradox/i.test(insight.surfaceInsight)) score += 3;
 
   // Cultural relevance
   if (/gen [a-z]|post-pandemic|climate [a-z]|digital [a-z]/i.test(insight.surfaceInsight)) score += 2;
 
-  // Emotional charge
-  if (/guilt|shame|fear|longing|belonging|identity/i.test(insight.emotionalUndercurrent)) score += 2;
+  // Emotional depth
+  if (/guilt|shame|fear|longing|belonging|identity|resentment/i.test(insight.emotionalUndercurrent)) score += 3;
 
   return score;
 };
 
-// 🧠 Focused prompt for primary insight
+// 🧠 Focused insight builder
 export async function generateCreativeInsights(
   input: CampaignInput,
   config: OpenAIConfig = { apiKey: '', model: 'gpt-4o' }
@@ -76,7 +76,7 @@ Emotional Appeal: ${input.emotionalAppeal.join(', ')}
   }
 }
 
-// 🧠 Generate sharper, more provocative contradictions
+// 🔥 Generate deeper contradictions, then return the best one
 export async function generatePenetratingInsights(
   input: CampaignInput,
   config: OpenAIConfig = { apiKey: '', model: 'gpt-4o' }
@@ -107,7 +107,7 @@ Respond ONLY with a JSON array using this format:
 
     const all = [base, ...(Array.isArray(contradictions) ? contradictions : [])];
     const sorted = all.sort((a, b) => scoreInsight(b) - scoreInsight(a));
-    return sorted.slice(0, 3);
+    return [sorted[0]]; // Return only the strongest insight
   } catch (error) {
     console.error("⚠️ Error generating penetrating insights:", error);
     return [

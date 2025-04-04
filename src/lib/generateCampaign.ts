@@ -11,6 +11,8 @@ import { getCreativeDevicesForStyle } from '@/data/creativeDevices';
 import { getCachedCulturalTrends } from '@/data/culturalTrends';
 import { saveCampaignToLibrary } from './campaignStorage';
 import { evaluateCampaign } from './campaign/evaluateCampaign';
+import { enhanceBravery } from './campaign/braveryEnhancer';
+import { ReferenceCampaign } from './campaign/types';
 
 const BACKEND_URL = 'https://animated-capybara-jj9qrx9r77pwc5qwj-8090.app.github.dev';
 
@@ -72,13 +74,13 @@ const getCannesSpikeExecution = (brand: string): string | null => {
   const spikeExamples = {
     coffee: [
       "Host a coffee art competition in a public space where people create their own coffee art with fresh ingredients.",
-      "Launch a ‘Coffee Taste Test’ street activation where strangers try blindfolded coffee challenges and share their reactions.",
-      "Create a 'Coffee Lover’s Confession' challenge where people share their most embarrassing coffee moments for prizes."
+      "Launch a 'Coffee Taste Test' street activation where strangers try blindfolded coffee challenges and share their reactions.",
+      "Create a 'Coffee Lover's Confession' challenge where people share their most embarrassing coffee moments for prizes."
     ],
     tech: [
-      "Create a ‘Tech Throwback’ event where people bring their oldest tech items and compare them with the latest products.",
-      "Run a ‘Tech Time Capsule’ challenge where users bury their tech predictions for the future and dig them up after five years.",
-      "Set up a ‘Tech Fanatics’ museum showcasing iconic tech and their unique stories."
+      "Create a 'Tech Throwback' event where people bring their oldest tech items and compare them with the latest products.",
+      "Run a 'Tech Time Capsule' challenge where users bury their tech predictions for the future and dig them up after five years.",
+      "Set up a 'Tech Fanatics' museum showcasing iconic tech and their unique stories."
     ],
     fashion: [
       "Create a citywide thrift hunt where hidden garments hold QR-coded fashion stories.",
@@ -87,7 +89,7 @@ const getCannesSpikeExecution = (brand: string): string | null => {
     ]
   };
 
-  const options = spikeExamples[brand.toLowerCase()];
+  const options = spikeExamples[brand.toLowerCase() as keyof typeof spikeExamples];
   if (options && options.length > 0) {
     return options[Math.floor(Math.random() * options.length)];
   }
@@ -109,9 +111,9 @@ const filterWeakExecutions = (executions: string[]): string[] => {
     /immersive installation/i,
   ];
 
-  return executions.filter(ex =>
-    !bannedPatterns.some(pattern => pattern.test(ex))
-  );
+  return executions
+    .filter(ex => !bannedPatterns.some(pattern => pattern.test(ex)))
+    .filter((ex, idx, arr) => arr.findIndex(other => other.trim() === ex.trim()) === idx);
 };
 
 const ensureOneBraveExecution = (executions: string[], brand: string): string[] => {
@@ -127,9 +129,10 @@ const ensureOneBraveExecution = (executions: string[], brand: string): string[] 
   );
 
   const safeWords = ['docuseries', 'AR experience', 'pop-up', 'co-creation', 'TikTok challenge'];
-  const isSafe = filtered.some(e => safeWords.some(s => e.toLowerCase().includes(s)));
+  const isSafe = filtered.some(e => safeWords.some(s => e.toLowerCase().includes(s))) || 
+                filtered.length === 0;
 
-  if (filtered.length === 0 || isSafe) {
+  if (isSafe) {
     const spike = getCannesSpikeExecution(brand);
     if (spike && !filtered.includes(spike)) {
       console.warn("🛑 Execution too safe or generic. Injecting a Cannes Spike:", spike);
@@ -202,6 +205,8 @@ const injectStrategicDisruption = async (campaign: any) => {
     ]
   };
 
+  if (!safetyAudit.weakestElement) return campaign;
+
   try {
     const prompt = buildDisruptionPrompt(safetyAudit.weakestElement, disruptionTemplates, safetyAudit.content);
     const raw = await generateWithOpenAI(prompt);
@@ -255,26 +260,27 @@ export const generateCampaign = async (
 
     const improved = await applyCreativeDirectorPass(parsed);
     const withTwist = await injectStrategicDisruption(improved);
+    const braveryEnhanced = await enhanceBravery(withTwist, input.brand, input.industry);
 
-    let executions = withTwist.executionPlan || [];
+    let executions = braveryEnhanced.executionPlan || [];
     executions = filterWeakExecutions(executions);
     executions = ensureOneBraveExecution(executions, input.brand);
     executions = enhanceWithBravery(executions);
     executions = selectTopBraveExecutions(executions);
     executions = cleanExecutionSteps(executions);
 
-    withTwist.executionPlan = executions;
+    braveryEnhanced.executionPlan = executions;
 
     if (!withTwist.campaignName || !withTwist.keyMessage || !withTwist.executionPlan) {
       throw new Error("Campaign is missing essential properties.");
     }
 
     const campaign: GeneratedCampaign = {
-      ...withTwist,
-      referenceCampaigns,
+      ...braveryEnhanced,
+      referenceCampaigns: referenceCampaigns as any as ReferenceCampaign[],
       creativeInsights,
       storytelling: "",
-      evaluation: withTwist.evaluation,
+      evaluation: braveryEnhanced.evaluation,
     };
 
     const storytelling = await generateStorytellingNarrative({
@@ -287,6 +293,7 @@ export const generateCampaign = async (
     }, openAIConfig);
     campaign.storytelling = storytelling.narrative;
 
+    // Get evaluation which now includes all bravery metrics
     const evaluation = await evaluateCampaign(campaign, { brand: input.brand, industry: input.industry }, openAIConfig);
     campaign.evaluation = evaluation;
 
@@ -302,7 +309,7 @@ export const generateCampaign = async (
     return campaign;
   } catch (error) {
     console.error("❌ Error generating campaign:", error);
-    toast.error(`Error generating campaign: ${error.message}`);
+    toast.error(`Error generating campaign: ${error instanceof Error ? error.message : String(error)}`);
     throw error;
   }
 };
