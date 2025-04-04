@@ -150,3 +150,24 @@ export const isCampaignSaved = (campaignName: string, brand: string): boolean =>
     return false;
   }
 };
+
+// ✅ NEW: Update just the campaign.campaign nested structure
+export const updateSavedCampaign = (id: string, updatedData: Partial<GeneratedCampaign>) => {
+  try {
+    const savedCampaigns = getSavedCampaigns();
+    if (!savedCampaigns[id]) return;
+
+    savedCampaigns[id] = {
+      ...savedCampaigns[id],
+      campaign: {
+        ...savedCampaigns[id].campaign,
+        ...updatedData,
+      },
+    };
+
+    localStorage.setItem(SAVED_CAMPAIGNS_KEY, JSON.stringify(savedCampaigns));
+    emitCampaignUpdate();
+  } catch (error) {
+    console.error('Error updating saved campaign:', error);
+  }
+};

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,7 +13,7 @@ import CampaignHeader from './CampaignHeader';
 import CampaignActions from './CampaignActions';
 import CampaignMeta from './CampaignMeta';
 import { CampaignFeedbackData } from '@/components/FeedbackSystem';
-import { SavedCampaign } from '@/lib/campaignStorage';
+import { SavedCampaign, updateSavedCampaign } from '@/lib/campaignStorage';
 
 interface CampaignDetailViewProps {
   id: string;
@@ -21,6 +21,7 @@ interface CampaignDetailViewProps {
   isInSidebar: boolean;
   onDelete: () => void;
   onToggleFavorite: () => void;
+  onUpdateCampaign: (updatedData: Partial<SavedCampaign>) => void;
 }
 
 const CampaignDetailView: React.FC<CampaignDetailViewProps> = ({
@@ -29,6 +30,7 @@ const CampaignDetailView: React.FC<CampaignDetailViewProps> = ({
   isInSidebar,
   onDelete,
   onToggleFavorite,
+  onUpdateCampaign,
 }) => {
   const navigate = useNavigate();
 
@@ -36,32 +38,27 @@ const CampaignDetailView: React.FC<CampaignDetailViewProps> = ({
     return Promise.resolve(); // stub
   };
 
-  // Safely initialize evaluation data
+  // Patch missing evaluation with defaults and persist
   useEffect(() => {
-    if (campaign?.campaign) {
-      // Create a new object instead of mutating the existing one
-      const updatedCampaign = {
-        ...campaign,
-        campaign: {
-          ...campaign.campaign,
-          evaluation: campaign.campaign.evaluation || {
-            insightSharpness: 0,
-            ideaOriginality: 0,
-            executionPotential: 0,
-            awardPotential: 0,
-            finalVerdict: 'No evaluation available.',
-          }
-        }
+    if (campaign?.campaign && !campaign.campaign.evaluation) {
+      const fallbackEvaluation = {
+        insightSharpness: 0,
+        ideaOriginality: 0,
+        executionPotential: 0,
+        awardPotential: 0,
+        finalVerdict: 'No evaluation available.',
       };
 
-      // Use this updated object in your component logic
-      // Note: You'll need to lift state up or use a state management solution
-      // to properly update the parent component's state
-      console.log("✅ Initialized Evaluation:", updatedCampaign.campaign.evaluation);
-    }
-  }, [campaign]);
+      const updated = {
+        ...campaign.campaign,
+        evaluation: fallbackEvaluation
+      };
 
-  // Enhanced guard against malformed data
+      updateSavedCampaign(id, { evaluation: fallbackEvaluation });
+      onUpdateCampaign({ campaign: updated });
+    }
+  }, [campaign, id, onUpdateCampaign]);
+
   const isValid = campaign?.campaign && campaign.campaign.campaignName;
 
   if (!isValid) {
@@ -73,15 +70,6 @@ const CampaignDetailView: React.FC<CampaignDetailViewProps> = ({
       </div>
     );
   }
-
-  // Safely access evaluation with fallback
-  const evaluation = campaign.campaign.evaluation || {
-    insightSharpness: 0,
-    ideaOriginality: 0,
-    executionPotential: 0,
-    awardPotential: 0,
-    finalVerdict: 'No evaluation available.',
-  };
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
@@ -111,10 +99,7 @@ const CampaignDetailView: React.FC<CampaignDetailViewProps> = ({
         <CardContent>
           <div className="space-y-6">
             <EnhancedCampaignResult 
-              campaign={{
-                ...campaign.campaign,
-                evaluation // Pass the safely accessed evaluation
-              }}
+              campaign={campaign.campaign}
               onGenerateAnother={() => navigate('/')}
               showFeedbackForm={false}
               onRefine={handleRefine}
