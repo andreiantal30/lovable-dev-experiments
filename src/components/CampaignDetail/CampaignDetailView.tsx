@@ -45,8 +45,14 @@ const CampaignDetailView: React.FC<CampaignDetailViewProps> = ({
     }
   }, [campaign]);
 
-  // Guard against malformed data
-  const isValid = campaign?.campaign && campaign.campaign.campaignName;
+  // ✅ Guard against malformed campaign structure
+  const isValid =
+    campaign?.campaign &&
+    campaign.campaign.campaignName &&
+    campaign.campaign.keyMessage &&
+    Array.isArray(campaign.campaign.creativeInsights) &&
+    typeof campaign.campaign.creativeInsights[0] === 'object' &&
+    'surfaceInsight' in campaign.campaign.creativeInsights[0];
 
   if (!isValid) {
     console.warn('🛑 Invalid campaign object:', campaign);
