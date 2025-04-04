@@ -132,10 +132,27 @@ interface DisruptionAxis {
   fix: string;
 }
 
+// Skip disruption logic for conservative brands or legacy audiences
+const shouldSkipDisruption = (campaign: GeneratedCampaign) => {
+  const brand = campaign.campaignName.toLowerCase();
+  const audienceHints = JSON.stringify(campaign).toLowerCase();
+
+  const sensitiveBrands = ["allianz", "axa", "prudential"];
+  const nonDisruptiveAudiences = ["retirees", "legacy", "older adults", "intergenerational"];
+
+  return sensitiveBrands.some(b => brand.includes(b)) ||
+         nonDisruptiveAudiences.some(keyword => audienceHints.includes(keyword));
+};
+
 const disruptOnAllAxes = async (
   campaign: GeneratedCampaign, 
   config: OpenAIConfig
 ): Promise<GeneratedCampaign> => {
+  if (shouldSkipDisruption(campaign)) {
+    console.log("⚠️ Skipping disruption for sensitive brand/audience.");
+    return campaign;
+  }
+
   const disruptionAxes: DisruptionAxis[] = [
     { 
       name: "Medium", 
@@ -159,8 +176,8 @@ const disruptOnAllAxes = async (
     }
   ];
 
-  let modifiedCampaign = {...campaign};
-  
+  let modifiedCampaign = { ...campaign };
+
   for (const axis of disruptionAxes) {
     if (axis.test.test(JSON.stringify(modifiedCampaign).toLowerCase())) {
       try {
@@ -169,7 +186,7 @@ Current Campaign: ${JSON.stringify({
           strategy: modifiedCampaign.creativeStrategy,
           executions: modifiedCampaign.executionPlan
         }, null, 2)}
-        
+
 Axis Being Disrupted: ${axis.name}
 Disruption Requirement: ${axis.fix}
 
@@ -181,7 +198,7 @@ Return ONLY the modified campaign JSON in this exact format:
 
         const response = await generateWithOpenAI(prompt, config);
         const disruptionResult = JSON.parse(extractJsonFromResponse(response));
-        
+
         modifiedCampaign = {
           ...modifiedCampaign,
           creativeStrategy: disruptionResult.creativeStrategy || modifiedCampaign.creativeStrategy,
@@ -191,7 +208,6 @@ Return ONLY the modified campaign JSON in this exact format:
             `${axis.name} axis disrupted: ${axis.fix}`
           ]
         };
-        
       } catch (error) {
         console.error(`Disruption on ${axis.name} axis failed:`, error);
       }
