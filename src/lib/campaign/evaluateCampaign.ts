@@ -71,7 +71,8 @@ const calculateBraveryScore = (campaign: any): BraveryScore => {
 export const evaluateCampaign = async (
   campaign: GeneratedCampaign,
   context: EvaluationContext,
-  openAIConfig: OpenAIConfig = defaultOpenAIConfig
+  openAIConfig: OpenAIConfig = defaultOpenAIConfig,
+  originalSoul?: Partial<GeneratedCampaign>
 ): Promise<CampaignEvaluation> => {
   try {
     const referenceCampaigns = campaign.referenceCampaigns || [];
@@ -136,6 +137,7 @@ Return a JSON object like this:
     };
   } catch (err) {
     console.error("🧠 Evaluation error:", err);
+    
     return {
       insightSharpness: 5,
       ideaOriginality: 5,
@@ -144,10 +146,22 @@ Return a JSON object like this:
       creativeBravery: 5,
       finalVerdict: "Evaluation failed. Default scores applied.",
       braveryBreakdown: {
-        physicalIntervention: false,
-        challengesAuthority: false,
-        culturalTension: false,
-        personalRisk: false
+        physicalIntervention: 0,
+        institutionalChallenge: 0,
+        culturalTension: 0,
+        personalRisk: 0,
+        novelty: 0,
+        targetsPower: 0,
+        avoidsClichés: 0
+      },
+      braveryMatrix: {
+        physicalIntervention: 0,
+        institutionalChallenge: 0,
+        culturalTension: 0,
+        personalRisk: 0,
+        novelty: 0,
+        targetsPower: 0,
+        avoidsClichés: 0
       },
       braverySuggestions: []
     };

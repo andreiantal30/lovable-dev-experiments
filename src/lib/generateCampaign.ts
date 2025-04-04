@@ -258,12 +258,29 @@ export const generateCampaign = async (
       extractJsonFromResponse(await generateWithOpenAI(prompt, openAIConfig))
     );
 
+    const originalSoul = {
+      campaignName: parsed.campaignName,
+      keyMessage: parsed.keyMessage,
+      executionPlan: parsed.executionPlan,
+      creativeInsights: parsed.creativeInsights
+    };
+
+    function logDifferences(pre: GeneratedCampaign, post: GeneratedCampaign) {
+      const changedFields = Object.keys(pre).filter(key => {
+        return JSON.stringify(pre[key as keyof GeneratedCampaign]) !== JSON.stringify(post[key as keyof GeneratedCampaign]);
+      });
+    
+      console.log("🧠 Fields changed during CD Pass:", changedFields);
+    }
+
     // 3. Creative Director pass
     console.group('🎭 Creative Director Pass');
     const improved = await disruptOnAllAxes(parsed, openAIConfig);
-    console.log('Pre-CD:', JSON.stringify(parsed, null, 2));
-    console.log('Post-CD:', JSON.stringify(improved, null, 2));
+    console.log('🟠 Pre-CD:', JSON.stringify(parsed, null, 2));
+    console.log('🔵 Post-CD:', JSON.stringify(improved, null, 2));
+    logDifferences(parsed, improved);
     console.groupEnd();
+
 
     // 4. Execution plan refinement
     let executions = improved.executionPlan || [];
@@ -297,7 +314,8 @@ export const generateCampaign = async (
     const evaluation = await evaluateCampaign(
       campaign, 
       { brand: input.brand, industry: input.industry }, 
-      openAIConfig
+      openAIConfig,
+      originalSoul
     ) as ExtendedCampaignEvaluation;
 
     campaign.evaluation = {
