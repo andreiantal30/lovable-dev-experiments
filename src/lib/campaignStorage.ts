@@ -20,6 +20,18 @@ export const emitCampaignUpdate = () => {
   window.dispatchEvent(new Event('campaign-updated'));
 };
 
+// ✅ Migration helper to clean up malformed legacy campaigns
+const migrateLegacyCampaign = (entry: any): SavedCampaign => {
+  return {
+    id: entry.id || crypto.randomUUID(),
+    timestamp: entry.timestamp || new Date().toISOString(),
+    campaign: entry.campaign || entry,
+    brand: entry.brand || entry.campaign?.brand || 'Unknown Brand',
+    industry: entry.industry || entry.campaign?.industry || 'Unknown Industry',
+    favorite: entry.favorite ?? false,
+  };
+};
+
 // ✅ Type guard to validate correct shape before saving
 const isValidCampaignEntry = (entry: any): entry is SavedCampaign => {
   return (
@@ -56,9 +68,13 @@ export const getSavedCampaigns = (): Record<string, SavedCampaign> => {
     if (!raw) return {};
 
     const parsed = JSON.parse(raw);
+
     if (Array.isArray(parsed)) {
       const objectified = parsed.reduce((acc, entry) => {
-        if (entry.id) acc[entry.id] = entry;
+        if (entry.id) {
+          const migrated = migrateLegacyCampaign(entry);
+          acc[migrated.id] = migrated;
+        }
         return acc;
       }, {} as Record<string, SavedCampaign>);
       localStorage.setItem(SAVED_CAMPAIGNS_KEY, JSON.stringify(objectified));
@@ -66,7 +82,16 @@ export const getSavedCampaigns = (): Record<string, SavedCampaign> => {
       return objectified;
     }
 
-    return parsed;
+    // Migrate object-based legacy campaigns too
+    const migrated = Object.fromEntries(
+      Object.entries(parsed).map(([id, entry]) => [
+        id,
+        migrateLegacyCampaign(entry),
+      ])
+    );
+    localStorage.setItem(SAVED_CAMPAIGNS_KEY, JSON.stringify(migrated));
+    return migrated;
+
   } catch (error) {
     console.error('Error retrieving saved campaigns:', error);
     return {};
@@ -151,7 +176,7 @@ export const isCampaignSaved = (campaignName: string, brand: string): boolean =>
   }
 };
 
-// ✅ NEW: Update just the campaign.campaign nested structure
+// ✅ Update just the campaign.campaign nested structure
 export const updateSavedCampaign = (id: string, updatedData: Partial<GeneratedCampaign>) => {
   try {
     const savedCampaigns = getSavedCampaigns();

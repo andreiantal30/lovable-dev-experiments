@@ -82,8 +82,8 @@ const CampaignDetailView: React.FC<CampaignDetailViewProps> = ({
             ? campaign.creativeUnlock
             : JSON.stringify(campaign.creativeUnlock || {}),
         },
-        brand: campaign.brand || 'Unknown Brand',
-        industry: campaign.industry || 'Unknown Industry',
+        brand: campaign.brand || campaign?.campaign?.brand || 'Unknown Brand',
+        industry: campaign.industry || campaign?.campaign?.industry || 'Unknown Industry',
         timestamp: campaign.timestamp || new Date().toISOString(),
         favorite: campaign.favorite || false,
       };
