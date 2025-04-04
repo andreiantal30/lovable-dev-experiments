@@ -12,17 +12,32 @@ import { findSimilarCampaignsWithEmbeddings } from '@/lib/embeddingsUtil';
 import { campaigns } from '@/data/campaigns';
 import { OpenAIConfig } from '../openai';
 
+interface ReferenceCampaign {
+  id: string;
+  name: string;
+  brand: string;
+  year: number;
+  industry: string;
+  targetAudience: string[];
+  objectives: string[];
+  keyMessage: string;
+  strategy: string;
+  features: string[];
+  emotionalAppeal: string[];
+  outcomes: string[];
+}
+
 export const findSimilarCampaigns = async (
   input: CampaignInput,
   openAIConfig: OpenAIConfig = { apiKey: '', model: 'gpt-4o' }
-): Promise<Campaign[]> => {
+): Promise<ReferenceCampaign[]> => {
   try {
     console.log('Using new reference campaign matcher');
     const matchedCampaigns = matchReferenceCampaigns(input);
 
     if (matchedCampaigns && matchedCampaigns.length > 0) {
       console.log('Found matches using new reference campaign matcher:', matchedCampaigns.map(c => c.name));
-      return diversifyCampaignSelection(matchedCampaigns);
+      return convertToReferenceCampaigns(diversifyCampaignSelection(matchedCampaigns));
     }
   } catch (error) {
     console.error('Error with new reference campaign matcher:', error);
@@ -38,7 +53,7 @@ export const findSimilarCampaigns = async (
 
       if (embeddingResults && embeddingResults.length > 0) {
         console.log('Using embedding-based campaign matches');
-        return diversifyCampaignSelection(embeddingResults);
+        return convertToReferenceCampaigns(diversifyCampaignSelection(embeddingResults));
       }
     } catch (error) {
       console.error('Error with embedding-based matching:', error);
@@ -46,9 +61,25 @@ export const findSimilarCampaigns = async (
   }
 
   console.log('Using traditional campaign matching');
-
-  return diversifyCampaignSelection(findSimilarCampaignsTraditional(input));
+  return convertToReferenceCampaigns(diversifyCampaignSelection(findSimilarCampaignsTraditional(input)));
 };
+
+function convertToReferenceCampaigns(campaigns: Campaign[]): ReferenceCampaign[] {
+  return campaigns.map(campaign => ({
+    id: campaign.id,
+    name: campaign.name,
+    brand: campaign.brand,
+    year: campaign.year || new Date().getFullYear(),
+    industry: campaign.industry,
+    targetAudience: campaign.targetAudience || [],
+    objectives: campaign.objectives || [],
+    keyMessage: campaign.keyMessage || '',
+    strategy: campaign.strategy || '',
+    features: campaign.features || [],
+    emotionalAppeal: campaign.emotionalAppeal || [],
+    outcomes: campaign.outcomes || []
+  }));
+}
 
 export const findThematicMatches = async (input: CampaignInput): Promise<Campaign[]> => {
   const similar = await findSimilarCampaigns(input);
