@@ -259,6 +259,10 @@ export const generateCampaign = async (
     }
 
     const improved = await applyCreativeDirectorPass(parsed);
+    console.group('🎭 CD Pass Results');
+    console.log('Input:', JSON.stringify(parsed, null, 2));
+    console.log('Output:', JSON.stringify(improved, null, 2));
+    console.groupEnd();
     const withTwist = await injectStrategicDisruption(improved);
     const braveryEnhanced = await enhanceBravery(withTwist, input.brand, input.industry);
 
@@ -274,6 +278,7 @@ export const generateCampaign = async (
     if (!withTwist.campaignName || !withTwist.keyMessage || !withTwist.executionPlan) {
       throw new Error("Campaign is missing essential properties.");
     }
+    
 
     const campaign: GeneratedCampaign = {
       ...braveryEnhanced,
