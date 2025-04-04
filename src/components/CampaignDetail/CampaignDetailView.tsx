@@ -45,20 +45,23 @@ const CampaignDetailView: React.FC<CampaignDetailViewProps> = ({
     }
   }, [campaign]);
 
-  // ✅ Guard against malformed campaign structure
+  // Guard against malformed data
   const isValid =
     campaign?.campaign &&
-    campaign.campaign.campaignName &&
-    campaign.campaign.keyMessage &&
-    Array.isArray(campaign.campaign.creativeInsights) &&
-    typeof campaign.campaign.creativeInsights[0] === 'object' &&
-    'surfaceInsight' in campaign.campaign.creativeInsights[0];
+    typeof campaign.campaign === 'object' &&
+    typeof campaign.campaign.campaignName === 'string' &&
+    Array.isArray(campaign.campaign.executionPlan) &&
+    Array.isArray(campaign.campaign.referenceCampaigns) &&
+    campaign.campaign.evaluation && typeof campaign.campaign.evaluation === 'object';
 
   if (!isValid) {
     console.warn('🛑 Invalid campaign object:', campaign);
     return (
       <div className="p-10 text-center text-muted-foreground">
         <p>Failed to load campaign details. The data may be malformed or incomplete.</p>
+        <pre className="mt-4 text-xs text-left max-w-2xl overflow-x-auto bg-muted p-4 rounded">
+          {JSON.stringify(campaign, null, 2)}
+        </pre>
         <Button onClick={() => navigate('/library')} className="mt-4">Back to Library</Button>
       </div>
     );
