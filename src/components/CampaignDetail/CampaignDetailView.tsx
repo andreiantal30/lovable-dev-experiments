@@ -38,14 +38,13 @@ const CampaignDetailView: React.FC<CampaignDetailViewProps> = ({
 
   // 🧠 Log eval on mount for debugging
   useEffect(() => {
-    if (!campaign?.campaign?.evaluation) {
-      console.warn("❌ Evaluation missing in saved campaign:", campaign);
+    if (campaign.campaign && !campaign.campaign.evaluation) {
       campaign.campaign.evaluation = {
         insightSharpness: 0,
         ideaOriginality: 0,
         executionPotential: 0,
         awardPotential: 0,
-        finalVerdict: 'No evaluation available.'
+        finalVerdict: 'No evaluation available.',
       };
     } else {
       console.log("✅ Loaded Evaluation from Library:", campaign.campaign.evaluation);
