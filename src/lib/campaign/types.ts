@@ -16,6 +16,7 @@ export type ReferenceCampaign = {
   features: string[];
   emotionalAppeal: string[];
   outcomes: string[];
+  braveryScore?: number; // NEW: Added field
 };
 
 export interface Campaign extends ReferenceCampaign {
@@ -61,6 +62,10 @@ export interface MultilayeredInsight extends CreativeInsight {
   systemicRoot: string;
   emotionalParadox: string;
   culturalTension: string;
+  systemicHypocrisy: string; // NEW: Explicitly required
+  actionParadox: string; // NEW: Explicitly required
+  irony?: string; // NEW: Optional field
+  brandComplicity?: string; // NEW: Optional field
 }
 
 // Type guard for deepened insights
@@ -75,7 +80,8 @@ export interface BraveryMatrix {
   personalRisk: number;
   culturalTension: number;
   novelty: number;
-  braveryMatrix?: BraveryMatrix;
+  targetsPower?: number; // NEW: Added field
+  avoidsClichés?: number; // NEW: Added field
 }
 
 export interface CampaignEvaluation {
@@ -87,8 +93,7 @@ export interface CampaignEvaluation {
   finalVerdict: string;
   braveryBreakdown: BraveryMatrix;
   braverySuggestions: string[];
-
-  braveryMatrix?: BraveryMatrix; // ✅ Add this
+  braveryMatrix: BraveryMatrix; // Now properly required
 }
 
 // ================== GENERATED CAMPAIGN ================== //
@@ -106,10 +111,10 @@ export interface GeneratedCampaign {
   callToAction: string;
   consumerInteraction?: string;
   creativeInsights: MultilayeredInsight[];
-  referenceCampaigns: ReferenceCampaign[]; // Now properly required
+  referenceCampaigns: ReferenceCampaign[];
   evaluation?: CampaignEvaluation;
   storytelling?: string;
-  _cdModifications?: string[]; // Track Creative Director changes
+  _cdModifications?: string[];
 }
 
 // ================== VERSION CONTROL ================== //
@@ -134,6 +139,14 @@ export interface FeedbackCriterion {
     | 'emotional-impact';
 }
 
+// NEW: Explicit type for evaluation with bravery matrix
 export interface ExtendedCampaignEvaluation extends CampaignEvaluation {
   braveryMatrix: BraveryMatrix;
+}
+
+// NEW: Matching configuration type
+export interface MatchingConfig {
+  prioritizeBravery?: boolean;
+  minBraveryThreshold?: number;
+  forceDiverseIndustries?: boolean;
 }

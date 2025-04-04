@@ -6,77 +6,117 @@ export interface MultiLayeredInsight {
   surfaceInsight: string;
   emotionalUndercurrent: string;
   creativeUnlock: string;
+  systemicHypocrisy: string;
+  actionParadox: string;
+  irony?: string; // NEW: Added field
+  brandComplicity?: string; // NEW: Added field
 }
 
-// 🔍 Insight scoring logic – prioritize contradiction, cultural tension, and emotional sharpness
+// 🔍 Enhanced scoring with irony and complicity weighting
 const scoreInsight = (insight: MultiLayeredInsight): number => {
   let score = 0;
 
-  // Contradiction indicator
+  // Tier 1: Core tension (max 6pts)
   if (/but|however|yet|although|paradox/i.test(insight.surfaceInsight)) score += 3;
+  if (insight.systemicHypocrisy) score += 2;
+  if (insight.irony) score += 1; // NEW: Irony bonus
 
-  // Cultural relevance
-  if (/gen [a-z]|post-pandemic|climate [a-z]|digital [a-z]/i.test(insight.surfaceInsight)) score += 2;
+  // Tier 2: Cultural relevance (max 4pts)
+  const culturalMarkers = [
+    /gen [a-z]|post-pandemic|climate [a-z]|digital [a-z]/i,
+    /algorithm|AI|automation/i,
+    /late capitalism|precarity|burnout/i
+  ];
+  culturalMarkers.forEach(regex => {
+    if (regex.test(insight.surfaceInsight + insight.emotionalUndercurrent)) score += 2;
+  });
 
-  // Emotional depth
-  if (/guilt|shame|fear|longing|belonging|identity|resentment/i.test(insight.emotionalUndercurrent)) score += 3;
+  // Tier 3: Emotional depth (max 8pts)
+  const emotionalMarkers = {
+    guilt: 2, shame: 2, fear: 1, longing: 1, resentment: 3
+  };
+  Object.entries(emotionalMarkers).forEach(([term, points]) => {
+    if (new RegExp(term, 'i').test(insight.emotionalUndercurrent)) score += points;
+  });
 
-  return score;
+  // Tier 4: Strategic depth (max 6pts)
+  if (insight.actionParadox) score += 3;
+  if (insight.brandComplicity) score += 3; // NEW: Complicity bonus
+
+  return Math.min(score, 12); // NEW: Increased cap to 12
 };
 
-// 🧠 Focused insight builder
 export async function generateCreativeInsights(
   input: CampaignInput,
   config: OpenAIConfig = { apiKey: '', model: 'gpt-4o' }
 ): Promise<MultiLayeredInsight[]> {
   try {
-    const currentYear = new Date().getFullYear();
-    const audienceString = input.targetAudience.join(', ');
-    const objectivesString = input.objectives.join(', ');
-
     const prompt = `
-### Cultural Tension Mapper – Focused Insight Builder
+### Cultural Tension Mapper – Radical Insight Builder (v3)
 
-You're a top strategist writing in ${currentYear}. Your job is to uncover ONE tension-based insight worth building a campaign around.
+You're a strategist at ${input.brand}'s most dangerous agency. Expose:
 
-Return a single JSON object in this format:
+1. **VISIBLE CONTRADICTION** (surfaceInsight):
+   "They publicly ___, but secretly ___"
+
+2. **EMOTIONAL WARZONE** (emotionalUndercurrent):
+   Use visceral language: "A deep fear of ___ mixed with ___"
+
+3. **SYSTEMIC LIE** (systemicHypocrisy):
+   "${input.industry} claims ___, but actually ___"
+
+4. **IRONIC TRAP** (irony): // NEW SECTION
+   "The more they ___, the less they ___"
+
+5. **BRAND COMPLICITY** (brandComplicity): // NEW SECTION
+   "${input.brand} profits from ___ while claiming ___"
+
+6. **ACTION PARADOX** (actionParadox):
+   "To achieve ___, they must first ___"
+
+7. **CREATIVE DETONATOR** (creativeUnlock):
+   "We'll help them ___ by weaponizing ___"
+
+Return JSON with ALL fields:
 {
-  "surfaceInsight": "What the audience visibly experiences or does",
-  "emotionalUndercurrent": "The surprising or unspoken emotional drive underneath it",
-  "creativeUnlock": "How the brand can flip that tension into something culturally bold or empowering"
+  "surfaceInsight": "...",
+  "emotionalUndercurrent": "...",
+  "systemicHypocrisy": "...",
+  "irony": "...", // NEW
+  "brandComplicity": "...", // NEW
+  "actionParadox": "...",
+  "creativeUnlock": "..."
 }
 
-Make it specific, tension-rich, and useful for a bold campaign idea. Avoid clichés.
-
-— Audience Context —
-Target Audience: ${audienceString}
-Brand: ${input.brand}
-Industry: ${input.industry}
-Campaign Objectives: ${objectivesString}
-Emotional Appeal: ${input.emotionalAppeal.join(', ')}
+--- CONTEXT ---
+Brand: ${input.brand} (${input.industry})
+Audience: ${input.targetAudience.join(', ')}
+Desired Emotions: ${input.emotionalAppeal.join(', ')}
+Current Year: ${new Date().getFullYear()}
 `;
 
     const response = await generateWithOpenAI(prompt, config);
-    const cleanedResponse = extractJsonFromResponse(response);
-    const parsed = JSON.parse(cleanedResponse);
+    const parsed = JSON.parse(extractJsonFromResponse(response));
 
-    if (parsed && parsed.surfaceInsight && parsed.emotionalUndercurrent && parsed.creativeUnlock) {
-      return [parsed];
-    }
-    throw new Error("Invalid or missing insight fields in response");
-  } catch (error) {
-    console.error("⚠️ Error generating focused insight:", error);
-    return [
-      {
-        surfaceInsight: "Young adults are overwhelmed by ‘optimized’ self-improvement culture.",
-        emotionalUndercurrent: "They quietly feel like failures for not always being productive.",
-        creativeUnlock: "Let the brand celebrate real rest as rebellion."
-      }
+    // Validate all required fields including new ones
+    const requiredFields = [
+      'surfaceInsight', 'emotionalUndercurrent', 'systemicHypocrisy',
+      'irony', 'brandComplicity', 'actionParadox', 'creativeUnlock'
     ];
+
+    if (!requiredFields.every(field => parsed[field]?.trim())) {
+      throw new Error(`Missing required field in: ${JSON.stringify(parsed)}`);
+    }
+
+    return [parsed];
+
+  } catch (error) {
+    console.error("⚠️ Insight generation failed:", error);
+    return [getFallbackInsight(input)];
   }
 }
 
-// 🔥 Generate deeper contradictions, then return the best one
+// 🔥 Enhanced contradiction generator with irony injection
 export async function generatePenetratingInsights(
   input: CampaignInput,
   config: OpenAIConfig = { apiKey: '', model: 'gpt-4o' }
@@ -85,37 +125,54 @@ export async function generatePenetratingInsights(
     const [base] = await generateCreativeInsights(input, config);
 
     const contradictionPrompt = `
-Take this insight:
-Surface Insight: "${base.surfaceInsight}"
-Emotional Undercurrent: "${base.emotionalUndercurrent}"
+Take this core insight:
+"${base.surfaceInsight}"
 
-Now give me 3 alternative contradictory insights that challenge this worldview, and push the cultural tension deeper.
+Generate 3 DEEPER variations that:
+1. Make the irony more painful: "The harder they ___, the worse ___ gets"
+2. Expose darker brand complicity: "${input.brand} secretly benefits from ___"
+3. Flip the paradox: "They must ___ to stop ___"
 
-Respond ONLY with a JSON array using this format:
-[
-  {
-    "surfaceInsight": "...",
-    "emotionalUndercurrent": "...",
-    "creativeUnlock": "..."
-  }
-]
-`;
+Each must include:
+- More dangerous systemic hypocrisy
+- Sharper emotional conflict
+- More radical creative unlock
 
-    const contradictionResponse = await generateWithOpenAI(contradictionPrompt, config);
-    const cleaned = extractJsonFromResponse(contradictionResponse);
-    const contradictions = JSON.parse(cleaned);
+Return JSON array with ALL original fields plus:
+{
+  "irony": "New ironic twist",
+  "brandComplicity": "Darker brand truth"
+}
 
-    const all = [base, ...(Array.isArray(contradictions) ? contradictions : [])];
-    const sorted = all.sort((a, b) => scoreInsight(b) - scoreInsight(a));
-    return [sorted[0]]; // Return only the strongest insight
+Example format:
+[{
+  "surfaceInsight": "...",
+  "emotionalUndercurrent": "...",
+  ...
+}]`;
+
+    const response = await generateWithOpenAI(contradictionPrompt, config);
+    const contradictions = JSON.parse(extractJsonFromResponse(response));
+
+    return [base, ...contradictions]
+      .sort((a, b) => scoreInsight(b) - scoreInsight(a))
+      .slice(0, 3);
+
   } catch (error) {
-    console.error("⚠️ Error generating penetrating insights:", error);
-    return [
-      {
-        surfaceInsight: "People crave transformation, but fear losing what makes them feel safe.",
-        emotionalUndercurrent: "They want change without chaos.",
-        creativeUnlock: "Let the brand become a guide that respects their past while opening new doors."
-      }
-    ];
+    console.error("⚠️ Contradiction generation failed:", error);
+    return [getFallbackInsight(input)];
   }
+}
+
+// NEW: Enhanced fallback with all required fields
+function getFallbackInsight(input: CampaignInput): MultiLayeredInsight {
+  return {
+    surfaceInsight: "Gen Z demands change but algorithms reward conformity",
+    emotionalUndercurrent: "A simmering rage at having to perform wokeness",
+    systemicHypocrisy: "Platforms profit from dissent they systematically suppress",
+    irony: "The more they fight the system, the more content they create for it",
+    brandComplicity: `${input.brand} sells rebellion while being owned by private equity`,
+    actionParadox: "Must use corporate tools to dismantle corporate power",
+    creativeUnlock: "Help them sabotage the machine from within using its own rules"
+  };
 }

@@ -1,7 +1,7 @@
 import { toast } from "sonner";
 import { generateWithOpenAI, OpenAIConfig, defaultOpenAIConfig } from './openai';
 import { generateStorytellingNarrative } from './storytellingGenerator';
-import { CampaignInput, GeneratedCampaign, CampaignVersion, ReferenceCampaign, CreativeInsight, MultilayeredInsight } from './campaign/types';
+import { CampaignInput, GeneratedCampaign, CampaignVersion, ReferenceCampaign, CreativeInsight, MultilayeredInsight, ExtendedCampaignEvaluation } from './campaign/types';
 import { findSimilarCampaigns } from './campaign/campaignMatcher';
 import { generatePenetratingInsights } from './campaign/creativeInsightGenerator';
 import { createCampaignPrompt } from './campaign/campaignPromptBuilder';
@@ -10,7 +10,6 @@ import { getCreativeDevicesForStyle } from '@/data/creativeDevices';
 import { getCachedCulturalTrends } from '@/data/culturalTrends';
 import { saveCampaignToLibrary } from './campaignStorage';
 import { evaluateCampaign } from './campaign/evaluateCampaign';
-import { ExtendedCampaignEvaluation } from './campaign/types';
 
 const BACKEND_URL = 'https://animated-capybara-jj9qrx9r77pwc5qwj-8090.app.github.dev';
 
@@ -20,6 +19,8 @@ interface BraveryMatrix {
   personalRisk: number;
   culturalTension: number;
   novelty: number;
+  targetsPower?: number;
+  avoidsClichés?: number;
 }
 
 const EXECUTION_REPLACEMENTS = {
@@ -37,6 +38,17 @@ const EXECUTION_REPLACEMENTS = {
   ]
 };
 
+// ================== EXECUTION HELPERS ================== //
+// Removed duplicate declaration of upgradeWeakExecutions
+
+// Removed duplicate declaration of selectTopBraveExecutions
+
+function getStrategicSpike(brand: string, creativeInsight: CreativeInsight): string {
+  return `Strategic escalation for ${brand}: ${creativeInsight.culturalTension || 'No cultural tension'} ${creativeInsight.emotionalParadox?.split(' ').slice(0, 3).join(' ') || 'paradox'}`;
+}
+
+// ================== TYPE GUARDS ================== //
+// Add the actual type guard implementations here or remove this placeholder.
 // ================== TYPE GUARDS ================== //
 function isMultilayered(insight: CreativeInsight): insight is MultilayeredInsight {
   return !!insight.systemicRoot && !!insight.emotionalParadox && !!insight.culturalTension;
@@ -47,39 +59,58 @@ const deepenInsights = async (
   insights: CreativeInsight[], 
   config: OpenAIConfig
 ): Promise<MultilayeredInsight[]> => {
-  const prompt = `Transform these insights into multilayered versions by adding:
-  1. Systemic root cause (institutional/environmental factors)
-  2. Emotional paradox (contradictory feelings)
-  3. Cultural tension (social dynamics)
+  const prompt = `Transform these insights by adding:
+  1. Systemic hypocrisy (institutional lies)
+  2. Action paradox (catch-22 situations)
+  3. Brand complicity (how brands benefit)
+  4. Cultural tension (social dynamics)
 
   Insights: ${JSON.stringify(insights)}
 
-  Return JSON array with matching length: 
-  { systemicRoot: string, emotionalParadox: string, culturalTension: string }[]`;
+  Return JSON array with:
+  { 
+    systemicHypocrisy: string, 
+    actionParadox: string,
+    brandComplicity: string,
+    irony: string,
+    culturalTension: string
+  }[]`;
 
   try {
     const response = await generateWithOpenAI(prompt, config);
-    const deepAnalysis: Partial<MultilayeredInsight>[] = JSON.parse(extractJsonFromResponse(response));
+    const deepAnalysis = JSON.parse(extractJsonFromResponse(response)) as Array<{
+      systemicHypocrisy: string;
+      actionParadox: string;
+      brandComplicity: string;
+      irony: string;
+      culturalTension: string;
+    }>;
 
     return insights.map((insight, i) => ({
       ...insight,
-      systemicRoot: deepAnalysis[i]?.systemicRoot || 'Systemic analysis pending',
-      emotionalParadox: deepAnalysis[i]?.emotionalParadox || 'Paradox analysis pending',
-      culturalTension: deepAnalysis[i]?.culturalTension || 'Tension analysis pending'
+      systemicRoot: deepAnalysis[i]?.systemicHypocrisy || 'System hypocrisy not identified',
+      systemicHypocrisy: deepAnalysis[i]?.systemicHypocrisy || 'System hypocrisy not identified',
+      actionParadox: deepAnalysis[i]?.actionParadox || 'No paradox identified',
+      brandComplicity: deepAnalysis[i]?.brandComplicity || 'No brand complicity identified',
+      irony: deepAnalysis[i]?.irony || 'No irony identified',
+      culturalTension: deepAnalysis[i]?.culturalTension || 'Cultural tension not identified',
+      emotionalParadox: insight.emotionalParadox || 'Emotional paradox not identified'
     }));
   } catch (error) {
     console.error("Insight deepening failed:", error);
-    // Fallback to basic insights with required fields
     return insights.map(insight => ({
       ...insight,
-      systemicRoot: 'Systemic analysis failed',
-      emotionalParadox: 'Paradox analysis failed',
-      culturalTension: 'Tension analysis failed'
+      systemicRoot: 'System analysis failed',
+      systemicHypocrisy: 'System hypocrisy analysis failed',
+      actionParadox: 'Paradox analysis failed',
+      brandComplicity: 'Brand complicity analysis failed',
+      culturalTension: 'Cultural tension analysis failed',
+      emotionalParadox: 'Emotional paradox analysis failed'
     }));
   }
 };
 
-// ================== BRAVERY SYSTEM ================== //
+// ================== ENHANCED BRAVERY SYSTEM ================== //
 const calculateBraveryMatrix = (campaign: GeneratedCampaign): BraveryMatrix => {
   const text = JSON.stringify(campaign).toLowerCase();
   return {
@@ -87,129 +118,86 @@ const calculateBraveryMatrix = (campaign: GeneratedCampaign): BraveryMatrix => {
     institutionalChallenge: +(/(government|police|university|hospital|council)/i.test(text)) * 2,
     personalRisk: +(/(confess|vulnerable|expose|embarrass)/i.test(text)) * 1.5,
     culturalTension: +(/(gender|race|class|privilege|inequality)/i.test(text)) * 3.5,
-    novelty: 5 - +(/(tiktok|ar experience|pop-up|docuseries)/i.test(text)) * 2
+    novelty: 5 - +(/(tiktok|ar experience|pop-up|docuseries)/i.test(text)) * 2,
+    targetsPower: +(/(CEO|board|executive|legislation)/i.test(text)) * 2,
+    avoidsClichés: -+(/(hashtag|mural|petition)/i.test(text)) * 2
   };
-};
-
-type BrandCategory = 'coffee' | 'tech' | 'fashion' | 'finance' | 'automotive';
-type TensionIdeas = Record<string, string>;
-
-const tensionMap: Record<BrandCategory, TensionIdeas> = {
-  coffee: {
-    "financial anxiety": "Public 'Latte Tax' protests where baristas charge bankers 300% more",
-    "social isolation": "Anonymous coffee dates with political opposites"
-  },
-  tech: {
-    "surveillance": "Data donation stations in tech HQ lobbies",
-    "addiction": "App detox challenges with smashed phone sculptures"
-  },
-  fashion: {
-    "waste": "Clothing swap with homeless shelters",
-    "exploitation": "Factory worker-designed luxury items"
-  },
-  finance: {
-    "inequality": "Reverse ATMs that distribute bank profits",
-    "debt": "Credit score funerals in bank lobbies"
-  },
-  automotive: {
-    "pollution": "Exhaust fume art installations",
-    "urban sprawl": "Car-bike hybrid vehicle protests"
-  }
-};
-
-const getStrategicSpike = (brand: string, insight: CreativeInsight): string => {
-  try {
-    const brandKey = brand.toLowerCase() as BrandCategory;
-    const brandTensions = tensionMap[brandKey] || {};
-
-    const insightText = isMultilayered(insight) 
-      ? `${insight.surfaceInsight} ${insight.culturalTension}`
-      : insight.surfaceInsight;
-
-    for (const [tension, idea] of Object.entries(brandTensions)) {
-      if (insightText.toLowerCase().includes(tension.toLowerCase())) {
-        return idea;
-      }
-    }
-    return getCannesSpikeExecution(brandKey);
-  } catch (error) {
-    console.error("Strategic spike generation failed:", error);
-    return getCannesSpikeExecution('generic');
-  }
-};
-
-const getCannesSpikeExecution = (brand: BrandCategory | 'generic'): string => {
-  const spikes: Record<BrandCategory | 'generic', string[]> = {
-    coffee: [
-      "Barista bailout fund - tip jars for laid-off workers",
-      "Reverse coffee truck that gives free coffee to protestors"
-    ],
-    tech: [
-      "Obsolete tech graveyard outside Apple Stores",
-      "Algorithm transparency picket lines"
-    ],
-    fashion: [
-      "Clothing swap with homeless shelters",
-      "Runway show with garment worker models"
-    ],
-    finance: [
-      "Burn fake money outside banks",
-      "Credit score forgiveness booths"
-    ],
-    automotive: [
-      "Car-free day hijinks",
-      "Gas pump price tag protests"
-    ],
-    generic: [
-      "Public confrontation with industry leaders",
-      "Guerrilla protest in corporate headquarters"
-    ]
-  };
-
-  const categorySpikes = spikes[brand] || spikes.generic;
-  return categorySpikes[Math.floor(Math.random() * categorySpikes.length)];
 };
 
 // ================== DISRUPTION ENGINE ================== //
+interface DisruptionAxis {
+  name: string;
+  test: RegExp;
+  fix: string;
+}
+
 const disruptOnAllAxes = async (
   campaign: GeneratedCampaign, 
   config: OpenAIConfig
 ): Promise<GeneratedCampaign> => {
-  const disruptionAxes = [
+  const disruptionAxes: DisruptionAxis[] = [
     { 
       name: "Medium", 
-      test: /digital|app|online/, 
+      test: /digital|app|online|virtual|metaverse/i, 
       fix: "Convert to physical protest with real-world consequences" 
     },
     { 
       name: "Tone", 
-      test: /fun|playful|game/, 
-      fix: "Make it confrontational and uncomfortable" 
+      test: /fun|playful|game|lighthearted|entertaining/i, 
+      fix: "Make it confrontational and uncomfortable for power structures" 
     },
     { 
       name: "Agency", 
-      test: /user|participant|player/, 
+      test: /user|participant|player|viewer|spectator/i, 
       fix: "Force institutional response through collective action" 
+    },
+    {
+      name: "Risk",
+      test: /safe|harmless|brand-friendly|approved/i,
+      fix: "Introduce real personal or institutional risk"
     }
   ];
 
-  let modified = {...campaign};
+  let modifiedCampaign = {...campaign};
+  
   for (const axis of disruptionAxes) {
-    if (axis.test.test(JSON.stringify(modified))) {
-      const prompt = `Take this ${axis.name} axis from safe to brave:
-Current: ${JSON.stringify(modified, null, 2)}
-Requirement: ${axis.fix}
-Return ONLY the modified JSON`;
-      
+    if (axis.test.test(JSON.stringify(modifiedCampaign).toLowerCase())) {
       try {
+        const prompt = `Take this ${axis.name} axis from safe to brave:
+Current Campaign: ${JSON.stringify({
+          strategy: modifiedCampaign.creativeStrategy,
+          executions: modifiedCampaign.executionPlan
+        }, null, 2)}
+        
+Axis Being Disrupted: ${axis.name}
+Disruption Requirement: ${axis.fix}
+
+Return ONLY the modified campaign JSON in this exact format:
+{
+  "creativeStrategy": string[],
+  "executionPlan": string[]
+}`;
+
         const response = await generateWithOpenAI(prompt, config);
-        modified = JSON.parse(extractJsonFromResponse(response));
+        const disruptionResult = JSON.parse(extractJsonFromResponse(response));
+        
+        modifiedCampaign = {
+          ...modifiedCampaign,
+          creativeStrategy: disruptionResult.creativeStrategy || modifiedCampaign.creativeStrategy,
+          executionPlan: disruptionResult.executionPlan || modifiedCampaign.executionPlan,
+          _cdModifications: [
+            ...(modifiedCampaign._cdModifications || []),
+            `${axis.name} axis disrupted: ${axis.fix}`
+          ]
+        };
+        
       } catch (error) {
-        console.error(`Disruption on ${axis.name} failed:`, error);
+        console.error(`Disruption on ${axis.name} axis failed:`, error);
       }
     }
   }
-  return modified;
+
+  return modifiedCampaign;
 };
 
 // ================== EXECUTION POLISH ================== //
@@ -240,14 +228,22 @@ export const generateCampaign = async (
   openAIConfig: OpenAIConfig = defaultOpenAIConfig
 ): Promise<GeneratedCampaign> => {
   try {
-    // 1. Generate foundational elements
+    // 1. Generate foundational elements with enhanced insights
     const rawInsights = await generatePenetratingInsights(input, openAIConfig);
-    const creativeInsights = await deepenInsights(rawInsights, openAIConfig);
+    const creativeInsights = (await deepenInsights(rawInsights, openAIConfig))
+      .map(insight => ({
+        ...insight,
+        culturalTension: insight.culturalTension || 'Cultural tension not identified',
+        emotionalParadox: insight.emotionalParadox || 'Emotional paradox not identified'
+      }));
+
     const referenceCampaigns = (await findSimilarCampaigns(input, openAIConfig))
-      .filter(ref => ref.year); // Ensure we only include campaigns with years
+      .filter(ref => ref.year);
+    
     const creativeDevices = getCreativeDevicesForStyle(input.campaignStyle, 3);
-    const culturalTrends = getCachedCulturalTrends();
-    const relevantTrends = culturalTrends.sort(() => Math.random() - 0.5).slice(0, 3);
+    const relevantTrends = getCachedCulturalTrends()
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 3);
 
     // 2. Create initial campaign
     const prompt = createCampaignPrompt(
@@ -257,8 +253,10 @@ export const generateCampaign = async (
       creativeDevices, 
       relevantTrends
     );
-    const raw = await generateWithOpenAI(prompt, openAIConfig);
-    let parsed: GeneratedCampaign = JSON.parse(extractJsonFromResponse(raw));
+    
+    let parsed: GeneratedCampaign = JSON.parse(
+      extractJsonFromResponse(await generateWithOpenAI(prompt, openAIConfig))
+    );
 
     // 3. Creative Director pass
     console.group('🎭 Creative Director Pass');
@@ -269,35 +267,43 @@ export const generateCampaign = async (
 
     // 4. Execution plan refinement
     let executions = improved.executionPlan || [];
-    executions = upgradeWeakExecutions(executions);
-    executions.push(getStrategicSpike(input.brand, creativeInsights[0]));
-    executions = selectTopBraveExecutions(executions);
-    executions = cleanExecutionSteps(executions);
+    executions = [
+      ...upgradeWeakExecutions(executions),
+      getStrategicSpike(input.brand, creativeInsights[0])
+    ];
+    executions = cleanExecutionSteps(
+      selectTopBraveExecutions(executions)
+    );
 
-    // 5. Final assembly
+    // 5. Final assembly with proper typing
     const campaign: GeneratedCampaign = {
       ...improved,
       executionPlan: executions,
       referenceCampaigns,
-      creativeInsights,
+      creativeInsights: creativeInsights as MultilayeredInsight[],
       storytelling: "",
     };
 
- // 6. Generate narrative and evaluate
-campaign.storytelling = (await generateStorytellingNarrative({
-  brand: input.brand,
-  industry: input.industry,
-  targetAudience: input.targetAudience,
-  emotionalAppeal: input.emotionalAppeal,
-  campaignName: campaign.campaignName,
-  keyMessage: campaign.keyMessage,
-}, openAIConfig)).narrative;
+    // 6. Generate narrative and evaluation
+    campaign.storytelling = (await generateStorytellingNarrative({
+      brand: input.brand,
+      industry: input.industry,
+      targetAudience: input.targetAudience,
+      emotionalAppeal: input.emotionalAppeal,
+      campaignName: campaign.campaignName,
+      keyMessage: campaign.keyMessage,
+    }, openAIConfig)).narrative;
 
-const evaluation = await evaluateCampaign(campaign, { brand: input.brand, industry: input.industry }, openAIConfig) as ExtendedCampaignEvaluation;
-campaign.evaluation = {
-  ...evaluation,
-  braveryMatrix: calculateBraveryMatrix(campaign)
-};
+    const evaluation = await evaluateCampaign(
+      campaign, 
+      { brand: input.brand, industry: input.industry }, 
+      openAIConfig
+    ) as ExtendedCampaignEvaluation;
+
+    campaign.evaluation = {
+      ...evaluation,
+      braveryMatrix: calculateBraveryMatrix(campaign)
+    };
 
     // 7. Save and return
     saveCampaignToLibrary({

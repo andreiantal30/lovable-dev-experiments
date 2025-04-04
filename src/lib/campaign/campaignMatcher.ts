@@ -25,19 +25,54 @@ interface ReferenceCampaign {
   features: string[];
   emotionalAppeal: string[];
   outcomes: string[];
+  braveryScore: number;
 }
+
+interface MatchingConfig {
+  prioritizeBravery?: boolean;
+  minBraveryThreshold?: number;
+  forceDiverseIndustries?: boolean;
+}
+
+const calculateBraveryScore = (campaign: Campaign): number => {
+  const text = `${campaign.strategy} ${campaign.keyMessage}`.toLowerCase();
+  let score = 0;
+  
+  // Institutional challenge
+  if (/(government|police|university|hospital|council)/i.test(text)) score += 3;
+  
+  // Physical intervention
+  if (/(occupy|block|vandal|hijack)/i.test(text)) score += 2;
+  
+  // Personal risk
+  if (/(confess|vulnerable|expose|embarrass)/i.test(text)) score += 1.5;
+  
+  // Avoid clichés penalty
+  if (/(hashtag|mural|petition)/i.test(text)) score -= 2;
+  
+  return Math.max(0, score);
+};
 
 export const findSimilarCampaigns = async (
   input: CampaignInput,
-  openAIConfig: OpenAIConfig = { apiKey: '', model: 'gpt-4o' }
+  openAIConfig: OpenAIConfig = { apiKey: '', model: 'gpt-4o' },
+  matchingConfig: MatchingConfig = {}
 ): Promise<ReferenceCampaign[]> => {
   try {
     console.log('Using new reference campaign matcher');
-    const matchedCampaigns = matchReferenceCampaigns(input);
+    let matchedCampaigns = matchReferenceCampaigns(input);
 
-    if (matchedCampaigns && matchedCampaigns.length > 0) {
+    if (matchingConfig.prioritizeBravery) {
+      matchedCampaigns = matchedCampaigns
+        .map(c => ({ ...c, braveryScore: calculateBraveryScore(c) }))
+        .filter(c => c.braveryScore >= (matchingConfig.minBraveryThreshold || 0));
+    }
+
+    if (matchedCampaigns.length > 0) {
       console.log('Found matches using new reference campaign matcher:', matchedCampaigns.map(c => c.name));
-      return convertToReferenceCampaigns(diversifyCampaignSelection(matchedCampaigns));
+      return convertToReferenceCampaigns(
+        diversifyCampaignSelection(matchedCampaigns, matchingConfig.forceDiverseIndustries)
+      );
     }
   } catch (error) {
     console.error('Error with new reference campaign matcher:', error);
@@ -51,9 +86,11 @@ export const findSimilarCampaigns = async (
         openAIConfig
       );
 
-      if (embeddingResults && embeddingResults.length > 0) {
+      if (embeddingResults?.length > 0) {
         console.log('Using embedding-based campaign matches');
-        return convertToReferenceCampaigns(diversifyCampaignSelection(embeddingResults));
+        return convertToReferenceCampaigns(
+          diversifyCampaignSelection(embeddingResults, matchingConfig.forceDiverseIndustries)
+        );
       }
     } catch (error) {
       console.error('Error with embedding-based matching:', error);
@@ -61,7 +98,12 @@ export const findSimilarCampaigns = async (
   }
 
   console.log('Using traditional campaign matching');
-  return convertToReferenceCampaigns(diversifyCampaignSelection(findSimilarCampaignsTraditional(input)));
+  return convertToReferenceCampaigns(
+    diversifyCampaignSelection(
+      findSimilarCampaignsTraditional(input, matchingConfig), 
+      matchingConfig.forceDiverseIndustries
+    )
+  );
 };
 
 function convertToReferenceCampaigns(campaigns: Campaign[]): ReferenceCampaign[] {
@@ -77,7 +119,8 @@ function convertToReferenceCampaigns(campaigns: Campaign[]): ReferenceCampaign[]
     strategy: campaign.strategy || '',
     features: campaign.features || [],
     emotionalAppeal: campaign.emotionalAppeal || [],
-    outcomes: campaign.outcomes || []
+    outcomes: campaign.outcomes || [],
+    braveryScore: calculateBraveryScore(campaign)
   }));
 }
 
@@ -111,7 +154,10 @@ const groupByThemes = (campaigns: Campaign[]) => {
   return themes;
 };
 
-export function findSimilarCampaignsTraditional(input: CampaignInput): Campaign[] {
+export function findSimilarCampaignsTraditional(
+  input: CampaignInput,
+  matchingConfig: MatchingConfig = {}
+): Campaign[] {
   const inputSentiment = determineSentiment(input.emotionalAppeal);
   const inputTone = determineTone(input.objectives, input.emotionalAppeal);
 
@@ -123,7 +169,8 @@ export function findSimilarCampaignsTraditional(input: CampaignInput): Campaign[
       emotion: 0,
       style: 0,
       sentiment: 0,
-      tone: 0
+      tone: 0,
+      bravery: matchingConfig.prioritizeBravery ? calculateBraveryScore(campaign) * 2 : 0
     };
 
     if (campaign.industry.toLowerCase() === input.industry.toLowerCase()) {
@@ -137,7 +184,10 @@ export function findSimilarCampaignsTraditional(input: CampaignInput): Campaign[
 
     let audienceMatchCount = 0;
     input.targetAudience.forEach(audience => {
-      if (campaign.targetAudience.some(a => a.toLowerCase().includes(audience.toLowerCase()) || audience.toLowerCase().includes(a.toLowerCase()))) {
+      if (campaign.targetAudience.some(a => 
+        a.toLowerCase().includes(audience.toLowerCase()) || 
+        audience.toLowerCase().includes(a.toLowerCase())
+      )) {
         audienceMatchCount++;
       }
     });
@@ -145,7 +195,10 @@ export function findSimilarCampaignsTraditional(input: CampaignInput): Campaign[
 
     let objectivesMatchCount = 0;
     input.objectives.forEach(objective => {
-      if (campaign.objectives.some(o => o.toLowerCase().includes(objective.toLowerCase()) || objective.toLowerCase().includes(o.toLowerCase()))) {
+      if (campaign.objectives.some(o => 
+        o.toLowerCase().includes(objective.toLowerCase()) || 
+        objective.toLowerCase().includes(o.toLowerCase())
+      )) {
         objectivesMatchCount++;
       }
     });
@@ -153,7 +206,10 @@ export function findSimilarCampaignsTraditional(input: CampaignInput): Campaign[
 
     let emotionMatchCount = 0;
     input.emotionalAppeal.forEach(emotion => {
-      if (campaign.emotionalAppeal.some(e => e.toLowerCase().includes(emotion.toLowerCase()) || emotion.toLowerCase().includes(e.toLowerCase()))) {
+      if (campaign.emotionalAppeal.some(e => 
+        e.toLowerCase().includes(emotion.toLowerCase()) || 
+        emotion.toLowerCase().includes(e.toLowerCase())
+      )) {
         emotionMatchCount++;
       }
     });
@@ -177,6 +233,12 @@ export function findSimilarCampaignsTraditional(input: CampaignInput): Campaign[
     const campaignTone = determineTone(campaign.objectives, campaign.emotionalAppeal);
     dimensionScores.tone = getToneCompatibilityScore(inputTone, campaignTone);
 
+    if (matchingConfig.prioritizeBravery) {
+      const braveryMatch = dimensionScores.bravery > 5 ? 10 : 0;
+      dimensionScores.objectives += braveryMatch;
+      dimensionScores.emotion += braveryMatch;
+    }
+
     const totalScore = Object.values(dimensionScores).reduce((sum, score) => sum + score, 0);
 
     return {
@@ -186,16 +248,24 @@ export function findSimilarCampaignsTraditional(input: CampaignInput): Campaign[
     };
   });
 
-  const topScoring = scoredCampaigns.sort((a, b) => b.totalScore - a.totalScore).slice(0, 20);
+  const topScoring = scoredCampaigns
+    .sort((a, b) => b.totalScore - a.totalScore)
+    .slice(0, 20);
 
-  return selectDiverseCampaigns(topScoring, 5).map(s => s.campaign);
+  return selectDiverseCampaigns(topScoring, 5, matchingConfig).map(s => s.campaign);
 }
 
-function selectDiverseCampaigns(scoredCampaigns: EnhancedSimilarityScore[], count: number): EnhancedSimilarityScore[] {
+function selectDiverseCampaigns(
+  scoredCampaigns: EnhancedSimilarityScore[],
+  count: number,
+  matchingConfig: MatchingConfig = {}
+): EnhancedSimilarityScore[] {
   const selected: EnhancedSimilarityScore[] = [];
+  const industryLock = matchingConfig.forceDiverseIndustries ? new Set<string>() : null;
 
   if (scoredCampaigns.length > 0) {
     selected.push(scoredCampaigns[0]);
+    industryLock?.add(scoredCampaigns[0].campaign.industry);
   }
 
   while (selected.length < count && selected.length < scoredCampaigns.length) {
@@ -209,10 +279,15 @@ function selectDiverseCampaigns(scoredCampaigns: EnhancedSimilarityScore[], coun
 
     let bestComplement: EnhancedSimilarityScore | null = null;
     let bestComplementScore = -1;
+    let candidates = scoredCampaigns.filter(c => 
+      !selected.some(s => s.campaign.id === c.campaign.id)
+    );
 
-    for (const candidate of scoredCampaigns) {
-      if (selected.some(s => s.campaign.id === candidate.campaign.id)) continue;
+    if (industryLock) {
+      candidates = candidates.filter(c => !industryLock.has(c.campaign.industry));
+    }
 
+    for (const candidate of candidates) {
       let complementScore = 0;
       let diversityScore = 0;
 
@@ -243,6 +318,7 @@ function selectDiverseCampaigns(scoredCampaigns: EnhancedSimilarityScore[], coun
 
     if (bestComplement) {
       selected.push(bestComplement);
+      industryLock?.add(bestComplement.campaign.industry);
     } else {
       const nextBest = scoredCampaigns.find(
         candidate => !selected.some(s => s.campaign.id === candidate.campaign.id)
@@ -255,11 +331,20 @@ function selectDiverseCampaigns(scoredCampaigns: EnhancedSimilarityScore[], coun
   return selected.slice(0, count);
 }
 
-function diversifyCampaignSelection(campaignsToInclude: Campaign[]): Campaign[] {
+function diversifyCampaignSelection(
+  campaignsToInclude: Campaign[],
+  forceIndustryDiversity: boolean = false
+): Campaign[] {
   const MAX_RESULTS = 5;
   const finalSelection: Campaign[] = [];
   const industries = new Set<string>();
   const emotionalAppeals = new Set<string>();
+
+  if (forceIndustryDiversity) {
+    campaignsToInclude.sort((a, b) => 
+      (calculateBraveryScore(b) - calculateBraveryScore(a))
+    );
+  }
 
   for (const campaign of campaignsToInclude) {
     const newIndustry = !industries.has(campaign.industry);
@@ -292,7 +377,10 @@ function diversifyCampaignSelection(campaignsToInclude: Campaign[]): Campaign[] 
   return finalSelection.slice(0, MAX_RESULTS);
 }
 
-function selectRandomWildcardCampaigns(selectedCampaigns: Campaign[], count: number): Campaign[] {
+function selectRandomWildcardCampaigns(
+  selectedCampaigns: Campaign[],
+  count: number
+): Campaign[] {
   const selectedIds = new Set(selectedCampaigns.map(c => c.id));
   const selectedIndustries = new Set(selectedCampaigns.map(c => c.industry));
 
