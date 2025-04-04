@@ -145,29 +145,24 @@ const shouldSkipDisruption = (campaign: GeneratedCampaign) => {
 };
 
 const disruptOnAllAxes = async (
-  campaign: GeneratedCampaign, 
+  campaign: GeneratedCampaign,
   config: OpenAIConfig
 ): Promise<GeneratedCampaign> => {
-  if (shouldSkipDisruption(campaign)) {
-    console.log("⚠️ Skipping disruption for sensitive brand/audience.");
-    return campaign;
-  }
-
   const disruptionAxes: DisruptionAxis[] = [
-    { 
-      name: "Medium", 
-      test: /digital|app|online|virtual|metaverse/i, 
-      fix: "Convert to physical protest with real-world consequences" 
+    {
+      name: "Medium",
+      test: /digital|app|online|virtual|metaverse/i,
+      fix: "Convert to physical protest with real-world consequences"
     },
-    { 
-      name: "Tone", 
-      test: /fun|playful|game|lighthearted|entertaining/i, 
-      fix: "Make it confrontational and uncomfortable for power structures" 
+    {
+      name: "Tone",
+      test: /fun|playful|game|lighthearted|entertaining/i,
+      fix: "Make it confrontational and uncomfortable for power structures"
     },
-    { 
-      name: "Agency", 
-      test: /user|participant|player|viewer|spectator/i, 
-      fix: "Force institutional response through collective action" 
+    {
+      name: "Agency",
+      test: /user|participant|player|viewer|spectator/i,
+      fix: "Force institutional response through collective action"
     },
     {
       name: "Risk",
@@ -177,24 +172,15 @@ const disruptOnAllAxes = async (
   ];
 
   let modifiedCampaign = { ...campaign };
+  const triggeredAxes: string[] = [];
 
   for (const axis of disruptionAxes) {
     if (axis.test.test(JSON.stringify(modifiedCampaign).toLowerCase())) {
       try {
-        const prompt = `Take this ${axis.name} axis from safe to brave:
-Current Campaign: ${JSON.stringify({
+        const prompt = `Take this ${axis.name} axis from safe to brave:\nCurrent Campaign: ${JSON.stringify({
           strategy: modifiedCampaign.creativeStrategy,
           executions: modifiedCampaign.executionPlan
-        }, null, 2)}
-
-Axis Being Disrupted: ${axis.name}
-Disruption Requirement: ${axis.fix}
-
-Return ONLY the modified campaign JSON in this exact format:
-{
-  "creativeStrategy": string[],
-  "executionPlan": string[]
-}`;
+        }, null, 2)}\n\nAxis Being Disrupted: ${axis.name}\nDisruption Requirement: ${axis.fix}\n\nReturn ONLY the modified campaign JSON in this exact format:\n{\n  "creativeStrategy": string[],\n  "executionPlan": string[]\n}`;
 
         const response = await generateWithOpenAI(prompt, config);
         const disruptionResult = JSON.parse(extractJsonFromResponse(response));
@@ -208,9 +194,36 @@ Return ONLY the modified campaign JSON in this exact format:
             `${axis.name} axis disrupted: ${axis.fix}`
           ]
         };
+
+        triggeredAxes.push(axis.name);
       } catch (error) {
         console.error(`Disruption on ${axis.name} axis failed:`, error);
       }
+    }
+  }
+
+  // 🔥 If no axes triggered, apply fallback storytelling disruption
+  if (triggeredAxes.length === 0) {
+    try {
+      const fallbackPrompt = `This campaign is emotionally warm but lacks cultural friction.\nAdd a disruptive storytelling twist that introduces conflict, contradiction, or risk — while preserving the original intent.\n\nCampaign:\n${JSON.stringify({
+        strategy: modifiedCampaign.creativeStrategy,
+        executions: modifiedCampaign.executionPlan
+      }, null, 2)}\n\nReturn updated JSON with format:\n{\n  "creativeStrategy": string[],\n  "executionPlan": string[]\n}`;
+
+      const response = await generateWithOpenAI(fallbackPrompt, config);
+      const fallback = JSON.parse(extractJsonFromResponse(response));
+
+      modifiedCampaign = {
+        ...modifiedCampaign,
+        creativeStrategy: fallback.creativeStrategy || modifiedCampaign.creativeStrategy,
+        executionPlan: fallback.executionPlan || modifiedCampaign.executionPlan,
+        _cdModifications: [
+          ...(modifiedCampaign._cdModifications || []),
+          "Fallback CD disruption applied for low-friction narrative"
+        ]
+      };
+    } catch (error) {
+      console.warn("Fallback disruption failed:", error);
     }
   }
 
