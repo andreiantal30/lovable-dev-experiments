@@ -33,7 +33,7 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ id: propId }) => {
       const campaignData = saved[id];
 
       if (campaignData) {
-        setCampaign(campaignData);
+        setCampaign(campaignData.campaign);
       } else {
         toast.error('Campaign not found');
         navigate('/library');

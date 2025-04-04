@@ -98,12 +98,18 @@ const CampaignResult: React.FC<CampaignResultProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
             {/* Left Column */}
             <div className="md:col-span-5 space-y-6">
-              {campaign.insight && (
-                <div>
-                  <h3 className="font-medium text-lg text-primary">The Insight</h3>
-                  <p className="text-foreground/90">{campaign.insight}</p>
-                </div>
-              )}
+            {campaign.insight && (
+  <div>
+    <h3 className="font-medium text-lg text-primary">The Insight</h3>
+    <p className="text-foreground/90">
+      {typeof campaign.insight === 'string'
+        ? campaign.insight
+        : typeof campaign.insight === 'object' && 'surfaceInsight' in campaign.insight
+          ? (campaign.insight as any).surfaceInsight
+          : '—'}
+    </p>
+  </div>
+)}
 
               {campaign.idea && (
                 <div>
@@ -113,11 +119,14 @@ const CampaignResult: React.FC<CampaignResultProps> = ({
               )}
 
               {/* Creative Insights */}
-              {Array.isArray(campaign.creativeInsights) && campaign.creativeInsights.length > 0 && (
+              {(campaign.creativeInsights && (Array.isArray(campaign.creativeInsights) || typeof campaign.creativeInsights === 'object')) && (
                 <div>
                   <h3 className="font-medium text-lg text-primary">💡 Creative Insights</h3>
                   <ul className="pl-1 space-y-4">
-                    {campaign.creativeInsights.map((insight, index) => (
+                    {(Array.isArray(campaign.creativeInsights)
+                      ? campaign.creativeInsights
+                      : [campaign.creativeInsights]
+                    ).map((insight, index) => (
                       <li key={index} className="bg-muted/40 p-3 rounded-md border">
                         {isMultiLayeredInsight(insight) ? (
                           <>
