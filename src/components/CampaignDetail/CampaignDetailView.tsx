@@ -36,22 +36,32 @@ const CampaignDetailView: React.FC<CampaignDetailViewProps> = ({
     return Promise.resolve(); // stub
   };
 
-  // 🧠 Log eval on mount for debugging
+  // Safely initialize evaluation data
   useEffect(() => {
-    if (campaign.campaign && !campaign.campaign.evaluation) {
-      campaign.campaign.evaluation = {
-        insightSharpness: 0,
-        ideaOriginality: 0,
-        executionPotential: 0,
-        awardPotential: 0,
-        finalVerdict: 'No evaluation available.',
+    if (campaign?.campaign) {
+      // Create a new object instead of mutating the existing one
+      const updatedCampaign = {
+        ...campaign,
+        campaign: {
+          ...campaign.campaign,
+          evaluation: campaign.campaign.evaluation || {
+            insightSharpness: 0,
+            ideaOriginality: 0,
+            executionPotential: 0,
+            awardPotential: 0,
+            finalVerdict: 'No evaluation available.',
+          }
+        }
       };
-    } else {
-      console.log("✅ Loaded Evaluation from Library:", campaign.campaign.evaluation);
+
+      // Use this updated object in your component logic
+      // Note: You'll need to lift state up or use a state management solution
+      // to properly update the parent component's state
+      console.log("✅ Initialized Evaluation:", updatedCampaign.campaign.evaluation);
     }
   }, [campaign]);
 
-  // Guard against malformed data
+  // Enhanced guard against malformed data
   const isValid = campaign?.campaign && campaign.campaign.campaignName;
 
   if (!isValid) {
@@ -64,17 +74,26 @@ const CampaignDetailView: React.FC<CampaignDetailViewProps> = ({
     );
   }
 
+  // Safely access evaluation with fallback
+  const evaluation = campaign.campaign.evaluation || {
+    insightSharpness: 0,
+    ideaOriginality: 0,
+    executionPotential: 0,
+    awardPotential: 0,
+    finalVerdict: 'No evaluation available.',
+  };
+
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
       {!isInSidebar && (
-        <CampaignHeader campaignName={campaign.campaign?.campaignName} />
+        <CampaignHeader campaignName={campaign.campaign.campaignName} />
       )}
 
       <Card className="mb-8">
         <CardHeader>
           <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
             <CampaignMeta 
-              campaignName={campaign.campaign?.campaignName}
+              campaignName={campaign.campaign.campaignName}
               brand={campaign.brand}
               industry={campaign.industry}
               timestamp={campaign.timestamp}
@@ -92,7 +111,10 @@ const CampaignDetailView: React.FC<CampaignDetailViewProps> = ({
         <CardContent>
           <div className="space-y-6">
             <EnhancedCampaignResult 
-              campaign={campaign.campaign}
+              campaign={{
+                ...campaign.campaign,
+                evaluation // Pass the safely accessed evaluation
+              }}
               onGenerateAnother={() => navigate('/')}
               showFeedbackForm={false}
               onRefine={handleRefine}
