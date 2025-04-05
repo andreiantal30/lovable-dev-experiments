@@ -10,7 +10,7 @@ import { getCreativeDevicesForStyle } from '@/data/creativeDevices';
 import { getCachedCulturalTrends } from '@/data/culturalTrends';
 import { saveCampaignToLibrary } from './campaignStorage';
 import { evaluateCampaign } from './campaign/evaluateCampaign';
-import { enforceExecutionDiversity } from './campaign/executionFilters';
+import { enforceExecutionDiversity, reinforceExecutionDiversity } from './campaign/executionFilters';
 
 const BACKEND_URL = 'https://animated-capybara-jj9qrx9r77pwc5qwj-8090.app.github.dev';
 
@@ -377,6 +377,7 @@ let upgradedExecutions = [
 let topExecutions = enforceExecutionDiversity(
   selectTopBraveExecutions(upgradedExecutions)
 );
+topExecutions = reinforceExecutionDiversity(topExecutions);
 
 // If none of the executions score high enough, inject a Cannes-worthy spike
 const needsSpike = topExecutions.every(ex => {
