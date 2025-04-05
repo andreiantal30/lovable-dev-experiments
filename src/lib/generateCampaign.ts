@@ -11,6 +11,8 @@ import { getCachedCulturalTrends } from '@/data/culturalTrends';
 import { saveCampaignToLibrary } from './campaignStorage';
 import { evaluateCampaign } from './campaign/evaluateCampaign';
 import { enforceExecutionDiversity, reinforceExecutionDiversity } from './campaign/executionFilters';
+import { boostCreativeStrategy } from './campaign/strategyBooster';
+
 
 const BACKEND_URL = 'https://animated-capybara-jj9qrx9r77pwc5qwj-8090.app.github.dev';
 
@@ -299,6 +301,13 @@ export const generateCampaign = async (
 console.group('🎭 Creative Director Pass');
 const improved = await disruptOnAllAxes(parsed, openAIConfig);
 
+// ✅ Boost creative strategy based on insight tension
+improved.creativeStrategy = await boostCreativeStrategy(
+  improved.creativeStrategy,
+  creativeInsights[0],
+  openAIConfig
+);
+
 // ✅ Emotion Balance Pass – ensure emotional warmth isn't lost
 if (!/hope|connection|joy|pride|resilience|community/i.test(improved.storytelling)) {
   try {
@@ -398,6 +407,13 @@ if (needsSpike) {
 executions = cleanExecutionSteps(topExecutions);
     
     executions = cleanExecutionSteps(topExecutions);
+
+    // 🧠 Strategy booster
+improved.creativeStrategy = await boostCreativeStrategy(
+  improved.creativeStrategy,
+  creativeInsights[0],
+  openAIConfig
+);
 
     // 5. Final assembly with proper typing
     const campaign: GeneratedCampaign = {
