@@ -12,6 +12,7 @@ import { saveCampaignToLibrary } from './campaignStorage';
 import { evaluateCampaign } from './campaign/evaluateCampaign';
 import { enforceExecutionDiversity, reinforceExecutionDiversity } from './campaign/executionFilters';
 import { boostCreativeStrategy } from './campaign/strategyBooster';
+import { injectNarrativeAnchor } from './campaign/narrativeAnchor';
 
 
 const BACKEND_URL = 'https://animated-capybara-jj9qrx9r77pwc5qwj-8090.app.github.dev';
@@ -320,8 +321,20 @@ const polished = await generateStorytellingNarrative({
 
 improved.storytelling = polished.narrative;
 
+// 🧠 Reinforce emotional storytelling anchor
+try {
+  const reinforced = await injectNarrativeAnchor(improved, openAIConfig);
+  improved.storytelling = reinforced || improved.storytelling;
+  improved._cdModifications = [
+    ...(improved._cdModifications || []),
+    "Narrative anchor pass applied"
+  ];
+} catch (e) {
+  console.warn("⚠️ Narrative anchor pass failed:", e);
+}
+
 // ✅ Emotion Balance Pass – ensure emotional warmth isn't lost
-if (!/hope|connection|joy|pride|resilience|community/i.test(improved.storytelling)) {
+if (!/hope|connection|joy|pride|resilience|community/i.test(improved.storytelling || '')) {
   try {
     const rebalancePrompt = `This campaign lost emotional connection. Polish the language to restore hope, emotional resonance, or a sense of human connection—without undoing the bravery or confrontation.
 
