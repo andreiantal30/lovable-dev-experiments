@@ -10,10 +10,8 @@ import { getCreativeDevicesForStyle } from '@/data/creativeDevices';
 import { getCachedCulturalTrends } from '@/data/culturalTrends';
 import { saveCampaignToLibrary } from './campaignStorage';
 import { evaluateCampaign } from './campaign/evaluateCampaign';
-import { enforceExecutionDiversity, reinforceExecutionDiversity } from './campaign/executionFilters';
 import { boostCreativeStrategy } from './campaign/strategyBooster';
 import { injectNarrativeAnchor } from './campaign/narrativeAnchor';
-
 
 const BACKEND_URL = 'https://animated-capybara-jj9qrx9r77pwc5qwj-8090.app.github.dev';
 
@@ -25,29 +23,61 @@ interface BraveryMatrix {
   novelty: number;
   targetsPower?: number;
   avoidsClichés?: number;
+  environmentalBravery?: number;
 }
 
 const EXECUTION_REPLACEMENTS = {
   "tiktok challenge": [
-    "Guerrilla street challenge",
-    "Institutional infiltration"
+    "Guerrilla street challenge with real consequences",
+    "Institutional infiltration operation"
   ],
   "ar experience": [
-    "Physical protest with AR elements",
-    "Real-world treasure hunt with consequences"
+    "Physical protest with AR evidence collection",
+    "Real-world treasure hunt exposing corporate lies"
   ],
   "pop-up": [
-    "Permanent occupation",
+    "Permanent occupation installation",
     "Hostile architecture takeover"
   ]
 };
 
+const SUSTAINABILITY_EXECUTION_REPLACEMENTS = {
+  "pledge": [
+    "Corporate accountability tribunal",
+    "Sustainability compliance checkpoint"
+  ],
+  "petition": [
+    "Direct action intervention",
+    "Shareholder resolution proposal"
+  ]
+};
+
+const SUSTAINABILITY_BRAVERY_TRIGGERS = [
+  "fossil fuel", "oil company", "plastic", "deforestation",
+  "greenwash", "pledge gap", "promise gap"
+];
+
+// ================== VALIDATION HELPERS ================== //
+const validateExecution = (execution: string): boolean => {
+  const bannedPatterns = [
+    /surprise \w+ execution/i,
+    /bold new expression/i,
+    /subvert expectations/i,
+    /using \w+ mechanics/i
+  ];
+  return !bannedPatterns.some(p => p.test(execution));
+};
+
 // ================== EXECUTION HELPERS ================== //
 const selectTopBraveExecutions = (executions: string[]): string[] => {
-  const scored = executions.map(ex => ({
-    ex,
-    score: calculateBraveryMatrix({ executionPlan: [ex] } as GeneratedCampaign).culturalTension
-  }));
+  const scored = executions.map(ex => {
+    const bravery = calculateBraveryMatrix({ executionPlan: [ex] } as GeneratedCampaign);
+    return {
+      ex,
+      score: bravery.culturalTension + (bravery.environmentalBravery || 0) * 1.5
+    };
+  });
+  
   return scored.sort((a, b) => b.score - a.score)
               .slice(0, 5)
               .map(s => s.ex);
@@ -121,14 +151,20 @@ const deepenInsights = async (
 // ================== ENHANCED BRAVERY SYSTEM ================== //
 const calculateBraveryMatrix = (campaign: GeneratedCampaign): BraveryMatrix => {
   const text = JSON.stringify(campaign).toLowerCase();
+  const isSustainability = /green|eco|sustainab|environment/i.test(text);
+  
   return {
-    physicalIntervention: +(/(interrupt|hijack|vandal|occup|block)/i.test(text)) * 3,
-    institutionalChallenge: +(/(government|police|university|hospital|council)/i.test(text)) * 2,
-    personalRisk: +(/(confess|vulnerable|expose|embarrass)/i.test(text)) * 1.5,
-    culturalTension: +(/(gender|race|class|privilege|inequality)/i.test(text)) * 3.5,
-    novelty: 5 - +(/(tiktok|ar experience|pop-up|docuseries)/i.test(text)) * 2,
-    targetsPower: +(/(CEO|board|executive|legislation)/i.test(text)) * 2,
-    avoidsClichés: -+(/(hashtag|mural|petition)/i.test(text)) * 2
+    physicalIntervention: +(/(interrupt|hijack|vandal|occup|block|reclaim|install)/i.test(text)) * 3,
+    institutionalChallenge: +(/(government|police|university|corporat|executive|legislat|headquarters)/i.test(text)) * 2.5,
+    personalRisk: +(/(confess|vulnerable|expose|embarrass|arrest)/i.test(text)) * 1.5,
+    culturalTension: isSustainability ? 
+      +(/(greenwash|climate|eco|pollut)/i.test(text)) * 4 : 
+      +(/(gender|race|class|privilege)/i.test(text)) * 3.5,
+    novelty: 5 - +(/(tiktok|ar experience|pop-up|docuseries|petition|hashtag)/i.test(text)) * 2,
+    targetsPower: +(/(CEO|board|executive|legislation|oil|fossil)/i.test(text)) * 2.5,
+    avoidsClichés: -+(/(hashtag|mural|pledge|signature)/i.test(text)) * 2,
+    environmentalBravery: isSustainability ? 
+      +(new RegExp(SUSTAINABILITY_BRAVERY_TRIGGERS.join('|'), 'i').test(text)) * 3 : 0
   };
 };
 
@@ -163,6 +199,16 @@ const disruptOnAllAxes = async (
       name: "Risk",
       test: /safe|harmless|brand-friendly|approved/i,
       fix: "Introduce real personal or institutional risk"
+    },
+    {
+      name: "SustainabilityImpact",
+      test: /green|eco|sustainab|environment/i,
+      fix: "Make the environmental impact tangible and measurable with clear corporate accountability"
+    },
+    {
+      name: "CorporateAccountability",
+      test: /consumer|individual|personal action/i,
+      fix: "Shift focus from individual action to systemic corporate responsibility"
     }
   ];
 
@@ -210,7 +256,11 @@ Return ONLY the modified campaign JSON in this exact format:
   // Fallback polish if no disruption occurred
   if (!wasDisrupted) {
     try {
-      const polishPrompt = `Polish the tone, metaphor, and storytelling of this campaign to make it emotionally richer and more Cannes-worthy. Do not change the core idea, just rewrite the language to elevate it.
+      const polishPrompt = `Polish this campaign to:
+1. Tighten corporate accountability angles
+2. Make environmental impact measurable
+3. Strengthen protest narratives
+4. Maintain rebellious tone with specificity
 
 Campaign: ${JSON.stringify(modifiedCampaign, null, 2)}
 
@@ -223,7 +273,7 @@ Return JSON:`;
         ...polished,
         _cdModifications: [
           ...(modifiedCampaign._cdModifications || []),
-          "Fallback storytelling polish applied"
+          "Enhanced storytelling polish applied"
         ]
       };
     } catch (e) {
@@ -234,17 +284,48 @@ Return JSON:`;
   return modifiedCampaign;
 };
 
-
 // ================== EXECUTION POLISH ================== //
 const upgradeWeakExecutions = (executions: string[]): string[] => {
   return executions.map(ex => {
+    // Check standard replacements
     for (const [pattern, replacements] of Object.entries(EXECUTION_REPLACEMENTS)) {
       if (new RegExp(pattern, 'i').test(ex)) {
         return replacements[Math.floor(Math.random() * replacements.length)];
       }
     }
+    
+    // Check sustainability-specific replacements
+    if (/green|eco|sustainab|environment/i.test(ex)) {
+      for (const [pattern, replacements] of Object.entries(SUSTAINABILITY_EXECUTION_REPLACEMENTS)) {
+        if (new RegExp(pattern, 'i').test(ex)) {
+          return replacements[Math.floor(Math.random() * replacements.length)];
+        }
+      }
+    }
+    
     return ex;
   });
+};
+
+// ================== EXECUTION DIVERSITY ================== //
+const enforceExecutionDiversity = (executions: string[]): string[] => {
+  const categorized = executions.map(ex => ({
+    ex,
+    category: ex.includes('install') ? 'art' :
+              ex.includes('march') ? 'public' :
+              ex.includes('corporate') ? 'institutional' :
+              ex.includes('LEGO') ? 'symbolic' : 'other'
+  }));
+
+  const grouped = categorized.reduce((acc, {ex, category}) => {
+    acc[category] = [...(acc[category] || []), ex];
+    return acc;
+  }, {} as Record<string, string[]>);
+
+  return Object.values(grouped)
+    .flatMap(group => group.slice(0, 2)) // Max 2 per category
+    .filter(validateExecution)
+    .slice(0, 7);
 };
 
 // ================== CORE GENERATOR ================== //
@@ -253,7 +334,7 @@ export const generateCampaign = async (
   openAIConfig: OpenAIConfig = defaultOpenAIConfig
 ): Promise<GeneratedCampaign> => {
   try {
-    // 1. Generate foundational elements with enhanced insights
+    // 1. Generate foundational elements
     const rawInsights = (await generatePenetratingInsights(input, openAIConfig)).slice(0, 1);
     const creativeInsights = (await deepenInsights(rawInsights, openAIConfig))
       .map(insight => ({
@@ -294,114 +375,94 @@ export const generateCampaign = async (
       const changedFields = Object.keys(pre).filter(key => {
         return JSON.stringify(pre[key as keyof GeneratedCampaign]) !== JSON.stringify(post[key as keyof GeneratedCampaign]);
       });
-    
       console.log("🧠 Fields changed during CD Pass:", changedFields);
     }
 
     // 3. Creative Director pass
-console.group('🎭 Creative Director Pass');
-const improved = await disruptOnAllAxes(parsed, openAIConfig);
+    console.group('🎭 Creative Director Pass');
+    const improved = await disruptOnAllAxes(parsed, openAIConfig);
 
-// ✅ Boost creative strategy based on insight tension
-improved.creativeStrategy = await boostCreativeStrategy(
-  improved.creativeStrategy,
-  creativeInsights[0],
-  openAIConfig
-);
+    improved.creativeStrategy = await boostCreativeStrategy(
+      improved.creativeStrategy,
+      creativeInsights[0],
+      openAIConfig
+    );
 
-// ✅ NEW: Apply narrative polish to restore emotional resonance
-const polished = await generateStorytellingNarrative({
-  brand: input.brand,
-  industry: input.industry,
-  targetAudience: input.targetAudience,
-  emotionalAppeal: input.emotionalAppeal,
-  campaignName: improved.campaignName,
-  keyMessage: improved.keyMessage,
-}, openAIConfig);
+    const polished = await generateStorytellingNarrative({
+      brand: input.brand,
+      industry: input.industry,
+      targetAudience: input.targetAudience,
+      emotionalAppeal: input.emotionalAppeal,
+      campaignName: improved.campaignName,
+      keyMessage: improved.keyMessage,
+    }, openAIConfig);
 
-improved.storytelling = polished.narrative;
+    improved.storytelling = polished.narrative;
 
-// 🧠 Reinforce emotional storytelling anchor
-try {
-  const reinforced = await injectNarrativeAnchor(improved, openAIConfig);
-  improved.storytelling = reinforced || improved.storytelling;
-  improved._cdModifications = [
-    ...(improved._cdModifications || []),
-    "Narrative anchor pass applied"
-  ];
-} catch (e) {
-  console.warn("⚠️ Narrative anchor pass failed:", e);
-}
+    try {
+      const reinforced = await injectNarrativeAnchor(improved, openAIConfig);
+      improved.storytelling = reinforced || improved.storytelling;
+      improved._cdModifications = [
+        ...(improved._cdModifications || []),
+        "Narrative anchor pass applied"
+      ];
+    } catch (e) {
+      console.warn("⚠️ Narrative anchor pass failed:", e);
+    }
 
-// ✅ Emotion Balance Pass – ensure emotional warmth isn't lost
-if (!/hope|connection|joy|pride|resilience|community/i.test(improved.storytelling || '')) {
-  try {
-    const rebalancePrompt = `This campaign lost emotional connection. Polish the language to restore hope, emotional resonance, or a sense of human connection—without undoing the bravery or confrontation.
+    if (!/hope|connection|joy|pride|resilience|community/i.test(improved.storytelling || '')) {
+      try {
+        const rebalancePrompt = `Restore emotional resonance without losing bravery:
+Campaign: ${JSON.stringify(improved, null, 2)}`;
+        const balanceResponse = await generateWithOpenAI(rebalancePrompt, openAIConfig);
+        const emotionallyBalanced = JSON.parse(extractJsonFromResponse(balanceResponse));
 
-Campaign: ${JSON.stringify(improved, null, 2)}
+        improved.storytelling = emotionallyBalanced.storytelling || improved.storytelling;
+        improved.creativeStrategy = emotionallyBalanced.creativeStrategy || improved.creativeStrategy;
+        improved.executionPlan = emotionallyBalanced.executionPlan || improved.executionPlan;
 
-Return JSON:`;
-    const balanceResponse = await generateWithOpenAI(rebalancePrompt, openAIConfig);
-    const emotionallyBalanced = JSON.parse(extractJsonFromResponse(balanceResponse));
+        improved._cdModifications = [
+          ...(improved._cdModifications || []),
+          "Emotion rebalance pass applied"
+        ];
+      } catch (e) {
+        console.warn("⚠️ Emotion rebalance failed:", e);
+      }
+    }
 
-    improved.storytelling = emotionallyBalanced.storytelling || improved.storytelling;
-    improved.creativeStrategy = emotionallyBalanced.creativeStrategy || improved.creativeStrategy;
-    improved.executionPlan = emotionallyBalanced.executionPlan || improved.executionPlan;
+    console.log('🟠 Pre-CD:', JSON.stringify(parsed, null, 2));
+    console.log('🔵 Post-CD:', JSON.stringify(improved, null, 2));
+    logDifferences(parsed, improved);
+    console.groupEnd();
 
-    improved._cdModifications = [
-      ...(improved._cdModifications || []),
-      "Emotion rebalance pass applied"
+    // 4. Execution plan refinement
+    let executions = improved.executionPlan || [];
+
+    let upgradedExecutions = [
+      ...upgradeWeakExecutions(executions),
+      ...Object.entries(SUSTAINABILITY_EXECUTION_REPLACEMENTS)
+        .filter(([pattern]) => executions.some(e => new RegExp(pattern, 'i').test(e)))
+        .flatMap(([, replacements]) => replacements),
+      getStrategicSpike(input.brand, creativeInsights[0])
     ];
-  } catch (e) {
-    console.warn("⚠️ Emotion rebalance failed:", e);
-  }
-}
 
-console.log('🟠 Pre-CD:', JSON.stringify(parsed, null, 2));
-console.log('🔵 Post-CD:', JSON.stringify(improved, null, 2));
-logDifferences(parsed, improved);
-console.groupEnd();
+    let topExecutions = enforceExecutionDiversity(
+      selectTopBraveExecutions(upgradedExecutions)
+    );
 
+    // Add Cannes Spike only if truly needed
+    const braveryScore = calculateBraveryMatrix({ executionPlan: topExecutions } as GeneratedCampaign);
+    if ((braveryScore.environmentalBravery || 0) + braveryScore.culturalTension < 8) {
+      topExecutions.unshift(
+        `Cannes Spike: ${input.brand} Accountability Installation - Live build exposing their sustainability gaps`
+      );
+    }
 
-// 4. Execution plan refinement
-let executions = improved.executionPlan || [];
+    executions = cleanExecutionSteps(
+      Array.from(new Set(topExecutions)).filter(validateExecution)
+    );
 
-let upgradedExecutions = [
-  ...upgradeWeakExecutions(executions),
-  getStrategicSpike(input.brand, creativeInsights[0])
-];
-
-// ✨ Apply bravery ranking + execution diversity
-let topExecutions = enforceExecutionDiversity(
-  selectTopBraveExecutions(upgradedExecutions)
-);
-topExecutions = reinforceExecutionDiversity(topExecutions);
-
-// 🧹 Deduplicate executions
-topExecutions = Array.from(new Set(topExecutions));
-
-// If none of the executions score high enough, inject a Cannes-worthy spike
-const needsSpike = topExecutions.every(ex => {
-  const bravery = calculateBraveryMatrix({ executionPlan: [ex] } as GeneratedCampaign);
-  const score =
-    bravery.physicalIntervention +
-    bravery.institutionalChallenge +
-    bravery.personalRisk +
-    bravery.culturalTension;
-  return score < 7;
-});
-
-if (needsSpike) {
-  const spike = `Cannes Spike: Partner with controversial artists or social critics to create a one-day-only protest art installation inside the brand’s flagship store—unannounced, uncensored, and impossible to ignore.`;
-  topExecutions.unshift(spike);
-}
-
-executions = cleanExecutionSteps(topExecutions);
-    
-    executions = cleanExecutionSteps(topExecutions);
-
-
-    // 5. Final assembly with proper typing
+    // 5. Final assembly
     const campaign: GeneratedCampaign = {
       ...improved,
       executionPlan: executions,
@@ -410,7 +471,6 @@ executions = cleanExecutionSteps(topExecutions);
       storytelling: "",
     };
 
-    // 6. Generate narrative and evaluation
     campaign.storytelling = (await generateStorytellingNarrative({
       brand: input.brand,
       industry: input.industry,
@@ -432,7 +492,6 @@ executions = cleanExecutionSteps(topExecutions);
       braveryMatrix: calculateBraveryMatrix(campaign)
     };
 
-    // 7. Save and return
     saveCampaignToLibrary({
       id: crypto.randomUUID(),
       timestamp: new Date().toISOString(),
