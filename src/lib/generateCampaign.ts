@@ -10,6 +10,7 @@ import { getCreativeDevicesForStyle } from '@/data/creativeDevices';
 import { getCachedCulturalTrends } from '@/data/culturalTrends';
 import { saveCampaignToLibrary } from './campaignStorage';
 import { evaluateCampaign } from './campaign/evaluateCampaign';
+import { reinforceExecutionDiversity } from './campaign/executionFilters'; // Removed duplicate import
 import { boostCreativeStrategy } from './campaign/strategyBooster';
 import { injectNarrativeAnchor } from './campaign/narrativeAnchor';
 
@@ -70,7 +71,10 @@ const validateExecution = (execution: string): boolean => {
 
 // ================== EXECUTION HELPERS ================== //
 const selectTopBraveExecutions = (executions: string[]): string[] => {
-  const scored = executions.map(ex => {
+  // First filter and deduplicate
+  const validUniqueExecutions = [...new Set(executions.filter(validateExecution))];
+  
+  const scored = validUniqueExecutions.map(ex => {
     const bravery = calculateBraveryMatrix({ executionPlan: [ex] } as GeneratedCampaign);
     return {
       ex,
@@ -445,22 +449,22 @@ Campaign: ${JSON.stringify(improved, null, 2)}`;
         .flatMap(([, replacements]) => replacements),
       getStrategicSpike(input.brand, creativeInsights[0])
     ];
-
+    
+    // New optimized execution processing pipeline:
+    const strongExecutions = upgradedExecutions.filter(validateExecution);
     let topExecutions = enforceExecutionDiversity(
-      selectTopBraveExecutions(upgradedExecutions)
+      selectTopBraveExecutions(strongExecutions)
     );
-
+    
     // Add Cannes Spike only if truly needed
     const braveryScore = calculateBraveryMatrix({ executionPlan: topExecutions } as GeneratedCampaign);
     if ((braveryScore.environmentalBravery || 0) + braveryScore.culturalTension < 8) {
       topExecutions.unshift(
-        `Cannes Spike: ${input.brand} Accountability Installation - Live build exposing their sustainability gaps`
+        `Cannes Spike: ${input.brand} Accountability Installation`
       );
     }
-
-    executions = cleanExecutionSteps(
-      Array.from(new Set(topExecutions)).filter(validateExecution)
-    );
+    
+    executions = cleanExecutionSteps(topExecutions);
 
     // 5. Final assembly
     const campaign: GeneratedCampaign = {
