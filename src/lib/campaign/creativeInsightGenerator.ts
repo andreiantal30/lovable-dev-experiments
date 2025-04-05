@@ -8,8 +8,9 @@ export interface MultiLayeredInsight {
   creativeUnlock: string;
   systemicHypocrisy: string;
   actionParadox: string;
-  irony?: string; // NEW: Added field
-  brandComplicity?: string; // NEW: Added field
+  irony?: string;
+  brandComplicity?: string;
+  insightScore?: number; // ✅ ADDED
 }
 
 // 🔍 Enhanced scoring with irony and complicity weighting
@@ -98,7 +99,6 @@ Current Year: ${new Date().getFullYear()}
     const response = await generateWithOpenAI(prompt, config);
     const parsed = JSON.parse(extractJsonFromResponse(response));
 
-    // Validate all required fields including new ones
     const requiredFields = [
       'surfaceInsight', 'emotionalUndercurrent', 'systemicHypocrisy',
       'irony', 'brandComplicity', 'actionParadox', 'creativeUnlock'
@@ -108,7 +108,10 @@ Current Year: ${new Date().getFullYear()}
       throw new Error(`Missing required field in: ${JSON.stringify(parsed)}`);
     }
 
-    return [parsed];
+    return [{
+      ...parsed,
+      insightScore: scoreInsight(parsed) // ✅ ADDED
+    }];
 
   } catch (error) {
     console.error("⚠️ Insight generation failed:", error);
@@ -116,7 +119,6 @@ Current Year: ${new Date().getFullYear()}
   }
 }
 
-// 🔥 Enhanced contradiction generator with irony injection
 export async function generatePenetratingInsights(
   input: CampaignInput,
   config: OpenAIConfig = { apiKey: '', model: 'gpt-4o' }
@@ -154,9 +156,12 @@ Example format:
     const response = await generateWithOpenAI(contradictionPrompt, config);
     const contradictions = JSON.parse(extractJsonFromResponse(response));
 
-    return [base, ...contradictions]
-      .sort((a, b) => scoreInsight(b) - scoreInsight(a))
-      .slice(0, 3);
+    const scored = [base, ...contradictions].map(insight => ({
+      ...insight,
+      insightScore: scoreInsight(insight) // ✅ ADDED
+    }));
+
+    return scored.sort((a, b) => b.insightScore! - a.insightScore!).slice(0, 3);
 
   } catch (error) {
     console.error("⚠️ Contradiction generation failed:", error);
@@ -164,7 +169,6 @@ Example format:
   }
 }
 
-// NEW: Enhanced fallback with all required fields
 function getFallbackInsight(input: CampaignInput): MultiLayeredInsight {
   return {
     surfaceInsight: "Gen Z demands change but algorithms reward conformity",
@@ -173,6 +177,7 @@ function getFallbackInsight(input: CampaignInput): MultiLayeredInsight {
     irony: "The more they fight the system, the more content they create for it",
     brandComplicity: `${input.brand} sells rebellion while being owned by private equity`,
     actionParadox: "Must use corporate tools to dismantle corporate power",
-    creativeUnlock: "Help them sabotage the machine from within using its own rules"
+    creativeUnlock: "Help them sabotage the machine from within using its own rules",
+    insightScore: 8 // ✅ Optional fallback score
   };
 }
