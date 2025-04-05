@@ -309,9 +309,9 @@ improved.creativeStrategy = await boostCreativeStrategy(
 );
 
 // ✅ Emotion Balance Pass – ensure emotional warmth isn't lost
-if (!/hope|connection|joy|pride|resilience|community/i.test(improved.storytelling)) {
+if (improved.storytelling && !/hope|connection|joy|pride|resilience|community/i.test(improved.storytelling)) {
   try {
-    const rebalancePrompt = `This campaign lost emotional connection. Polish the language to restore hope, emotional resonance, or a sense of human connection—without undoing the bravery or confrontation.
+      const rebalancePrompt =  `This campaign lost emotional connection. Polish the language to restore hope, emotional resonance, or a sense of human connection—without undoing the bravery or confrontation.
 
 Campaign: ${JSON.stringify(improved, null, 2)}
 

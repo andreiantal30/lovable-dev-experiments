@@ -27,19 +27,25 @@ Insight:
 - Irony: ${insight.irony}
 - Brand Complicity: ${insight.brandComplicity}
 
-Return an array of 3–5 upgraded strategy lines that could headline a bold campaign.
+Return ONLY a valid JSON array of 3–5 rewritten strategy lines. Do not include commentary, just the array.
 
-Format:
+Example format:
 [
   "Strategy Line 1",
   "Strategy Line 2",
-  ...
+  "Strategy Line 3"
 ]
 `;
 
   try {
     const response = await generateWithOpenAI(prompt, config);
-    const strategyList = JSON.parse(extractJsonFromResponse(response));
+    const raw = extractJsonFromResponse(response);
+
+    if (!raw.trim().startsWith('[')) {
+      throw new Error('Response was not a JSON array');
+    }
+
+    const strategyList = JSON.parse(raw);
     return Array.isArray(strategyList) ? strategyList : existing;
   } catch (error) {
     console.error("⚠️ Strategy Boosting Failed:", error);
