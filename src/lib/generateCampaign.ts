@@ -308,30 +308,6 @@ improved.creativeStrategy = await boostCreativeStrategy(
   openAIConfig
 );
 
-// ✅ Emotion Balance Pass – ensure emotional warmth isn't lost
-if (improved.storytelling && !/hope|connection|joy|pride|resilience|community/i.test(improved.storytelling)) {
-  try {
-      const rebalancePrompt =  `This campaign lost emotional connection. Polish the language to restore hope, emotional resonance, or a sense of human connection—without undoing the bravery or confrontation.
-
-Campaign: ${JSON.stringify(improved, null, 2)}
-
-Return JSON:`;
-    const balanceResponse = await generateWithOpenAI(rebalancePrompt, openAIConfig);
-    const emotionallyBalanced = JSON.parse(extractJsonFromResponse(balanceResponse));
-
-    improved.storytelling = emotionallyBalanced.storytelling || improved.storytelling;
-    improved.creativeStrategy = emotionallyBalanced.creativeStrategy || improved.creativeStrategy;
-    improved.executionPlan = emotionallyBalanced.executionPlan || improved.executionPlan;
-
-    improved._cdModifications = [
-      ...(improved._cdModifications || []),
-      "Emotion rebalance pass applied"
-    ];
-  } catch (e) {
-    console.warn("⚠️ Emotion rebalance failed:", e);
-  }
-}
-
 // ✅ NEW: Apply narrative polish to restore emotional resonance
 const polished = await generateStorytellingNarrative({
   brand: input.brand,
@@ -388,6 +364,9 @@ let topExecutions = enforceExecutionDiversity(
 );
 topExecutions = reinforceExecutionDiversity(topExecutions);
 
+// 🧹 Deduplicate executions
+topExecutions = Array.from(new Set(topExecutions));
+
 // If none of the executions score high enough, inject a Cannes-worthy spike
 const needsSpike = topExecutions.every(ex => {
   const bravery = calculateBraveryMatrix({ executionPlan: [ex] } as GeneratedCampaign);
@@ -408,12 +387,6 @@ executions = cleanExecutionSteps(topExecutions);
     
     executions = cleanExecutionSteps(topExecutions);
 
-    // 🧠 Strategy booster
-improved.creativeStrategy = await boostCreativeStrategy(
-  improved.creativeStrategy,
-  creativeInsights[0],
-  openAIConfig
-);
 
     // 5. Final assembly with proper typing
     const campaign: GeneratedCampaign = {
