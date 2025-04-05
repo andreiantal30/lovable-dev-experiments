@@ -53,6 +53,7 @@ export interface CreativeInsight {
   surfaceInsight: string;
   emotionalUndercurrent: string;
   creativeUnlock: string;
+  keyMetric?: string; // NEW: Added optional keyMetric property
   systemicRoot?: string;
   emotionalParadox?: string;
   culturalTension?: string;

@@ -10,7 +10,7 @@ import { getCreativeDevicesForStyle } from '@/data/creativeDevices';
 import { getCachedCulturalTrends } from '@/data/culturalTrends';
 import { saveCampaignToLibrary } from './campaignStorage';
 import { evaluateCampaign } from './campaign/evaluateCampaign';
-import { normalizeExecutionNumbers } from './campaign/utils';
+import { enforceExecutionDiversity } from './campaign/executionFilters';
 
 const BACKEND_URL = 'https://animated-capybara-jj9qrx9r77pwc5qwj-8090.app.github.dev';
 
@@ -40,16 +40,20 @@ const EXECUTION_REPLACEMENTS = {
 };
 
 // ================== EXECUTION HELPERS ================== //
-// Removed duplicate declaration of upgradeWeakExecutions
-
-// Removed duplicate declaration of selectTopBraveExecutions
+const selectTopBraveExecutions = (executions: string[]): string[] => {
+  const scored = executions.map(ex => ({
+    ex,
+    score: calculateBraveryMatrix({ executionPlan: [ex] } as GeneratedCampaign).culturalTension
+  }));
+  return scored.sort((a, b) => b.score - a.score)
+              .slice(0, 5)
+              .map(s => s.ex);
+};
 
 function getStrategicSpike(brand: string, creativeInsight: CreativeInsight): string {
-  return `Strategic escalation for ${brand}: ${creativeInsight.culturalTension || 'No cultural tension'} ${creativeInsight.emotionalParadox?.split(' ').slice(0, 3).join(' ') || 'paradox'}`;
+  return `Strategic escalation for ${brand}: ${creativeInsight.keyMetric} ${creativeInsight.emotionalParadox?.split(' ').slice(0, 3).join(' ') || 'paradox'}`;
 }
 
-// ================== TYPE GUARDS ================== //
-// Add the actual type guard implementations here or remove this placeholder.
 // ================== TYPE GUARDS ================== //
 function isMultilayered(insight: CreativeInsight): insight is MultilayeredInsight {
   return !!insight.systemicRoot && !!insight.emotionalParadox && !!insight.culturalTension;
@@ -240,16 +244,6 @@ const upgradeWeakExecutions = (executions: string[]): string[] => {
   });
 };
 
-const selectTopBraveExecutions = (executions: string[]): string[] => {
-  const scored = executions.map(ex => ({
-    ex,
-    score: calculateBraveryMatrix({ executionPlan: [ex] } as GeneratedCampaign).culturalTension
-  }));
-  return scored.sort((a, b) => b.score - a.score)
-              .slice(0, 5)
-              .map(s => s.ex);
-};
-
 // ================== CORE GENERATOR ================== //
 export const generateCampaign = async (
   input: CampaignInput,
@@ -323,19 +317,38 @@ logDifferences(parsed, improved);
 console.groupEnd();
 
 
-    // 4. Execution plan refinement
-    let executions = improved.executionPlan || [];
+// 4. Execution plan refinement
+let executions = improved.executionPlan || [];
 
-    const upgradedExecutions = [
-      ...upgradeWeakExecutions(executions),
-      getStrategicSpike(input.brand, creativeInsights[0])
-    ];
+let upgradedExecutions = [
+  ...upgradeWeakExecutions(executions),
+  getStrategicSpike(input.brand, creativeInsights[0])
+];
+
+// ✨ Apply bravery ranking + execution diversity
+let topExecutions = enforceExecutionDiversity(
+  selectTopBraveExecutions(upgradedExecutions)
+);
+
+// If none of the executions score high enough, inject a Cannes-worthy spike
+const needsSpike = topExecutions.every(ex => {
+  const bravery = calculateBraveryMatrix({ executionPlan: [ex] } as GeneratedCampaign);
+  const score =
+    bravery.physicalIntervention +
+    bravery.institutionalChallenge +
+    bravery.personalRisk +
+    bravery.culturalTension;
+  return score < 7;
+});
+
+if (needsSpike) {
+  const spike = `Cannes Spike: Partner with controversial artists or social critics to create a one-day-only protest art installation inside the brand’s flagship store—unannounced, uncensored, and impossible to ignore.`;
+  topExecutions.unshift(spike);
+}
+
+executions = cleanExecutionSteps(topExecutions);
     
-    executions = normalizeExecutionNumbers(
-      cleanExecutionSteps(
-        selectTopBraveExecutions(upgradedExecutions)
-      )
-    );
+    executions = cleanExecutionSteps(topExecutions);
 
     // 5. Final assembly with proper typing
     const campaign: GeneratedCampaign = {
