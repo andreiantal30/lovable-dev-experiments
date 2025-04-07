@@ -175,7 +175,7 @@ Push for tension, contradiction, or irony. The idea should spark instant convers
 
   const executionReminder = `
 ### Execution Rules of the Game
-You must deliver exactly 4–5 execution ideas. Each one should be:
+You must deliver exactly 4–5 execution ideas that are directly anchored in your strategy lines. Each should be:
 - Brave or unconventional
 - Emotionally charged or culturally specific
 - Unexpected in format, media, or tone
@@ -224,8 +224,8 @@ ${awardPatterns}
 {
   "campaignName": "Bold Campaign Name",
   "keyMessage": "Sharp, emotional one-liner",
-  "creativeStrategy": ["Tactic 1", "Tactic 2", "Tactic 3"],
-  "executionPlan": ["Execution 1", "Execution 2", "Execution 3", "Execution 4", "Execution 5"],
+"creativeStrategy": ["Strategic concept line 1", "Strategic concept line 2"],
+"executionPlan": ["Execution idea clearly linked to strategy", "..."]
   "viralHook": "What makes it spread",
   "consumerInteraction": "How people participate",
   "expectedOutcomes": ["Outcome 1", "Outcome 2", "Outcome 3", "Outcome 4"],
