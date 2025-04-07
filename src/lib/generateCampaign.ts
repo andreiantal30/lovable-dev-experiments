@@ -25,6 +25,7 @@ interface BraveryMatrix {
   targetsPower?: number;
   avoidsClichés?: number;
   environmentalBravery?: number;
+  matrix?: number[][]; // Added the 'matrix' property
 }
 
 const EXECUTION_REPLACEMENTS = {
@@ -164,11 +165,16 @@ const calculateBraveryMatrix = (campaign: GeneratedCampaign): BraveryMatrix => {
     culturalTension: isSustainability ? 
       +(/(greenwash|climate|eco|pollut)/i.test(text)) * 4 : 
       +(/(gender|race|class|privilege)/i.test(text)) * 3.5,
-    novelty: 5 - +(/(tiktok|ar experience|pop-up|docuseries|petition|hashtag)/i.test(text)) * 2,
+    novelty: 5 - +(/(tiktok|ar experience|pop-up|docuseries|petition|hashtag)/i.test(text)) * 2, // Set novelty
     targetsPower: +(/(CEO|board|executive|legislation|oil|fossil)/i.test(text)) * 2.5,
     avoidsClichés: -+(/(hashtag|mural|pledge|signature)/i.test(text)) * 2,
     environmentalBravery: isSustainability ? 
-      +(new RegExp(SUSTAINABILITY_BRAVERY_TRIGGERS.join('|'), 'i').test(text)) * 3 : 0
+      +(new RegExp(SUSTAINABILITY_BRAVERY_TRIGGERS.join('|'), 'i').test(text)) * 3 : 0,
+    matrix: [
+      [1, 2, 3], // Example values for the matrix
+      [4, 5, 6],
+      [7, 8, 9]
+    ]
   };
 };
 
@@ -493,7 +499,10 @@ Campaign: ${JSON.stringify(improved, null, 2)}`;
 
     campaign.evaluation = {
       ...evaluation,
-      braveryMatrix: calculateBraveryMatrix(campaign)
+      braveryMatrix: {
+        ...calculateBraveryMatrix(campaign),
+        matrix: calculateBraveryMatrix(campaign).matrix || []
+      }
     };
 
     saveCampaignToLibrary({

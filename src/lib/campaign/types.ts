@@ -83,6 +83,7 @@ export interface BraveryMatrix {
   novelty: number;
   targetsPower?: number; // NEW: Added field
   avoidsClichés?: number; // NEW: Added field
+  challengesAuthority?: number; // NEW: Added missing property
 }
 
 export interface CampaignEvaluation {
@@ -95,6 +96,15 @@ export interface CampaignEvaluation {
   braveryBreakdown: BraveryMatrix;
   braverySuggestions: string[];
   braveryMatrix: BraveryMatrix; // Now properly required
+}
+
+export interface BraveryMatrix {
+  physicalIntervention: number;
+  institutionalChallenge: number;
+  personalRisk: number;
+  culturalTension: number;
+  novelty: number;
+  matrix: number[][]; // Added the missing 'matrix' property
 }
 
 // ================== GENERATED CAMPAIGN ================== //

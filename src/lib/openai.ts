@@ -140,10 +140,29 @@ Respond with **only** this JSON (no backticks or formatting):
       awardPotential: 5,
       creativeBravery: 5,
       braveryBreakdown: {
-        physicalIntervention: false,
-        challengesAuthority: false,
-        culturalTension: false,
-        personalRisk: false
+        physicalIntervention: 0,
+        challengesAuthority: 0,
+        culturalTension: 0,
+        personalRisk: 0,
+        institutionalChallenge: 0, // Ensure this field exists
+        novelty: 0, // Ensure this field exists
+        matrix: [  // Ensure matrix exists
+          [0, 0, 0],
+          [0, 0, 0],
+          [0, 0, 0]
+        ]
+      },
+      braveryMatrix: {
+        physicalIntervention: 0,
+        institutionalChallenge: 0,
+        personalRisk: 0,
+        culturalTension: 0,
+        novelty: 0,
+        matrix: [  // Ensure matrix exists
+          [0, 0, 0],
+          [0, 0, 0],
+          [0, 0, 0]
+        ]
       },
       braverySuggestions: [],
       finalVerdict: "Default fallback."
